@@ -1,1 +1,4 @@
 node_modules
+/client/dist/bundle.js
+/server/dist/main.js
+/server/dist/main.js.map
