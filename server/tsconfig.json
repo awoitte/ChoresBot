@@ -12,9 +12,11 @@
             "*": [
                 "node_modules/*"
             ]
-        }
+        },
+        "strict": true,
+        "resolveJsonModule": true
     },
     "include": [
-        "src/*"
+        "src/**/*.ts"
     ]
 }
