@@ -1,6 +1,7 @@
 import { Message, Channel } from '../models/chat'
 import { Client, Intents } from 'discord.js'
 import log from '../logging/log'
+import { isDebugFlagSet } from '../utility/debug'
 
 export function sendChatMessage(message: Message): void {
     log(`TODO: sendChatMessage ("${message.text}" in channel ${message.channel})`)
@@ -15,15 +16,17 @@ export function initClient(): Client {
             Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
             Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS
         ]
-    });
+    })
 }
 
 export function login(client: Client, token: string): void {
     client.on('ready', () => {
-        log(`Logged in as "${client?.user?.tag}"!`);
-    });
+        log(`Logged in as "${client?.user?.tag}"!`)
+    })
 
-    client.login(token);
+    if (!isDebugFlagSet()) {
+        client.login(token)
+    }
 }
 
 export function listenToChannel(channel: Channel, client: Client, callback: (a: Message) => void): void {
@@ -34,7 +37,11 @@ export function listenToChannel(channel: Channel, client: Client, callback: (a: 
 
         callback({
             text: msg.content,
-            channel: msg.channelId
+            channel: msg.channelId,
+            author: {
+                name: msg.author.tag,
+                id: msg.author.id
+            }
         })
 
         if (msg.content === 'ping') {
@@ -42,7 +49,7 @@ export function listenToChannel(channel: Channel, client: Client, callback: (a: 
                 log(`failed to react: '${reason}'`)
             })
         }
-    });
+    })
 
     client.on('messageUpdate', (oldMessage, newMessage) => {
         log(`messageUpdate: [${newMessage.author?.username}] from "${oldMessage.content}" to "${newMessage.content}"`)

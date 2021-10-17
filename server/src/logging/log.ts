@@ -1,7 +1,8 @@
-export default function log(message: string): void {
-    const debugFlag = process.env.DEBUG
+import { isDebugFlagSet } from "../utility/debug"
 
-    if (debugFlag !== undefined && debugFlag !== '' && debugFlag.toLowerCase() != 'false') {
+export default function log(message: string): void {
+
+    if (isDebugFlagSet()) {
         console.log(message)
     }
 }
