@@ -20,17 +20,22 @@ export function initClient(): Client {
 
 export function login(client: Client, token: string): void {
     client.on('ready', () => {
-        log(`Logged in as ${client?.user?.tag}!`);
+        log(`Logged in as "${client?.user?.tag}"!`);
     });
 
     client.login(token);
 }
 
-export function listenToChannel(channel: Channel, client: Client): void {
+export function listenToChannel(channel: Channel, client: Client, callback: (a: Message) => void): void {
     log(`TODO: listenToChannel "${channel}"`)
 
     client.on('messageCreate', async msg => {
         log(`Message recieved: [${msg.author.tag} in ${msg.guild?.name}] ${msg.content}`)
+
+        callback({
+            text: msg.content,
+            channel: msg.channelId
+        })
 
         if (msg.content === 'ping') {
             msg.react('🏓').catch(reason => {
