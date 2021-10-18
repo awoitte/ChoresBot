@@ -1,6 +1,5 @@
 import { Message } from './chat'
 import { Chore } from './chores'
-import { Schedule } from './time'
 
 export type Action =
     | SendMessage
@@ -31,13 +30,11 @@ export type DeclineChore = {
 export type AddChore = {
     kind: 'AddChore'
     chore: Chore
-    schedule: Schedule
 }
 
 export type ModifyChore = {
     kind: 'ModifyChore'
     chore: Chore
-    schedule: Schedule
 }
 
 export type DeleteChore = {

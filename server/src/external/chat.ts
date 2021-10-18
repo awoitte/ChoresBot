@@ -1,12 +1,10 @@
-import { Message, Channel } from '../models/chat'
+import { Message } from '../models/chat'
 import { Client, Intents } from 'discord.js'
 import log from '../logging/log'
 import { isDebugFlagSet } from '../utility/debug'
 
 export function sendChatMessage(message: Message): void {
-    log(
-        `TODO: sendChatMessage ("${message.text}" in channel ${message.channel})`
-    )
+    log(`TODO: sendChatMessage "${message.text}"`)
 }
 
 export function initClient(): Client {
@@ -32,7 +30,7 @@ export function login(client: Client, token: string): void {
 }
 
 export function listenToChannel(
-    channel: Channel,
+    channel: string,
     client: Client,
     callback: (a: Message) => void
 ): void {
@@ -45,7 +43,6 @@ export function listenToChannel(
 
         callback({
             text: msg.content,
-            channel: msg.channelId,
             author: {
                 name: msg.author.tag,
                 id: msg.author.id
@@ -71,11 +68,5 @@ export function listenToChannel(
 
     client.on('messageReactionRemove', (reaction, user) => {
         log(`messageReactionRemove: [${user.username}] ${reaction.emoji}`)
-    })
-
-    client.on('interactionCreate', (interaction) => {
-        log(
-            `interactionCreate: [${interaction.channel?.id}] ${interaction.type}`
-        )
     })
 }

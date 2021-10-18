@@ -3,16 +3,16 @@ import { User, ChoresBotUser } from '../models/chat'
 import { Chore } from '../models/chores'
 
 export interface DB {
-    getUserWithLeastRecentCompletion: () => User
-    getOutstandingChores: () => Chore[]
-    getUpcommingChores: () => Chore[]
-    addChore: (chore: Chore) => void
-    modifyChore: (chore: Chore) => MaybeError
+    getUsersWithLeastRecentCompletion: () => MaybeError<User[]>
+    getOutstandingChores: () => MaybeError<Chore[]>
+    getUpcommingChores: () => MaybeError<Chore[]>
+    addChore: (chore: Chore) => MaybeError<undefined>
+    modifyChore: (chore: Chore) => MaybeError<undefined>
 }
 
 export const mockDB: DB = {
-    getUserWithLeastRecentCompletion: () => {
-        return ChoresBotUser
+    getUsersWithLeastRecentCompletion: () => {
+        return [ChoresBotUser]
     },
     getOutstandingChores: () => {
         return []

@@ -1,1 +1,1 @@
-export type MaybeError = Error | undefined
+export type MaybeError<T> = Error | T
