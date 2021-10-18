@@ -4,7 +4,9 @@ import log from '../logging/log'
 import { isDebugFlagSet } from '../utility/debug'
 
 export function sendChatMessage(message: Message): void {
-    log(`TODO: sendChatMessage ("${message.text}" in channel ${message.channel})`)
+    log(
+        `TODO: sendChatMessage ("${message.text}" in channel ${message.channel})`
+    )
 }
 
 export function initClient(): Client {
@@ -29,11 +31,17 @@ export function login(client: Client, token: string): void {
     }
 }
 
-export function listenToChannel(channel: Channel, client: Client, callback: (a: Message) => void): void {
+export function listenToChannel(
+    channel: Channel,
+    client: Client,
+    callback: (a: Message) => void
+): void {
     log(`TODO: listenToChannel "${channel}"`)
 
-    client.on('messageCreate', async msg => {
-        log(`Message recieved: [${msg.author.tag} in ${msg.guild?.name}] ${msg.content}`)
+    client.on('messageCreate', async (msg) => {
+        log(
+            `Message recieved: [${msg.author.tag} in ${msg.guild?.name}] ${msg.content}`
+        )
 
         callback({
             text: msg.content,
@@ -45,14 +53,16 @@ export function listenToChannel(channel: Channel, client: Client, callback: (a: 
         })
 
         if (msg.content === 'ping') {
-            msg.react('🏓').catch(reason => {
+            msg.react('🏓').catch((reason) => {
                 log(`failed to react: '${reason}'`)
             })
         }
     })
 
     client.on('messageUpdate', (oldMessage, newMessage) => {
-        log(`messageUpdate: [${newMessage.author?.username}] from "${oldMessage.content}" to "${newMessage.content}"`)
+        log(
+            `messageUpdate: [${newMessage.author?.username}] from "${oldMessage.content}" to "${newMessage.content}"`
+        )
     })
 
     client.on('messageReactionAdd', (reaction, user) => {
@@ -63,7 +73,9 @@ export function listenToChannel(channel: Channel, client: Client, callback: (a: 
         log(`messageReactionRemove: [${user.username}] ${reaction.emoji}`)
     })
 
-    client.on('interactionCreate', interaction => {
-        log(`interactionCreate: [${interaction.channel?.id}] ${interaction.type}`)
+    client.on('interactionCreate', (interaction) => {
+        log(
+            `interactionCreate: [${interaction.channel?.id}] ${interaction.type}`
+        )
     })
 }

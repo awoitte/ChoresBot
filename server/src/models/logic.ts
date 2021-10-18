@@ -1,8 +1,15 @@
-import {Message} from './chat'
-import {Chore} from './chores'
+import { Message } from './chat'
+import { Chore } from './chores'
 import { Schedule } from './time'
 
-export type Action = SendMessage | CompleteChore | DeclineChore | AddChore | ModifyChore | DeleteChore
+export type Action =
+    | SendMessage
+    | CompleteChore
+    | DeclineChore
+    | AddChore
+    | ModifyChore
+    | DeleteChore
+    | RequestChroreEarly
 
 export type SendMessage = {
     kind: 'SendMessage'
@@ -16,8 +23,9 @@ export type CompleteChore = {
 
 export type DeclineChore = {
     kind: 'DeclineChore'
-    chore: Chore;
+    chore: Chore
     permenant: boolean
+    reason: string
 }
 
 export type AddChore = {
@@ -35,4 +43,8 @@ export type ModifyChore = {
 export type DeleteChore = {
     kind: 'DeleteChore'
     chore: Chore
+}
+
+export type RequestChroreEarly = {
+    kind: 'RequestChoreEarly'
 }

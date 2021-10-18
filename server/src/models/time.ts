@@ -10,7 +10,14 @@ export type Yearly = {
     date: Date
 }
 
-export type DayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"
+export type DayOfWeek =
+    | 'monday'
+    | 'tuesday'
+    | 'wednesday'
+    | 'thursday'
+    | 'friday'
+    | 'saturday'
+    | 'sunday'
 
 export type SpecificDate = {
     date: Date
