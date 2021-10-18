@@ -12,7 +12,7 @@ export interface DB {
 
 export const mockDB: DB = {
     getUsersWithLeastRecentCompletion: () => {
-        return [ChoresBotUser]
+        return []
     },
     getOutstandingChores: () => {
         return []

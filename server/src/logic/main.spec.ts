@@ -119,8 +119,8 @@ describe('perform actions on an interval', () => {
 
                 return [chore]
             },
-            getUserWithLeastRecentCompletion: () => {
-                return ChoresBotUser
+            getUsersWithLeastRecentCompletion: () => {
+                return [ChoresBotUser]
             }
         })
 
