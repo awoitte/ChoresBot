@@ -1,5 +1,5 @@
 import { MaybeError } from '../models/utility'
-import { User, ChoresBotUser } from '../models/chat'
+import { User } from '../models/chat'
 import { Chore } from '../models/chores'
 
 export interface DB {
@@ -8,6 +8,7 @@ export interface DB {
     getUpcommingChores: () => MaybeError<Chore[]>
     addChore: (chore: Chore) => MaybeError<undefined>
     modifyChore: (chore: Chore) => MaybeError<undefined>
+    getChoresAssignedToUser: (user: User) => MaybeError<Chore[]>
 }
 
 export const mockDB: DB = {
@@ -25,6 +26,9 @@ export const mockDB: DB = {
     },
     modifyChore: () => {
         return undefined
+    },
+    getChoresAssignedToUser: () => {
+        return []
     }
 }
 

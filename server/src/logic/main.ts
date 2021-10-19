@@ -1,5 +1,6 @@
 import { ChoresBotUser, Message } from '../models/chat'
 import { Action } from '../models/logic'
+import { Chore } from '../models/chores'
 import { DB } from '../external/db'
 import log from '../logging/log'
 
@@ -10,47 +11,150 @@ export function messageHandler(message: Message, db: DB): Action[] {
     const text = message.text.toLowerCase()
 
     if (text == 'ping') {
-        return [
-            {
-                kind: 'SendMessage',
-                message: {
-                    text: 'pong',
-                    author: ChoresBotUser
-                }
-            }
-        ]
+        return handlePingCommand()
     } else if (text === '!request') {
-        const upcommingChores = db.getUpcommingChores()
-        if (upcommingChores instanceof Error) {
-            throw upcommingChores
-        }
+        return handleRequestCommand(message, db)
+    } else if (text === '!skip') {
+        return handleSkipCommand(message, db)
+    }
 
-        if (upcommingChores.length > 0) {
-            const mostUrgentChore = upcommingChores[0]
+    return []
+}
 
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `@${message.author.name} the next upcomming unassigned chore is "${mostUrgentChore.name}"`,
-                        author: ChoresBotUser
-                    }
-                }
-            ]
+function handlePingCommand(): Action[] {
+    return [
+        {
+            kind: 'SendMessage',
+            message: {
+                text: 'pong',
+                author: ChoresBotUser
+            }
         }
+    ]
+}
+
+function handleRequestCommand(message: Message, db: DB): Action[] {
+    const userAssignedChores = db.getChoresAssignedToUser(message.author)
+    if (userAssignedChores instanceof Error) {
+        throw userAssignedChores
+    }
+
+    if (userAssignedChores.length > 0) {
+        const mostUrgentChore = userAssignedChores[0]
 
         return [
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `@${message.author.name} there are no upcomming chores`,
+                    text:
+                        `@${message.author.name} you are already assigned the chore "${mostUrgentChore.name}". ` +
+                        `If you would like to skip you can use the "!skip" command`,
                     author: ChoresBotUser
                 }
             }
         ]
     }
 
-    return []
+    const upcommingChores = db.getUpcommingChores()
+    if (upcommingChores instanceof Error) {
+        throw upcommingChores
+    }
+
+    if (upcommingChores.length > 0) {
+        const mostUrgentChore = upcommingChores[0]
+
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text: `@${message.author.name} the next upcomming unassigned chore is "${mostUrgentChore.name}"`,
+                    author: ChoresBotUser
+                }
+            }
+        ]
+    }
+
+    return [
+        {
+            kind: 'SendMessage',
+            message: {
+                text: `@${message.author.name} there are no upcomming chores`,
+                author: ChoresBotUser
+            }
+        }
+    ]
+}
+
+function handleSkipCommand(message: Message, db: DB): Action[] {
+    const userAssignedChores = db.getChoresAssignedToUser(message.author)
+    if (userAssignedChores instanceof Error) {
+        throw userAssignedChores
+    }
+
+    // check if the user is able to skip
+    if (userAssignedChores.length === 0) {
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text:
+                        `@${message.author.name} you have no chores currently assigned. ` +
+                        `If you would like to request a new chore you can use the "!request" command`,
+                    author: ChoresBotUser
+                }
+            }
+        ]
+    }
+
+    const actions: Action[] = []
+
+    // skip the chore
+    const choreToSkip: Chore = userAssignedChores[0]
+
+    actions.push({
+        kind: 'ModifyChore',
+        chore: {
+            ...choreToSkip,
+            assigned: false
+        }
+    })
+
+    // check for other chores that can be assigned instead
+    const upcommingChores = db.getUpcommingChores()
+    if (upcommingChores instanceof Error) {
+        throw upcommingChores
+    }
+
+    if (upcommingChores.length > 0) {
+        const mostUrgentChore = upcommingChores[0]
+        actions.push({
+            kind: 'ModifyChore',
+            chore: {
+                ...mostUrgentChore,
+                assigned: message.author
+            }
+        })
+
+        actions.push({
+            kind: 'SendMessage',
+            message: {
+                text:
+                    `the chore "${choreToSkip.name}" has been successfully skipped. ` +
+                    `@${ChoresBotUser.name} please do the chore: "${mostUrgentChore.name}"`,
+                author: ChoresBotUser
+            }
+        })
+    } else {
+        actions.push({
+            kind: 'SendMessage',
+            message: {
+                text: `the chore "${choreToSkip.name}" has been successfully skipped`,
+                author: ChoresBotUser
+            }
+        })
+    }
+
+    return actions
 }
 
 // loop is called at a set interval and handles logic that isn't prompted by a chat message
@@ -84,11 +188,12 @@ export function loop(db: DB): Action[] {
         const chore = outstandingChores[i]
         const user = assignableUsers[i]
 
-        chore.assigned = user
-
         actions.push({
             kind: 'ModifyChore',
-            chore
+            chore: {
+                ...chore,
+                assigned: user
+            }
         })
 
         actions.push({
