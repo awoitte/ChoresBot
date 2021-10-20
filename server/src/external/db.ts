@@ -6,10 +6,10 @@ export interface DB {
     getAssignableUsersInOrderOfRecentCompletion: () => MaybeError<User[]>
 
     // outstanding meaning past their scheduled time
-    getOutstandingChores: () => MaybeError<Chore[]>
+    getOutstandingUnassignedChores: () => MaybeError<Chore[]>
 
     // upcoming meaning before their scheduled time
-    getUpcommingChores: () => MaybeError<Chore[]>
+    getUpcommingUnassignedChores: () => MaybeError<Chore[]>
 
     addChore: (chore: Chore) => MaybeError<undefined>
     modifyChore: (chore: Chore) => MaybeError<undefined>
@@ -20,10 +20,10 @@ export const mockDB: DB = {
     getAssignableUsersInOrderOfRecentCompletion: () => {
         return []
     },
-    getOutstandingChores: () => {
+    getOutstandingUnassignedChores: () => {
         return []
     },
-    getUpcommingChores: () => {
+    getUpcommingUnassignedChores: () => {
         return []
     },
     addChore: () => {

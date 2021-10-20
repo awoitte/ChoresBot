@@ -59,34 +59,54 @@ function handleRequestCommand(message: Message, db: DB): Action[] {
         ]
     }
 
-    const upcommingChores = db.getUpcommingChores()
-    if (upcommingChores instanceof Error) {
-        throw upcommingChores
-    }
+    const assignableChores = getAllAssignableChores(db)
 
-    if (upcommingChores.length > 0) {
-        const mostUrgentChore = upcommingChores[0]
-
+    if (assignableChores.length == 0) {
         return [
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `@${message.author.name} the next upcomming unassigned chore is "${mostUrgentChore.name}"`,
+                    text: `@${message.author.name} there are no upcomming chores`,
                     author: ChoresBotUser
                 }
             }
         ]
     }
 
-    return [
-        {
-            kind: 'SendMessage',
-            message: {
-                text: `@${message.author.name} there are no upcomming chores`,
-                author: ChoresBotUser
+    const mostUrgentChore = findChoreForUser(assignableChores, message.author)
+
+    if (mostUrgentChore === undefined) {
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text:
+                        `@${message.author.name} unable to find you a suitable new chore. ` +
+                        `This might happen if all available chores have been skipped`,
+                    author: ChoresBotUser
+                }
             }
+        ]
+    }
+
+    const actions: Action[] = []
+
+    actions.push({
+        kind: 'ModifyChore',
+        chore: assignChore(mostUrgentChore, message.author)
+    })
+
+    actions.push({
+        kind: 'SendMessage',
+        message: {
+            text:
+                `Thank you for requesting a chore early! ` +
+                `@${message.author.name} you have been assigned the chore "${mostUrgentChore.name}"`,
+            author: ChoresBotUser
         }
-    ]
+    })
+
+    return actions
 }
 
 function handleSkipCommand(message: Message, db: DB): Action[] {
@@ -121,13 +141,22 @@ function handleSkipCommand(message: Message, db: DB): Action[] {
     })
 
     // check for other chores that can be assigned instead
-    const upcommingChores = db.getUpcommingChores()
-    if (upcommingChores instanceof Error) {
-        throw upcommingChores
+    const assignableChores = getAllAssignableChores(db)
+    if (assignableChores instanceof Error) {
+        throw assignableChores
     }
 
-    if (upcommingChores.length > 0) {
-        const mostUrgentChore = upcommingChores[0]
+    const assignableChoresWithoutSkipped = assignableChores.filter(
+        // filter out skipped chore manually as the db hasn't been updated yet
+        (chore) => chore.name !== choreToSkip.name
+    )
+
+    const mostUrgentChore = findChoreForUser(
+        assignableChoresWithoutSkipped,
+        message.author
+    )
+
+    if (mostUrgentChore !== undefined) {
         actions.push({
             kind: 'ModifyChore',
             chore: assignChore(mostUrgentChore, message.author)
@@ -206,7 +235,7 @@ function handleCompleteCommand(message: Message, db: DB): Action[] {
 export function loop(db: DB): Action[] {
     const actions: Action[] = []
 
-    const outstandingChores = db.getOutstandingChores()
+    const outstandingChores = db.getOutstandingUnassignedChores()
 
     if (outstandingChores instanceof Error) {
         log('Unable to get outstanding chores')
@@ -256,12 +285,38 @@ export function loop(db: DB): Action[] {
 
 function findUserForChore(chore: Chore, users: User[]): User | undefined {
     return users.find((user) => {
-        if (chore.skippedBy === undefined) {
-            // no need to check, take the first user
-            return true
-        }
-
-        // check if a user has already skipped the chore
-        return chore.skippedBy.find((u) => u.id === user.id) === undefined
+        return isUserEligableForChore(chore, user)
     })
+}
+
+function findChoreForUser(chores: Chore[], user: User): Chore | undefined {
+    return chores.find((chore) => {
+        return isUserEligableForChore(chore, user)
+    })
+}
+
+function isUserEligableForChore(chore: Chore, user: User): boolean {
+    // check if a user has already skipped the chore
+    if (chore.skippedBy !== undefined) {
+        return chore.skippedBy.find((u) => u.id === user.id) === undefined
+    }
+
+    return true
+}
+
+function getAllAssignableChores(db: DB): Chore[] {
+    const outstandingChores = db.getOutstandingUnassignedChores()
+
+    if (outstandingChores instanceof Error) {
+        log('Unable to get outstanding chores')
+        throw outstandingChores
+    }
+
+    const upcommingChores = db.getUpcommingUnassignedChores()
+
+    if (upcommingChores instanceof Error) {
+        throw upcommingChores
+    }
+
+    return [...outstandingChores, ...upcommingChores]
 }

@@ -37,7 +37,7 @@ const mockOutstandingChore: Chore = {
     }
 }
 
-function getUpcommingChores() {
+function getUpcommingUnassignedChores() {
     return [mockUpcommingChore]
 }
 
@@ -49,12 +49,12 @@ function getChoresAssignedToUser() {
     return [mockAssignedChore]
 }
 
-function getOutstandingChores() {
+function getOutstandingUnassignedChores() {
     return [mockOutstandingChore]
 }
 
 const mockDBWithUpcomming = Object.assign({}, mockDB, {
-    getUpcommingChores,
+    getUpcommingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
 })
 
@@ -63,13 +63,13 @@ const mockDBWithChoreAssigned = Object.assign({}, mockDB, {
 })
 
 const mockDBWithChoreAssignedAndUpcomming = Object.assign({}, mockDB, {
-    getUpcommingChores,
+    getUpcommingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion,
     getChoresAssignedToUser
 })
 
 const mockDBWithOutstandingChores = Object.assign({}, mockDB, {
-    getOutstandingChores,
+    getOutstandingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
 })
 
@@ -123,16 +123,26 @@ describe('Message handling logic', () => {
             mockDBWithUpcomming
         )
 
-        expect(actions).to.have.lengthOf(1)
+        expect(actions).to.have.lengthOf(2)
 
-        const action: Action = actions[0]
+        let action: Action = actions[0]
+
+        if (action.kind !== 'ModifyChore') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.chore.name).to.equal(mockUpcommingChore.name)
+        expect(action.chore.assigned).to.equal(mockUser)
+
+        action = actions[1]
 
         if (action.kind !== 'SendMessage') {
             throw 'Recieved Action of the wrong type'
         }
 
         expect(action.message.text).to.equal(
-            `@${mockUser.name} the next upcomming unassigned chore is "${mockUpcommingChore.name}"`
+            `Thank you for requesting a chore early! ` +
+                `@${mockUser.name} you have been assigned the chore "${mockUpcommingChore.name}"`
         )
     })
 
@@ -178,6 +188,48 @@ describe('Message handling logic', () => {
 
         expect(action.message.text).to.equal(
             `@${mockUser.name} there are no upcomming chores`
+        )
+    })
+
+    it('should respond when all upcomming chores have been skipped when requested', () => {
+        const mockChore: Chore = {
+            name: 'clean the dirt',
+            assigned: mockUser,
+            frequency: {
+                time: new Date()
+            },
+            skippedBy: [mockUser]
+        }
+
+        const mockDBUpcommingChoreAlreadySkipped = Object.assign({}, mockDB, {
+            getAssignableUsersInOrderOfRecentCompletion: () => {
+                return [mockUser]
+            },
+
+            getUpcommingUnassignedChores: () => {
+                return [mockChore]
+            }
+        })
+
+        const actions = messageHandler(
+            {
+                text: '!request',
+                author: mockUser
+            },
+            mockDBUpcommingChoreAlreadySkipped
+        )
+
+        expect(actions).to.have.lengthOf(1)
+
+        const action: Action = actions[0]
+
+        if (action.kind !== 'SendMessage') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.message.text).to.equal(
+            `@${mockUser.name} unable to find you a suitable new chore. ` +
+                `This might happen if all available chores have been skipped`
         )
     })
 
@@ -395,7 +447,7 @@ describe('Actions performed at an interval', () => {
                     return [mockChore]
                 },
 
-                getOutstandingChores: () => {
+                getOutstandingUnassignedChores: () => {
                     return [mockChore]
                 }
             }
