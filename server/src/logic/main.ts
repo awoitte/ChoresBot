@@ -140,7 +140,7 @@ function handleSkipCommand(message: Message, db: DB): Action[] {
             message: {
                 text:
                     `the chore "${choreToSkip.name}" has been successfully skipped. ` +
-                    `@${ChoresBotUser.name} please do the chore: "${mostUrgentChore.name}"`,
+                    `@${message.author.name} please do the chore: "${mostUrgentChore.name}"`,
                 author: ChoresBotUser
             }
         })

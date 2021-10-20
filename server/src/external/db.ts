@@ -4,8 +4,13 @@ import { Chore } from '../models/chores'
 
 export interface DB {
     getUsersWithLeastRecentCompletion: () => MaybeError<User[]>
+
+    // outstanding meaning past their scheduled time
     getOutstandingChores: () => MaybeError<Chore[]>
+
+    // upcoming meaning before their scheduled time
     getUpcommingChores: () => MaybeError<Chore[]>
+
     addChore: (chore: Chore) => MaybeError<undefined>
     modifyChore: (chore: Chore) => MaybeError<undefined>
     getChoresAssignedToUser: (user: User) => MaybeError<Chore[]>

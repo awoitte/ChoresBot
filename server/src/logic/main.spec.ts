@@ -4,13 +4,18 @@ import { expect } from 'chai'
 import { loop, messageHandler } from './main'
 import { Action } from '../models/logic'
 import { Chore } from '../models/chores'
+import { User } from '../models/chat'
 import { mockDB } from '../external/db'
-import { ChoresBotUser } from '../models/chat'
 
 // --- Mocks ---
+const mockUser: User = {
+    name: 'mockName',
+    id: 'mockID'
+}
+
 const mockUpcommingChore: Chore = {
     name: 'walk the cat',
-    assigned: ChoresBotUser,
+    assigned: mockUser,
     frequency: {
         time: new Date()
     }
@@ -18,7 +23,7 @@ const mockUpcommingChore: Chore = {
 
 const mockAssignedChore: Chore = {
     name: 'floop the pig',
-    assigned: ChoresBotUser,
+    assigned: mockUser,
     frequency: {
         time: new Date()
     }
@@ -26,7 +31,7 @@ const mockAssignedChore: Chore = {
 
 const mockOutstandingChore: Chore = {
     name: 'make a pile',
-    assigned: ChoresBotUser,
+    assigned: mockUser,
     frequency: {
         time: new Date()
     }
@@ -37,7 +42,7 @@ function getUpcommingChores() {
 }
 
 function getUsersWithLeastRecentCompletion() {
-    return [ChoresBotUser]
+    return [mockUser]
 }
 
 function getChoresAssignedToUser() {
@@ -83,6 +88,7 @@ describe('handles messages and returns actions', () => {
         )
 
         expect(actions).is.not.undefined
+        expect(actions).to.have.lengthOf(0)
     })
 
     it('should reply to "ping" with "pong"', () => {
@@ -112,7 +118,7 @@ describe('handles messages and returns actions', () => {
         const actions = messageHandler(
             {
                 text: '!request',
-                author: ChoresBotUser
+                author: mockUser
             },
             mockDBWithUpcomming
         )
@@ -126,7 +132,7 @@ describe('handles messages and returns actions', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${ChoresBotUser.name} the next upcomming unassigned chore is "${mockUpcommingChore.name}"`
+            `@${mockUser.name} the next upcomming unassigned chore is "${mockUpcommingChore.name}"`
         )
     })
 
@@ -134,7 +140,7 @@ describe('handles messages and returns actions', () => {
         const actions = messageHandler(
             {
                 text: '!request',
-                author: ChoresBotUser
+                author: mockUser
             },
             mockDBWithChoreAssigned
         )
@@ -148,7 +154,7 @@ describe('handles messages and returns actions', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${ChoresBotUser.name} you are already assigned the chore "${mockAssignedChore.name}". ` +
+            `@${mockUser.name} you are already assigned the chore "${mockAssignedChore.name}". ` +
                 `If you would like to skip you can use the "!skip" command`
         )
     })
@@ -157,7 +163,7 @@ describe('handles messages and returns actions', () => {
         const actions = messageHandler(
             {
                 text: '!request',
-                author: ChoresBotUser
+                author: mockUser
             },
             mockDB // mockDB will always respond with empty lists by default
         )
@@ -171,7 +177,7 @@ describe('handles messages and returns actions', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${ChoresBotUser.name} there are no upcomming chores`
+            `@${mockUser.name} there are no upcomming chores`
         )
     })
 
@@ -179,7 +185,7 @@ describe('handles messages and returns actions', () => {
         const actions = messageHandler(
             {
                 text: '!skip',
-                author: ChoresBotUser
+                author: mockUser
             },
             mockDBWithChoreAssigned
         )
@@ -211,7 +217,7 @@ describe('handles messages and returns actions', () => {
         const actions = messageHandler(
             {
                 text: '!skip',
-                author: ChoresBotUser
+                author: mockUser
             },
             mockDBWithChoreAssignedAndUpcomming
         )
@@ -235,7 +241,7 @@ describe('handles messages and returns actions', () => {
         }
 
         expect(action.chore.name).to.equal(mockUpcommingChore.name)
-        expect(action.chore.assigned).to.equal(ChoresBotUser)
+        expect(action.chore.assigned).to.equal(mockUser)
 
         action = actions[2]
 
@@ -245,7 +251,7 @@ describe('handles messages and returns actions', () => {
 
         expect(action.message.text).to.equal(
             `the chore "${mockAssignedChore.name}" has been successfully skipped. ` +
-                `@${ChoresBotUser.name} please do the chore: "${mockUpcommingChore.name}"`
+                `@${mockUser.name} please do the chore: "${mockUpcommingChore.name}"`
         )
     })
 
@@ -253,7 +259,7 @@ describe('handles messages and returns actions', () => {
         const actions = messageHandler(
             {
                 text: '!skip',
-                author: ChoresBotUser
+                author: mockUser
             },
             mockDB // mockDB will always respond with empty lists by default
         )
@@ -267,7 +273,7 @@ describe('handles messages and returns actions', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${ChoresBotUser.name} you have no chores currently assigned. ` +
+            `@${mockUser.name} you have no chores currently assigned. ` +
                 `If you would like to request a new chore you can use the "!request" command`
         )
     })
@@ -286,7 +292,7 @@ describe('perform actions on an interval', () => {
             throw 'Recieved Action of the wrong type'
         }
 
-        expect(action.chore.assigned).to.equal(ChoresBotUser)
+        expect(action.chore.assigned).to.equal(mockUser)
 
         action = actions[1]
 
@@ -295,7 +301,13 @@ describe('perform actions on an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${ChoresBotUser.name} please do the chore: "${mockOutstandingChore.name}"`
+            `@${mockUser.name} please do the chore: "${mockOutstandingChore.name}"`
         )
+    })
+
+    it('should not prompt users when there are no outstanding chores', () => {
+        const actions = loop(mockDBWithUpcomming) // some upcomming, but no outstanding
+
+        expect(actions).to.have.lengthOf(0)
     })
 })
