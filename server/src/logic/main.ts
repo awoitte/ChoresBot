@@ -1,8 +1,10 @@
 import { ChoresBotUser, Message } from '../models/chat'
 import { Action } from '../models/logic'
 import { Chore } from '../models/chores'
+import { User } from '../models/chat'
 import { DB } from '../external/db'
 import log from '../logging/log'
+import { skipChore } from './chores'
 
 // messageHandler determines how to respond to chat messages
 export function messageHandler(message: Message, db: DB): Action[] {
@@ -109,7 +111,8 @@ function handleSkipCommand(message: Message, db: DB): Action[] {
     const actions: Action[] = []
 
     // skip the chore
-    const choreToSkip: Chore = userAssignedChores[0]
+    let choreToSkip: Chore = userAssignedChores[0]
+    choreToSkip = skipChore(choreToSkip, message.author)
 
     actions.push({
         kind: 'ModifyChore',
@@ -168,25 +171,29 @@ export function loop(db: DB): Action[] {
         throw outstandingChores
     }
 
-    const assignableUsers = db.getUsersWithLeastRecentCompletion()
+    const assignableUsers = db.getAssignableUsersInOrderOfRecentCompletion()
 
     if (assignableUsers instanceof Error) {
         log('Unable to get assignable users')
         throw assignableUsers
     }
 
-    // do we have enough users free to assign all the chores? if not, only assign enough for all users
-    const enoughUsersForChores =
-        assignableUsers.length >= outstandingChores.length
+    while (outstandingChores.length > 0) {
+        const chore = outstandingChores.pop()
 
-    let numberOfChoresToAssign = outstandingChores.length
-    if (!enoughUsersForChores) {
-        numberOfChoresToAssign = assignableUsers.length
-    }
+        if (chore === undefined) {
+            log(
+                'impossible state reached, "outstandingChores" contained an undefined chore'
+            )
+            break
+        }
 
-    for (let i = 0; i < numberOfChoresToAssign; i++) {
-        const chore = outstandingChores[i]
-        const user = assignableUsers[i]
+        const user = findUserForChore(chore, assignableUsers)
+
+        if (user === undefined) {
+            log(`unable to find suitable user for the chore "${chore?.name}"`)
+            continue
+        }
 
         actions.push({
             kind: 'ModifyChore',
@@ -206,4 +213,16 @@ export function loop(db: DB): Action[] {
     }
 
     return actions
+}
+
+function findUserForChore(chore: Chore, users: User[]): User | undefined {
+    return users.find((user) => {
+        if (chore.skippedBy === undefined) {
+            // no need to check, take the first user
+            return true
+        }
+
+        // check if a user has already skipped the chore
+        return chore.skippedBy.find((u) => u.id === user.id) === undefined
+    })
 }

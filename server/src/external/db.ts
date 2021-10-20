@@ -3,7 +3,7 @@ import { User } from '../models/chat'
 import { Chore } from '../models/chores'
 
 export interface DB {
-    getUsersWithLeastRecentCompletion: () => MaybeError<User[]>
+    getAssignableUsersInOrderOfRecentCompletion: () => MaybeError<User[]>
 
     // outstanding meaning past their scheduled time
     getOutstandingChores: () => MaybeError<Chore[]>
@@ -17,7 +17,7 @@ export interface DB {
 }
 
 export const mockDB: DB = {
-    getUsersWithLeastRecentCompletion: () => {
+    getAssignableUsersInOrderOfRecentCompletion: () => {
         return []
     },
     getOutstandingChores: () => {

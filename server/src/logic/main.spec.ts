@@ -41,7 +41,7 @@ function getUpcommingChores() {
     return [mockUpcommingChore]
 }
 
-function getUsersWithLeastRecentCompletion() {
+function getAssignableUsersInOrderOfRecentCompletion() {
     return [mockUser]
 }
 
@@ -55,7 +55,7 @@ function getOutstandingChores() {
 
 const mockDBWithUpcomming = Object.assign({}, mockDB, {
     getUpcommingChores,
-    getUsersWithLeastRecentCompletion
+    getAssignableUsersInOrderOfRecentCompletion
 })
 
 const mockDBWithChoreAssigned = Object.assign({}, mockDB, {
@@ -64,13 +64,13 @@ const mockDBWithChoreAssigned = Object.assign({}, mockDB, {
 
 const mockDBWithChoreAssignedAndUpcomming = Object.assign({}, mockDB, {
     getUpcommingChores,
-    getUsersWithLeastRecentCompletion,
+    getAssignableUsersInOrderOfRecentCompletion,
     getChoresAssignedToUser
 })
 
 const mockDBWithOutstandingChores = Object.assign({}, mockDB, {
     getOutstandingChores,
-    getUsersWithLeastRecentCompletion
+    getAssignableUsersInOrderOfRecentCompletion
 })
 
 // --- Tests ---
@@ -307,6 +307,70 @@ describe('perform actions on an interval', () => {
 
     it('should not prompt users when there are no outstanding chores', () => {
         const actions = loop(mockDBWithUpcomming) // some upcomming, but no outstanding
+
+        expect(actions).to.have.lengthOf(0)
+    })
+
+    it('should not re-assign a chore to a user after they skip it', () => {
+        let mockChore: Chore = {
+            name: 'clean the dirt',
+            assigned: mockUser,
+            frequency: {
+                time: new Date()
+            }
+        }
+
+        const mockDBSameChoreAssignedAndOutstanding = Object.assign(
+            {},
+            mockDB,
+            {
+                getAssignableUsersInOrderOfRecentCompletion: () => {
+                    return [mockUser]
+                },
+
+                getChoresAssignedToUser: () => {
+                    return [mockChore]
+                },
+
+                getOutstandingChores: () => {
+                    return [mockChore]
+                }
+            }
+        )
+
+        let actions = messageHandler(
+            {
+                text: '!skip',
+                author: mockUser
+            },
+            mockDBSameChoreAssignedAndOutstanding
+        )
+
+        expect(actions).to.have.lengthOf(2)
+
+        // make sure modify chores are first so that if they fail we're not alerting the user unnecissarily
+        let action: Action = actions[0]
+
+        if (action.kind !== 'ModifyChore') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.chore.name).to.equal(mockChore.name)
+        expect(action.chore.assigned).to.equal(false)
+
+        mockChore = action.chore // re-assign so our mockDB "saves" any modifications
+
+        action = actions[1]
+
+        if (action.kind !== 'SendMessage') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.message.text).to.equal(
+            `the chore "${mockChore.name}" has been successfully skipped`
+        )
+
+        actions = loop(mockDBSameChoreAssignedAndOutstanding)
 
         expect(actions).to.have.lengthOf(0)
     })
