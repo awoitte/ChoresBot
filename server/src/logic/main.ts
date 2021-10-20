@@ -4,7 +4,7 @@ import { Chore } from '../models/chores'
 import { User } from '../models/chat'
 import { DB } from '../external/db'
 import log from '../logging/log'
-import { skipChore } from './chores'
+import { skipChore, completeChore, assignChore } from './chores'
 
 // messageHandler determines how to respond to chat messages
 export function messageHandler(message: Message, db: DB): Action[] {
@@ -18,6 +18,8 @@ export function messageHandler(message: Message, db: DB): Action[] {
         return handleRequestCommand(message, db)
     } else if (text === '!skip') {
         return handleSkipCommand(message, db)
+    } else if (text === '!complete') {
+        return handleCompleteCommand(message, db)
     }
 
     return []
@@ -111,15 +113,11 @@ function handleSkipCommand(message: Message, db: DB): Action[] {
     const actions: Action[] = []
 
     // skip the chore
-    let choreToSkip: Chore = userAssignedChores[0]
-    choreToSkip = skipChore(choreToSkip, message.author)
+    const choreToSkip: Chore = userAssignedChores[0]
 
     actions.push({
         kind: 'ModifyChore',
-        chore: {
-            ...choreToSkip,
-            assigned: false
-        }
+        chore: skipChore(choreToSkip, message.author)
     })
 
     // check for other chores that can be assigned instead
@@ -132,17 +130,14 @@ function handleSkipCommand(message: Message, db: DB): Action[] {
         const mostUrgentChore = upcommingChores[0]
         actions.push({
             kind: 'ModifyChore',
-            chore: {
-                ...mostUrgentChore,
-                assigned: message.author
-            }
+            chore: assignChore(mostUrgentChore, message.author)
         })
 
         actions.push({
             kind: 'SendMessage',
             message: {
                 text:
-                    `the chore "${choreToSkip.name}" has been successfully skipped. ` +
+                    `⏭ the chore "${choreToSkip.name}" has been successfully skipped. ` +
                     `@${message.author.name} please do the chore: "${mostUrgentChore.name}"`,
                 author: ChoresBotUser
             }
@@ -151,11 +146,58 @@ function handleSkipCommand(message: Message, db: DB): Action[] {
         actions.push({
             kind: 'SendMessage',
             message: {
-                text: `the chore "${choreToSkip.name}" has been successfully skipped`,
+                text: `⏭ the chore "${choreToSkip.name}" has been successfully skipped`,
                 author: ChoresBotUser
             }
         })
     }
+
+    return actions
+}
+
+function handleCompleteCommand(message: Message, db: DB): Action[] {
+    const userAssignedChores = db.getChoresAssignedToUser(message.author)
+    if (userAssignedChores instanceof Error) {
+        throw userAssignedChores
+    }
+
+    // check if the user is able to skip
+    if (userAssignedChores.length === 0) {
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text:
+                        `@${message.author.name} you have no chores currently assigned. ` +
+                        `If you would like to request a new chore you can use the "!request" command`,
+                    author: ChoresBotUser
+                }
+            }
+        ]
+    }
+
+    const actions: Action[] = []
+
+    // complete the chore
+    const completedChore: Chore = completeChore(userAssignedChores[0])
+
+    actions.push({
+        kind: 'ModifyChore',
+        chore: completedChore
+    })
+
+    actions.push({
+        kind: 'CompleteChore',
+        chore: completedChore
+    })
+
+    actions.push({
+        kind: 'SendMessage',
+        message: {
+            text: `✅ the chore "${completedChore.name}" has been successfully completed`,
+            author: ChoresBotUser
+        }
+    })
 
     return actions
 }
@@ -197,10 +239,7 @@ export function loop(db: DB): Action[] {
 
         actions.push({
             kind: 'ModifyChore',
-            chore: {
-                ...chore,
-                assigned: user
-            }
+            chore: assignChore(chore, user)
         })
 
         actions.push({

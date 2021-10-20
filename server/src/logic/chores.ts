@@ -14,6 +14,21 @@ export function skipChore(chore: Chore, user: User): Chore {
 
     return {
         ...chore,
-        skippedBy
+        skippedBy,
+        assigned: false
+    }
+}
+
+export function completeChore(chore: Chore): Chore {
+    return {
+        ...chore,
+        assigned: false
+    }
+}
+
+export function assignChore(chore: Chore, user: User): Chore {
+    return {
+        ...chore,
+        assigned: user
     }
 }

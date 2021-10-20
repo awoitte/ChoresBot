@@ -74,7 +74,7 @@ const mockDBWithOutstandingChores = Object.assign({}, mockDB, {
 })
 
 // --- Tests ---
-describe('handles messages and returns actions', () => {
+describe('Message handling logic', () => {
     it('should parse messages and determine actions', () => {
         const actions = messageHandler(
             {
@@ -209,7 +209,7 @@ describe('handles messages and returns actions', () => {
         }
 
         expect(action.message.text).to.equal(
-            `the chore "${mockAssignedChore.name}" has been successfully skipped`
+            `⏭ the chore "${mockAssignedChore.name}" has been successfully skipped`
         )
     })
 
@@ -250,7 +250,7 @@ describe('handles messages and returns actions', () => {
         }
 
         expect(action.message.text).to.equal(
-            `the chore "${mockAssignedChore.name}" has been successfully skipped. ` +
+            `⏭ the chore "${mockAssignedChore.name}" has been successfully skipped. ` +
                 `@${mockUser.name} please do the chore: "${mockUpcommingChore.name}"`
         )
     })
@@ -277,9 +277,72 @@ describe('handles messages and returns actions', () => {
                 `If you would like to request a new chore you can use the "!request" command`
         )
     })
+
+    it('should respond when a chore has been completed', () => {
+        const actions = messageHandler(
+            {
+                text: '!complete',
+                author: mockUser
+            },
+            mockDBWithChoreAssigned
+        )
+
+        expect(actions).to.have.lengthOf(3)
+
+        // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecissarily
+        let action: Action = actions[0]
+
+        if (action.kind !== 'ModifyChore') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.chore.name).to.equal(mockAssignedChore.name)
+        expect(action.chore.assigned).to.equal(false)
+
+        action = actions[1]
+
+        if (action.kind !== 'CompleteChore') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.chore.name).to.equal(mockAssignedChore.name)
+
+        action = actions[2]
+
+        if (action.kind !== 'SendMessage') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.message.text).to.equal(
+            `✅ the chore "${mockAssignedChore.name}" has been successfully completed`
+        )
+    })
+
+    it('should respond when there are no chores assigned to be completed', () => {
+        const actions = messageHandler(
+            {
+                text: '!complete',
+                author: mockUser
+            },
+            mockDB // mockDB will always respond with empty lists by default
+        )
+
+        expect(actions).to.have.lengthOf(1)
+
+        const action: Action = actions[0]
+
+        if (action.kind !== 'SendMessage') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.message.text).to.equal(
+            `@${mockUser.name} you have no chores currently assigned. ` +
+                `If you would like to request a new chore you can use the "!request" command`
+        )
+    })
 })
 
-describe('perform actions on an interval', () => {
+describe('Actions performed at an interval', () => {
     it('should prompt users to complete chores', () => {
         const actions = loop(mockDBWithOutstandingChores)
 
@@ -367,7 +430,7 @@ describe('perform actions on an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `the chore "${mockChore.name}" has been successfully skipped`
+            `⏭ the chore "${mockChore.name}" has been successfully skipped`
         )
 
         actions = loop(mockDBSameChoreAssignedAndOutstanding)
