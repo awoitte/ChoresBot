@@ -242,7 +242,7 @@ export function loop(db: DB): Action[] {
         throw outstandingChores
     }
 
-    const assignableUsers = db.getAssignableUsersInOrderOfRecentCompletion()
+    let assignableUsers = db.getAssignableUsersInOrderOfRecentCompletion()
 
     if (assignableUsers instanceof Error) {
         log('Unable to get assignable users')
@@ -250,7 +250,7 @@ export function loop(db: DB): Action[] {
     }
 
     while (outstandingChores.length > 0) {
-        const chore = outstandingChores.pop()
+        const chore = outstandingChores.shift()
 
         if (chore === undefined) {
             log(
@@ -259,22 +259,26 @@ export function loop(db: DB): Action[] {
             break
         }
 
-        const user = findUserForChore(chore, assignableUsers)
+        const selectedUser = findUserForChore(chore, assignableUsers)
 
-        if (user === undefined) {
+        if (selectedUser === undefined) {
             log(`unable to find suitable user for the chore "${chore?.name}"`)
             continue
         }
 
+        assignableUsers = assignableUsers.filter(
+            (u) => u.id !== selectedUser.id
+        )
+
         actions.push({
             kind: 'ModifyChore',
-            chore: assignChore(chore, user)
+            chore: assignChore(chore, selectedUser)
         })
 
         actions.push({
             kind: 'SendMessage',
             message: {
-                text: `@${user.name} please do the chore: "${chore.name}"`,
+                text: `@${selectedUser.name} please do the chore: "${chore.name}"`,
                 author: ChoresBotUser
             }
         })

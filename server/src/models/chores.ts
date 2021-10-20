@@ -3,7 +3,7 @@ import { Schedule } from './time'
 
 export type Chore = {
     name: string
-    assigned?: User | false
+    assigned: User | false
     frequency?: Schedule
     skippedBy?: User[]
 }

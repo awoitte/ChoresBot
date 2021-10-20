@@ -13,6 +13,11 @@ const mockUser: User = {
     id: 'mockID'
 }
 
+const mockUser2: User = {
+    name: 'mockUser2',
+    id: 'mockUser2'
+}
+
 const mockUpcommingChore: Chore = {
     name: 'walk the cat',
     assigned: mockUser,
@@ -488,5 +493,68 @@ describe('Actions performed at an interval', () => {
         actions = loop(mockDBSameChoreAssignedAndOutstanding)
 
         expect(actions).to.have.lengthOf(0)
+    })
+
+    it('should not assign multiple chores to the same user', () => {
+        const mockChore1: Chore = {
+            name: 'clean the dirt',
+            assigned: false
+        }
+
+        const mockChore2: Chore = {
+            name: 'floss the steps',
+            assigned: false
+        }
+
+        const mockDBMultipleChoresAndMultipleUsers = Object.assign({}, mockDB, {
+            getAssignableUsersInOrderOfRecentCompletion: () => {
+                return [mockUser, mockUser2]
+            },
+
+            getOutstandingUnassignedChores: () => {
+                return [mockChore1, mockChore2]
+            }
+        })
+
+        const actions = loop(mockDBMultipleChoresAndMultipleUsers)
+
+        expect(actions).to.have.lengthOf(4)
+
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecissarily
+        let action: Action = actions[0]
+
+        if (action.kind !== 'ModifyChore') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.chore.assigned).to.equal(mockUser)
+
+        action = actions[1]
+
+        if (action.kind !== 'SendMessage') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.message.text).to.equal(
+            `@${mockUser.name} please do the chore: "${mockChore1.name}"`
+        )
+
+        action = actions[2]
+
+        if (action.kind !== 'ModifyChore') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.chore.assigned).to.equal(mockUser2)
+
+        action = actions[3]
+
+        if (action.kind !== 'SendMessage') {
+            throw 'Recieved Action of the wrong type'
+        }
+
+        expect(action.message.text).to.equal(
+            `@${mockUser2.name} please do the chore: "${mockChore2.name}"`
+        )
     })
 })
