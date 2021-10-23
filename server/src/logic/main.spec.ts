@@ -5,6 +5,8 @@ import { loop, messageHandler } from './main'
 import { Action } from '../models/logic'
 import { Chore } from '../models/chores'
 import { User } from '../models/chat'
+import { AddCommand } from './commands'
+
 import { mockDB } from '../external/db'
 
 // --- Mocks ---
@@ -407,6 +409,28 @@ describe('Message handling logic', () => {
                 `@${mockUser.name} you have no chores currently assigned. ` +
                     `If you would like to request a new chore you can use the "!request" command`
             )
+        })
+    })
+
+    describe('!add command', () => {
+        it('should offer help text if sent with no arguments', () => {
+            const actions = messageHandler(
+                {
+                    text: '!add',
+                    author: mockUser
+                },
+                mockDB
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(AddCommand.helpText)
         })
     })
 })

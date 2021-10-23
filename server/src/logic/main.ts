@@ -3,7 +3,7 @@ import { Action } from '../models/logic'
 import { DB } from '../external/db'
 import log from '../logging/log'
 import { assignChore, findUserForChore } from './chores'
-import { AllCommands } from './commands'
+import { AllCommandsByCallsign } from './commands'
 
 // messageHandler determines how to respond to chat messages
 export function messageHandler(message: Message, db: DB): Action[] {
@@ -11,14 +11,43 @@ export function messageHandler(message: Message, db: DB): Action[] {
 
     const text = message.text.toLowerCase()
 
-    for (const commandText in AllCommands) {
-        if (Object.prototype.hasOwnProperty.call(AllCommands, commandText)) {
-            const command = AllCommands[commandText]
+    for (const commandText in AllCommandsByCallsign) {
+        if (
+            !Object.prototype.hasOwnProperty.call(
+                AllCommandsByCallsign,
+                commandText
+            )
+        ) {
+            // safegaurd to skip inherited properties
+            continue
+        }
 
-            if (text.startsWith(commandText)) {
-                return command.handler(message, db)
+        const command = AllCommandsByCallsign[commandText]
+
+        if (!text.startsWith(commandText)) {
+            continue
+        }
+
+        if (command.minArgumentCount !== undefined) {
+            const words = message.text.trim().split(' ')
+            const numberOfArguments = words.length - 1
+
+            if (numberOfArguments < command.minArgumentCount) {
+                return [
+                    {
+                        kind: 'SendMessage',
+                        message: {
+                            author: ChoresBotUser,
+                            text:
+                                command.helpText ||
+                                'this command needs more arguments'
+                        }
+                    }
+                ]
             }
         }
+
+        return command.handler(message, db)
     }
 
     return []
