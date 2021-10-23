@@ -32,3 +32,30 @@ export function assignChore(chore: Chore, user: User): Chore {
         assigned: user
     }
 }
+
+export function findUserForChore(
+    chore: Chore,
+    users: User[]
+): User | undefined {
+    return users.find((user) => {
+        return isUserEligableForChore(chore, user)
+    })
+}
+
+export function findChoreForUser(
+    chores: Chore[],
+    user: User
+): Chore | undefined {
+    return chores.find((chore) => {
+        return isUserEligableForChore(chore, user)
+    })
+}
+
+function isUserEligableForChore(chore: Chore, user: User): boolean {
+    // check if a user has already skipped the chore
+    if (chore.skippedBy !== undefined) {
+        return chore.skippedBy.find((u) => u.id === user.id) === undefined
+    }
+
+    return true
+}
