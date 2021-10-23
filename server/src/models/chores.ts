@@ -1,9 +1,9 @@
 import { User } from './chat'
-import { Schedule } from './time'
+import { Frequency } from './time'
 
 export type Chore = {
     name: string
     assigned: User | false
-    frequency?: Schedule
+    frequency?: Frequency
     skippedBy?: User[]
 }

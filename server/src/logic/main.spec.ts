@@ -22,26 +22,17 @@ const mockUser2: User = {
 
 const mockUpcommingChore: Chore = {
     name: 'walk the cat',
-    assigned: mockUser,
-    frequency: {
-        time: new Date()
-    }
+    assigned: mockUser
 }
 
 const mockAssignedChore: Chore = {
     name: 'floop the pig',
-    assigned: mockUser,
-    frequency: {
-        time: new Date()
-    }
+    assigned: mockUser
 }
 
 const mockOutstandingChore: Chore = {
     name: 'make a pile',
-    assigned: mockUser,
-    frequency: {
-        time: new Date()
-    }
+    assigned: mockUser
 }
 
 function getUpcommingUnassignedChores() {
@@ -205,9 +196,6 @@ describe('Message handling logic', () => {
             const mockChore: Chore = {
                 name: 'clean the dirt',
                 assigned: mockUser,
-                frequency: {
-                    time: new Date()
-                },
                 skippedBy: [mockUser]
             }
 
@@ -432,6 +420,81 @@ describe('Message handling logic', () => {
 
             expect(action.message.text).to.equal(AddCommand.helpText)
         })
+
+        it('should add a command with default frequency of "never"', () => {
+            const mockChoreName = 'water the tiles'
+            const mockDBWithSpy = Object.assign({}, mockDB, {
+                addChore: (chore: Chore) => {
+                    expect(chore.name).to.equal(mockChoreName)
+                    expect(chore.frequency).to.be.undefined
+                }
+            })
+
+            const actions = messageHandler(
+                {
+                    text: `!add ${mockChoreName}`,
+                    author: mockUser
+                },
+                mockDBWithSpy
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} new chore '${mockChoreName}' successfully added. ` +
+                    `Currently the chore has no frequency set so it will never be assigned. ` +
+                    `Use the !frequency command to set one.`
+            )
+        })
+
+        it('should add a command with frequency if supplied', () => {
+            const mockChoreName = 'water the tiles'
+            const mockChoreFrequency = 'Weekly @ wednesday'
+
+            const mockDBWithSpy = Object.assign({}, mockDB, {
+                addChore: (chore: Chore) => {
+                    expect(chore.name).to.equal(mockChoreName)
+
+                    if (
+                        chore.frequency === undefined ||
+                        chore.frequency.kind !== 'Weekly' ||
+                        chore.frequency.weekday !== 'wednesday'
+                    ) {
+                        console.log(chore.frequency)
+                        // should be wednesday
+                        throw new Error('incorrect frequency')
+                    }
+
+                    expect(chore.frequency).to.have.property('kind', 'Weekly')
+                }
+            })
+
+            const actions = messageHandler(
+                {
+                    text: `!add ${mockChoreName} ${mockChoreFrequency}`,
+                    author: mockUser
+                },
+                mockDBWithSpy
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} new chore '${mockChoreName}' successfully added with frequency '${mockChoreFrequency}'`
+            )
+        })
     })
 })
 
@@ -470,10 +533,7 @@ describe('Actions performed at an interval', () => {
     it('should not re-assign a chore to a user after they skip it', () => {
         let mockChore: Chore = {
             name: 'clean the dirt',
-            assigned: mockUser,
-            frequency: {
-                time: new Date()
-            }
+            assigned: mockUser
         }
 
         const mockDBSameChoreAssignedAndOutstanding = Object.assign(
