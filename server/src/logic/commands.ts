@@ -9,7 +9,8 @@ import {
     skipChore,
     completeChore,
     assignChore,
-    findChoreForUser
+    findChoreForUser,
+    describeChore
 } from './chores'
 
 export const PingCommand: Command = {
@@ -237,7 +238,7 @@ export const AddCommand: Command = {
     callsign: '!add',
     helpText: `!add chore-name frequency
 
-chore-name      The name of the chore, shown when being assigned, completed, etc.
+chore-name      The name of the chore. Shown when being assigned, completed, etc.
                 Should be something that clearly describes the chore.
                 Note: don't use the @ symbol in the name
 
@@ -255,9 +256,7 @@ e.g.
 !add floop the pig Once @ Nov 9 2:00 PM`,
     minArgumentCount: 2,
     handler: (message, db) => {
-        const commandArgs = message.text
-            .slice(AddCommand.callsign.length)
-            .trim()
+        const commandArgs = getArgumentsString(message.text, AddCommand)
 
         const words = commandArgs.split(' ')
         const atSignIndex = words.indexOf('@')
@@ -305,15 +304,7 @@ e.g.
 
         if (error) {
             log(error.message)
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: 'Error: unable to add chore to the db (see logs)',
-                        author: ChoresBotUser
-                    }
-                }
-            ]
+            throw error
         }
 
         return [
@@ -332,12 +323,121 @@ e.g.
     }
 }
 
+export const DeleteCommand: Command = {
+    callsign: '!delete',
+    minArgumentCount: 1,
+    helpText: `!delete chore-name
+
+chore-name      The name of the chore. Shown when being assigned, completed, etc.
+                Note: make sure spelling and capitalization matches exactly`,
+    handler: (message, db) => {
+        const choreName = getArgumentsString(message.text, DeleteCommand)
+
+        const error = db.deleteChore(choreName)
+
+        if (error instanceof Error) {
+            log(`error deleting chore "${choreName}": ${error.message}`)
+
+            // check if chore exists, maybe it was misspelled
+            const chore = db.getChoreByName(choreName)
+
+            if (chore !== undefined) {
+                // found the chore, the error was something else
+                throw error
+            }
+
+            return [
+                {
+                    kind: 'SendMessage',
+                    message: {
+                        text: `@${message.author.name} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                        author: ChoresBotUser
+                    }
+                }
+            ]
+        }
+
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text: `@${message.author.name} chore '${choreName}' successfully deleted`,
+                    author: ChoresBotUser
+                }
+            }
+        ]
+    }
+}
+
+export const InfoCommand: Command = {
+    callsign: '!info',
+    handler: (message, db) => {
+        const choreName = getArgumentsString(message.text, InfoCommand)
+
+        if (choreName === '') {
+            // no chore name supplied, list all chores
+
+            const allChores = db.getAllChoreNames()
+
+            if (allChores instanceof Error) {
+                log(`error retrieving all chore names: ${allChores.message}`)
+                throw allChores
+            }
+
+            const allChoresList = allChores
+                .map((chore) => `"${chore}"`)
+                .join('\n')
+
+            return [
+                {
+                    kind: 'SendMessage',
+                    message: {
+                        text: `All Chores:\n${allChoresList}`,
+                        author: ChoresBotUser
+                    }
+                }
+            ]
+        }
+
+        const chore = db.getChoreByName(choreName)
+
+        if (chore instanceof Error) {
+            log(`error retrieving chore "${choreName}": ${chore.message}`)
+            throw chore
+        }
+
+        if (chore === undefined) {
+            return [
+                {
+                    kind: 'SendMessage',
+                    message: {
+                        text: `@${message.author.name} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                        author: ChoresBotUser
+                    }
+                }
+            ]
+        }
+
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text: describeChore(chore),
+                    author: ChoresBotUser
+                }
+            }
+        ]
+    }
+}
+
 export const AllCommands: Command[] = [
     PingCommand,
     RequestCommand,
     SkipCommand,
     CompleteCommand,
-    AddCommand
+    AddCommand,
+    DeleteCommand,
+    InfoCommand
 ]
 
 export const AllCommandsByCallsign: Record<string, Command> =
@@ -361,4 +461,8 @@ function getAllAssignableChores(db: DB): Chore[] {
     }
 
     return [...outstandingChores, ...upcommingChores]
+}
+
+function getArgumentsString(messageText: string, command: Command): string {
+    return messageText.slice(command.callsign.length).trim()
 }

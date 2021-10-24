@@ -5,10 +5,11 @@ import { loop, messageHandler } from './main'
 import { Action } from '../models/logic'
 import { Chore } from '../models/chores'
 import { User } from '../models/chat'
-import { AddCommand } from './commands'
+import { AddCommand, DeleteCommand } from './commands'
 
 import { mockDB } from '../external/db'
 import { Frequency } from '../models/time'
+import { describeChore } from './chores'
 
 // --- Mocks ---
 const mockUser: User = {
@@ -41,6 +42,13 @@ const mockAssignedChore: Chore = {
 const mockOutstandingChore: Chore = {
     name: 'make a pile',
     assigned: mockUser,
+    frequency: mockFrequency
+}
+
+const mockGenericChore: Chore = {
+    name: 'clean the dirt',
+    assigned: mockUser,
+    skippedBy: [mockUser],
     frequency: mockFrequency
 }
 
@@ -202,13 +210,6 @@ describe('Message handling logic', () => {
         })
 
         it('should respond when all upcomming chores have been skipped when requested', () => {
-            const mockChore: Chore = {
-                name: 'clean the dirt',
-                assigned: mockUser,
-                skippedBy: [mockUser],
-                frequency: mockFrequency
-            }
-
             const mockDBUpcommingChoreAlreadySkipped = Object.assign(
                 {},
                 mockDB,
@@ -218,7 +219,7 @@ describe('Message handling logic', () => {
                     },
 
                     getUpcommingUnassignedChores: () => {
-                        return [mockChore]
+                        return [mockGenericChore]
                     }
                 }
             )
@@ -511,6 +512,165 @@ describe('Message handling logic', () => {
 
             expect(action.message.text).to.equal(
                 `@${mockUser.name} new chore '${mockChoreName}' successfully added with frequency '${mockChoreFrequency}'`
+            )
+        })
+    })
+
+    describe('!delete command', () => {
+        it('should offer help text if sent with no arguments', () => {
+            const actions = messageHandler(
+                {
+                    text: '!delete',
+                    author: mockUser
+                },
+                mockDB
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(DeleteCommand.helpText)
+        })
+
+        it('should respond if unable to find chore', () => {
+            const mockDBDeleteFailure = Object.assign({}, mockDB, {
+                deleteChore: () => {
+                    return new Error(
+                        "db should return an error when it can't delete a chore"
+                    )
+                }
+                // mockDB will respond with undefined when asked to getChoreByName
+            })
+
+            const missingChoreName = 'missing chore name'
+            const actions = messageHandler(
+                {
+                    text: `!delete ${missingChoreName}`,
+                    author: mockUser
+                },
+                mockDBDeleteFailure
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+            )
+        })
+
+        it('should delete a chore', () => {
+            const deletableChoreName = 'delete me'
+            const actions = messageHandler(
+                {
+                    text: `!delete ${deletableChoreName}`,
+                    author: mockUser
+                },
+                mockDB // mockDB will respond to deleteChore with success by default
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} chore '${deletableChoreName}' successfully deleted`
+            )
+        })
+    })
+
+    describe('!info command', () => {
+        it('should show all chore names if given no arguments', () => {
+            const mockChoreName = 'clean the dirt'
+
+            const mockDBWithChoreName = Object.assign({}, mockDB, {
+                getAllChoreNames: () => {
+                    return [mockChoreName]
+                }
+            })
+
+            const actions = messageHandler(
+                {
+                    text: '!info',
+                    author: mockUser
+                },
+                mockDBWithChoreName
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(`All Chores:
+"${mockChoreName}"`)
+        })
+
+        it('should respond if unable to find chore', () => {
+            const missingChoreName = 'missing chore name'
+            const actions = messageHandler(
+                {
+                    text: `!info ${missingChoreName}`,
+                    author: mockUser
+                },
+                mockDB // mockDB will respond with undefined when asked to getChoreByName
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+            )
+        })
+
+        it('should describe a chore', () => {
+            const mockDBWithGenericChore = Object.assign({}, mockDB, {
+                getChoreByName: () => {
+                    return mockGenericChore
+                }
+            })
+
+            const actions = messageHandler(
+                {
+                    text: `!info ${mockGenericChore.name}`,
+                    author: mockUser
+                },
+                mockDBWithGenericChore
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                describeChore(mockGenericChore)
             )
         })
     })

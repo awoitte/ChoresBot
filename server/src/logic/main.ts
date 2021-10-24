@@ -47,7 +47,19 @@ export function messageHandler(message: Message, db: DB): Action[] {
             }
         }
 
-        return command.handler(message, db)
+        try {
+            return command.handler(message, db)
+        } catch (error) {
+            return [
+                {
+                    kind: 'SendMessage',
+                    message: {
+                        text: `Error running command "${command.callsign}" (see logs)`,
+                        author: ChoresBotUser
+                    }
+                }
+            ]
+        }
     }
 
     return []

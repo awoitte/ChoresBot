@@ -13,7 +13,11 @@ export interface DB {
 
     addChore: (chore: Chore) => MaybeError<undefined>
     modifyChore: (chore: Chore) => MaybeError<undefined>
+    deleteChore: (name: string) => MaybeError<undefined>
+
+    getChoreByName: (name: string) => MaybeError<Chore | undefined>
     getChoresAssignedToUser: (user: User) => MaybeError<Chore[]>
+    getAllChoreNames: () => MaybeError<string[]>
 }
 
 export const mockDB: DB = {
@@ -32,7 +36,16 @@ export const mockDB: DB = {
     modifyChore: () => {
         return undefined
     },
+    deleteChore: () => {
+        return undefined
+    },
+    getChoreByName: () => {
+        return undefined
+    },
     getChoresAssignedToUser: () => {
+        return []
+    },
+    getAllChoreNames: () => {
         return []
     }
 }

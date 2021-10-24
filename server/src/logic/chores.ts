@@ -1,5 +1,6 @@
 import { Chore } from '../models/chores'
 import { User } from '../models/chat'
+import { frequencyToString } from './time'
 
 export function skipChore(chore: Chore, user: User): Chore {
     const skippedBy: User[] = []
@@ -31,6 +32,26 @@ export function assignChore(chore: Chore, user: User): Chore {
         ...chore,
         assigned: user
     }
+}
+
+export function describeChore(chore: Chore): string {
+    let description = `Chore "${chore.name}"
+Frequency: ${frequencyToString(chore.frequency)}`
+
+    if (chore.assigned === false) {
+        description += `\nCurrently unassigned`
+    } else {
+        description += `\nCurrently assigned to @${chore.assigned.name}`
+    }
+
+    if (chore.skippedBy !== undefined) {
+        const skippedList = chore.skippedBy
+            .map((user) => `@${user.name}`)
+            .join(', ')
+        description += `\nRecently skipped by ${skippedList}`
+    }
+
+    return description
 }
 
 export function findUserForChore(
