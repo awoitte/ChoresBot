@@ -8,6 +8,7 @@ import { User } from '../models/chat'
 import { AddCommand } from './commands'
 
 import { mockDB } from '../external/db'
+import { Frequency } from '../models/time'
 
 // --- Mocks ---
 const mockUser: User = {
@@ -20,19 +21,27 @@ const mockUser2: User = {
     id: 'mockUser2'
 }
 
+const mockFrequency: Frequency = {
+    kind: 'Once',
+    date: new Date()
+}
+
 const mockUpcommingChore: Chore = {
     name: 'walk the cat',
-    assigned: mockUser
+    assigned: mockUser,
+    frequency: mockFrequency
 }
 
 const mockAssignedChore: Chore = {
     name: 'floop the pig',
-    assigned: mockUser
+    assigned: mockUser,
+    frequency: mockFrequency
 }
 
 const mockOutstandingChore: Chore = {
     name: 'make a pile',
-    assigned: mockUser
+    assigned: mockUser,
+    frequency: mockFrequency
 }
 
 function getUpcommingUnassignedChores() {
@@ -196,7 +205,8 @@ describe('Message handling logic', () => {
             const mockChore: Chore = {
                 name: 'clean the dirt',
                 assigned: mockUser,
-                skippedBy: [mockUser]
+                skippedBy: [mockUser],
+                frequency: mockFrequency
             }
 
             const mockDBUpcommingChoreAlreadySkipped = Object.assign(
@@ -401,10 +411,50 @@ describe('Message handling logic', () => {
     })
 
     describe('!add command', () => {
-        it('should offer help text if sent with no arguments', () => {
-            const actions = messageHandler(
+        it('should offer help text if sent with one or zero arguments', () => {
+            // 0 args
+            let actions = messageHandler(
                 {
                     text: '!add',
+                    author: mockUser
+                },
+                mockDB
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            let action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(AddCommand.helpText)
+
+            // 1 args
+            actions = messageHandler(
+                {
+                    text: '!add test',
+                    author: mockUser
+                },
+                mockDB
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Recieved Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(AddCommand.helpText)
+        })
+
+        it('should offer help text if sent without frequency', () => {
+            const actions = messageHandler(
+                {
+                    text: '!add many "args" but no frequency',
                     author: mockUser
                 },
                 mockDB
@@ -419,38 +469,6 @@ describe('Message handling logic', () => {
             }
 
             expect(action.message.text).to.equal(AddCommand.helpText)
-        })
-
-        it('should add a command with default frequency of "never"', () => {
-            const mockChoreName = 'water the tiles'
-            const mockDBWithSpy = Object.assign({}, mockDB, {
-                addChore: (chore: Chore) => {
-                    expect(chore.name).to.equal(mockChoreName)
-                    expect(chore.frequency).to.be.undefined
-                }
-            })
-
-            const actions = messageHandler(
-                {
-                    text: `!add ${mockChoreName}`,
-                    author: mockUser
-                },
-                mockDBWithSpy
-            )
-
-            expect(actions).to.have.lengthOf(1)
-
-            const action: Action = actions[0]
-
-            if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
-            }
-
-            expect(action.message.text).to.equal(
-                `@${mockUser.name} new chore '${mockChoreName}' successfully added. ` +
-                    `Currently the chore has no frequency set so it will never be assigned. ` +
-                    `Use the !frequency command to set one.`
-            )
         })
 
         it('should add a command with frequency if supplied', () => {
@@ -533,7 +551,8 @@ describe('Actions performed at an interval', () => {
     it('should not re-assign a chore to a user after they skip it', () => {
         let mockChore: Chore = {
             name: 'clean the dirt',
-            assigned: mockUser
+            assigned: mockUser,
+            frequency: mockFrequency
         }
 
         const mockDBSameChoreAssignedAndOutstanding = Object.assign(
@@ -594,12 +613,14 @@ describe('Actions performed at an interval', () => {
     it('should not assign multiple chores to the same user', () => {
         const mockChore1: Chore = {
             name: 'clean the dirt',
-            assigned: false
+            assigned: false,
+            frequency: mockFrequency
         }
 
         const mockChore2: Chore = {
             name: 'floss the steps',
-            assigned: false
+            assigned: false,
+            frequency: mockFrequency
         }
 
         const mockDBMultipleChoresAndMultipleUsers = Object.assign({}, mockDB, {

@@ -2,7 +2,6 @@ import { ChoresBotUser } from '../models/chat'
 import { Action } from '../models/logic'
 import { Chore } from '../models/chores'
 import { Command } from '../models/commands'
-import { Frequency } from '../models/time'
 import { frequencyToString, parseFrequency } from './time'
 import { DB } from '../external/db'
 import log from '../logging/log'
@@ -236,14 +235,13 @@ export const CompleteCommand: Command = {
 
 export const AddCommand: Command = {
     callsign: '!add',
-    helpText: `!add chore-name [frequency]
+    helpText: `!add chore-name frequency
 
 chore-name      The name of the chore, shown when being assigned, completed, etc.
                 Should be something that clearly describes the chore.
                 Note: don't use the @ symbol in the name
 
-frequency       (Optional)
-                How frequently the chore should be completed/assigned.
+frequency       How frequently the chore should be completed/assigned.
                 Must be one of the following formats:
                     Daily @ <time>
                     Weekly @ <day>
@@ -255,59 +253,48 @@ e.g.
 !add flip the pool Weekly @ monday
 !add make a pile Yearly @ Feb 12
 !add floop the pig Once @ Nov 9 2:00 PM`,
-    minArgumentCount: 1,
+    minArgumentCount: 2,
     handler: (message, db) => {
-        console.log('TODO: !add command')
-
         const commandArgs = message.text
+            .slice(AddCommand.callsign.length)
             .trim()
-            .slice(AddCommand.callsign.length + 1)
 
-        let choreName = commandArgs
-        let frequency: undefined | Frequency = undefined
-        log(`TODO: parse frequency`)
+        const words = commandArgs.split(' ')
+        const atSignIndex = words.indexOf('@')
 
-        if (commandArgs.indexOf('@') !== -1) {
-            const words = commandArgs.split(' ')
-            const atSignIndex = words.indexOf('@')
-
-            // there must be a keyword before the @
-            // and the name of the chore needs to be before the @
-            // so the index must be at least 2
-            if (atSignIndex === -1 || atSignIndex < 2) {
-                log(
-                    `impossible state reached parsing frequency in !add command: ${commandArgs}`
-                )
-                return [
-                    {
-                        kind: 'SendMessage',
-                        message: {
-                            text: 'Error: unable to parse the frequency (see logs)',
-                            author: ChoresBotUser
-                        }
+        // there must be a keyword before the @
+        // and the name of the chore needs to be before the @
+        // so the index must be at least 2
+        if (atSignIndex === -1 || atSignIndex < 2) {
+            log(`invalid command format for !add command: ${commandArgs}`)
+            return [
+                {
+                    kind: 'SendMessage',
+                    message: {
+                        text:
+                            AddCommand.helpText ||
+                            'invalid format for !add command',
+                        author: ChoresBotUser
                     }
-                ]
-            }
+                }
+            ]
+        }
 
-            choreName = words.slice(0, atSignIndex - 1).join(' ')
+        const choreName = words.slice(0, atSignIndex - 1).join(' ')
+        const frequencyString = words.slice(atSignIndex - 1).join(' ')
+        const frequency = parseFrequency(frequencyString)
 
-            const frequencyString = words.slice(atSignIndex - 1).join(' ')
-            const parsed = parseFrequency(frequencyString)
-
-            if (parsed instanceof Error) {
-                log(`Error parseing frequency "${parsed.message}"`)
-                return [
-                    {
-                        kind: 'SendMessage',
-                        message: {
-                            text: 'Error: unable to parse the frequency (see logs)',
-                            author: ChoresBotUser
-                        }
+        if (frequency instanceof Error) {
+            log(`Error parseing frequency "${frequency.message}"`)
+            return [
+                {
+                    kind: 'SendMessage',
+                    message: {
+                        text: 'Error: unable to parse the frequency (see logs)',
+                        author: ChoresBotUser
                     }
-                ]
-            }
-
-            frequency = parsed
+                }
+            ]
         }
 
         const error = db.addChore({
@@ -329,34 +316,19 @@ e.g.
             ]
         }
 
-        if (frequency !== undefined) {
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `@${
-                            message.author.name
-                        } new chore '${choreName}' successfully added with frequency '${frequencyToString(
-                            frequency
-                        )}'`,
-                        author: ChoresBotUser
-                    }
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text: `@${
+                        message.author.name
+                    } new chore '${choreName}' successfully added with frequency '${frequencyToString(
+                        frequency
+                    )}'`,
+                    author: ChoresBotUser
                 }
-            ]
-        } else {
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text:
-                            `@${message.author.name} new chore '${choreName}' successfully added. ` +
-                            `Currently the chore has no frequency set so it will never be assigned. ` +
-                            `Use the !frequency command to set one.`,
-                        author: ChoresBotUser
-                    }
-                }
-            ]
-        }
+            }
+        ]
     }
 }
 

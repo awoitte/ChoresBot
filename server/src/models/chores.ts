@@ -4,6 +4,6 @@ import { Frequency } from './time'
 export type Chore = {
     name: string
     assigned: User | false
-    frequency?: Frequency
+    frequency: Frequency
     skippedBy?: User[]
 }
