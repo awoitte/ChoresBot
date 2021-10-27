@@ -1,4 +1,4 @@
-import { ChoresBotUser } from '../models/chat'
+import { ChoresBotUser, User } from '../models/chat'
 import { Action } from '../models/logic'
 import { Chore } from '../models/chores'
 import { Command } from '../models/commands'
@@ -187,50 +187,13 @@ export const SkipCommand: Command = {
 export const CompleteCommand: Command = {
     callsign: '!complete',
     handler: (message, db) => {
-        const userAssignedChores = db.getChoresAssignedToUser(message.author)
-        if (userAssignedChores instanceof Error) {
-            throw userAssignedChores
+        const commandArgs = getArgumentsString(message.text, CompleteCommand)
+
+        if (commandArgs.length === 0) {
+            return completeAssignedChore(message.author, db)
         }
 
-        // check if the user is able to skip
-        if (userAssignedChores.length === 0) {
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text:
-                            `@${message.author.name} you have no chores currently assigned. ` +
-                            `If you would like to request a new chore you can use the "!request" command`,
-                        author: ChoresBotUser
-                    }
-                }
-            ]
-        }
-
-        const actions: Action[] = []
-
-        // complete the chore
-        const completedChore: Chore = completeChore(userAssignedChores[0])
-
-        actions.push({
-            kind: 'ModifyChore',
-            chore: completedChore
-        })
-
-        actions.push({
-            kind: 'CompleteChore',
-            chore: completedChore
-        })
-
-        actions.push({
-            kind: 'SendMessage',
-            message: {
-                text: `✅ the chore "${completedChore.name}" has been successfully completed`,
-                author: ChoresBotUser
-            }
-        })
-
-        return actions
+        return completeChoreByName(commandArgs, message.author, db)
     }
 }
 
@@ -284,7 +247,7 @@ e.g.
         const frequency = parseFrequency(frequencyString)
 
         if (frequency instanceof Error) {
-            log(`Error parseing frequency "${frequency.message}"`)
+            log(`Error parsing frequency "${frequency.message}"`)
             return [
                 {
                     kind: 'SendMessage',
@@ -446,6 +409,85 @@ export const AllCommandsByCallsign: Record<string, Command> =
         return accumulator
     }, {})
 
+// --- Chore Completion ---
+function completeAssignedChore(user: User, db: DB): Action[] {
+    const userAssignedChores = db.getChoresAssignedToUser(user)
+    if (userAssignedChores instanceof Error) {
+        throw userAssignedChores
+    }
+
+    // check if the user has a chore assigned to complete
+    if (userAssignedChores.length === 0) {
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text:
+                        `@${user.name} you have no chores currently assigned. ` +
+                        `If you would like to request a new chore you can use the "!request" command`,
+                    author: ChoresBotUser
+                }
+            }
+        ]
+    }
+
+    const completedChore: Chore = completeChore(userAssignedChores[0])
+
+    return completeChoreActions(completedChore)
+}
+
+function completeChoreByName(
+    choreName: string,
+    completedBy: User,
+    db: DB
+): Action[] {
+    const chore = db.getChoreByName(choreName)
+
+    if (chore instanceof Error) {
+        throw chore
+    }
+
+    if (chore === undefined) {
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text: `@${completedBy.name} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                    author: ChoresBotUser
+                }
+            }
+        ]
+    }
+
+    const completedChore: Chore = completeChore(chore)
+
+    return completeChoreActions(completedChore)
+}
+
+function completeChoreActions(completedChore: Chore): Action[] {
+    const actions: Action[] = []
+
+    actions.push({
+        kind: 'ModifyChore',
+        chore: completedChore
+    })
+
+    actions.push({
+        kind: 'CompleteChore',
+        chore: completedChore
+    })
+
+    actions.push({
+        kind: 'SendMessage',
+        message: {
+            text: `✅ the chore "${completedChore.name}" has been successfully completed`,
+            author: ChoresBotUser
+        }
+    })
+
+    return actions
+}
+
 function getAllAssignableChores(db: DB): Chore[] {
     const outstandingChores = db.getOutstandingUnassignedChores()
 
@@ -463,6 +505,7 @@ function getAllAssignableChores(db: DB): Chore[] {
     return [...outstandingChores, ...upcomingChores]
 }
 
+// --- Utility ---
 function getArgumentsString(messageText: string, command: Command): string {
     return messageText.slice(command.callsign.length).trim()
 }

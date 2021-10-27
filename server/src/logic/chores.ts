@@ -59,7 +59,7 @@ export function findUserForChore(
     users: User[]
 ): User | undefined {
     return users.find((user) => {
-        return isUserEligableForChore(chore, user)
+        return isUserEligibleForChore(chore, user)
     })
 }
 
@@ -68,11 +68,11 @@ export function findChoreForUser(
     user: User
 ): Chore | undefined {
     return chores.find((chore) => {
-        return isUserEligableForChore(chore, user)
+        return isUserEligibleForChore(chore, user)
     })
 }
 
-function isUserEligableForChore(chore: Chore, user: User): boolean {
+function isUserEligibleForChore(chore: Chore, user: User): boolean {
     // check if a user has already skipped the chore
     if (chore.skippedBy !== undefined) {
         return chore.skippedBy.find((u) => u.id === user.id) === undefined

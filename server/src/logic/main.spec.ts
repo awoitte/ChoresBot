@@ -409,6 +409,77 @@ describe('Message handling logic', () => {
                     `If you would like to request a new chore you can use the "!request" command`
             )
         })
+
+        it('should allow completing a chore by name', () => {
+            // Note: the chore isn't assigned to the user
+
+            const mockDBWithChoreByName = Object.assign({}, mockDB, {
+                getChoreByName: () => {
+                    return mockGenericChore
+                }
+            })
+
+            const actions = messageHandler(
+                {
+                    text: `!complete ${mockGenericChore.name}`,
+                    author: mockUser
+                },
+                mockDBWithChoreByName
+            )
+
+            expect(actions).to.have.lengthOf(3)
+
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
+            let action: Action = actions[0]
+
+            if (action.kind !== 'ModifyChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.chore.name).to.equal(mockGenericChore.name)
+            expect(action.chore.assigned).to.equal(false)
+
+            action = actions[1]
+
+            if (action.kind !== 'CompleteChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.chore.name).to.equal(mockGenericChore.name)
+
+            action = actions[2]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `✅ the chore "${mockGenericChore.name}" has been successfully completed`
+            )
+        })
+
+        it('should respond when unable to find chore to be completed', () => {
+            const missingChoreName = 'missing chore name'
+            const actions = messageHandler(
+                {
+                    text: `!complete ${missingChoreName}`,
+                    author: mockUser
+                },
+                mockDB // mockDB will always be unable to find a chore
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+            )
+        })
     })
 
     describe('!add command', () => {
