@@ -38,7 +38,7 @@ export function listenToChannel(
 
     client.on('messageCreate', async (msg) => {
         log(
-            `Message recieved: [${msg.author.tag} in ${msg.guild?.name}] ${msg.content}`
+            `Message Received: [${msg.author.tag} in ${msg.guild?.name}] ${msg.content}`
         )
 
         callback({

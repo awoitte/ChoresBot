@@ -9,7 +9,7 @@ export interface DB {
     getOutstandingUnassignedChores: () => MaybeError<Chore[]>
 
     // upcoming meaning before their scheduled time
-    getUpcommingUnassignedChores: () => MaybeError<Chore[]>
+    getUpcomingUnassignedChores: () => MaybeError<Chore[]>
 
     addChore: (chore: Chore) => MaybeError<undefined>
     modifyChore: (chore: Chore) => MaybeError<undefined>
@@ -27,7 +27,7 @@ export const mockDB: DB = {
     getOutstandingUnassignedChores: () => {
         return []
     },
-    getUpcommingUnassignedChores: () => {
+    getUpcomingUnassignedChores: () => {
         return []
     },
     addChore: () => {

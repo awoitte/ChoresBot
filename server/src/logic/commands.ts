@@ -59,7 +59,7 @@ export const RequestCommand: Command = {
                 {
                     kind: 'SendMessage',
                     message: {
-                        text: `@${message.author.name} there are no upcomming chores`,
+                        text: `@${message.author.name} there are no upcoming chores`,
                         author: ChoresBotUser
                     }
                 }
@@ -454,13 +454,13 @@ function getAllAssignableChores(db: DB): Chore[] {
         throw outstandingChores
     }
 
-    const upcommingChores = db.getUpcommingUnassignedChores()
+    const upcomingChores = db.getUpcomingUnassignedChores()
 
-    if (upcommingChores instanceof Error) {
-        throw upcommingChores
+    if (upcomingChores instanceof Error) {
+        throw upcomingChores
     }
 
-    return [...outstandingChores, ...upcommingChores]
+    return [...outstandingChores, ...upcomingChores]
 }
 
 function getArgumentsString(messageText: string, command: Command): string {

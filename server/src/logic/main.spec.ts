@@ -27,7 +27,7 @@ const mockFrequency: Frequency = {
     date: new Date()
 }
 
-const mockUpcommingChore: Chore = {
+const mockUpcomingChore: Chore = {
     name: 'walk the cat',
     assigned: mockUser,
     frequency: mockFrequency
@@ -52,8 +52,8 @@ const mockGenericChore: Chore = {
     frequency: mockFrequency
 }
 
-function getUpcommingUnassignedChores() {
-    return [mockUpcommingChore]
+function getUpcomingUnassignedChores() {
+    return [mockUpcomingChore]
 }
 
 function getAssignableUsersInOrderOfRecentCompletion() {
@@ -68,8 +68,8 @@ function getOutstandingUnassignedChores() {
     return [mockOutstandingChore]
 }
 
-const mockDBWithUpcomming = Object.assign({}, mockDB, {
-    getUpcommingUnassignedChores,
+const mockDBWithUpcoming = Object.assign({}, mockDB, {
+    getUpcomingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
 })
 
@@ -77,8 +77,8 @@ const mockDBWithChoreAssigned = Object.assign({}, mockDB, {
     getChoresAssignedToUser
 })
 
-const mockDBWithChoreAssignedAndUpcomming = Object.assign({}, mockDB, {
-    getUpcommingUnassignedChores,
+const mockDBWithChoreAssignedAndUpcoming = Object.assign({}, mockDB, {
+    getUpcomingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion,
     getChoresAssignedToUser
 })
@@ -124,7 +124,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal('pong')
@@ -132,13 +132,13 @@ describe('Message handling logic', () => {
     })
 
     describe('!request command', () => {
-        it('should provide the closest upcomming chore when requested', () => {
+        it('should provide the closest upcoming chore when requested', () => {
             const actions = messageHandler(
                 {
                     text: '!request',
                     author: mockUser
                 },
-                mockDBWithUpcomming
+                mockDBWithUpcoming
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -146,21 +146,21 @@ describe('Message handling logic', () => {
             let action: Action = actions[0]
 
             if (action.kind !== 'ModifyChore') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mockUpcommingChore.name)
+            expect(action.chore.name).to.equal(mockUpcomingChore.name)
             expect(action.chore.assigned).to.equal(mockUser)
 
             action = actions[1]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
                 `Thank you for requesting a chore early! ` +
-                    `@${mockUser.name} you have been assigned the chore "${mockUpcommingChore.name}"`
+                    `@${mockUser.name} you have been assigned the chore "${mockUpcomingChore.name}"`
             )
         })
 
@@ -178,7 +178,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -187,7 +187,7 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should respond when there are no upcomming chores when requested', () => {
+        it('should respond when there are no upcoming chores when requested', () => {
             const actions = messageHandler(
                 {
                     text: '!request',
@@ -201,16 +201,16 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
-                `@${mockUser.name} there are no upcomming chores`
+                `@${mockUser.name} there are no upcoming chores`
             )
         })
 
-        it('should respond when all upcomming chores have been skipped when requested', () => {
-            const mockDBUpcommingChoreAlreadySkipped = Object.assign(
+        it('should respond when all upcoming chores have been skipped when requested', () => {
+            const mockDBUpcomingChoreAlreadySkipped = Object.assign(
                 {},
                 mockDB,
                 {
@@ -218,7 +218,7 @@ describe('Message handling logic', () => {
                         return [mockUser]
                     },
 
-                    getUpcommingUnassignedChores: () => {
+                    getUpcomingUnassignedChores: () => {
                         return [mockGenericChore]
                     }
                 }
@@ -229,7 +229,7 @@ describe('Message handling logic', () => {
                     text: '!request',
                     author: mockUser
                 },
-                mockDBUpcommingChoreAlreadySkipped
+                mockDBUpcomingChoreAlreadySkipped
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -237,7 +237,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -259,11 +259,11 @@ describe('Message handling logic', () => {
 
             expect(actions).to.have.lengthOf(2)
 
-            // make sure modify chores are first so that if they fail we're not alerting the user unnecissarily
+            // make sure modify chores are first so that if they fail we're not alerting the user unnecessarily
             let action: Action = actions[0]
 
             if (action.kind !== 'ModifyChore') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.chore.name).to.equal(mockAssignedChore.name)
@@ -272,7 +272,7 @@ describe('Message handling logic', () => {
             action = actions[1]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -286,16 +286,16 @@ describe('Message handling logic', () => {
                     text: '!skip',
                     author: mockUser
                 },
-                mockDBWithChoreAssignedAndUpcomming
+                mockDBWithChoreAssignedAndUpcoming
             )
 
             expect(actions).to.have.lengthOf(3)
 
-            // make sure modify chores are first so that if they fail we're not alerting the user unnecissarily
+            // make sure modify chores are first so that if they fail we're not alerting the user unnecessarily
             let action: Action = actions[0]
 
             if (action.kind !== 'ModifyChore') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.chore.name).to.equal(mockAssignedChore.name)
@@ -304,21 +304,21 @@ describe('Message handling logic', () => {
             action = actions[1]
 
             if (action.kind !== 'ModifyChore') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mockUpcommingChore.name)
+            expect(action.chore.name).to.equal(mockUpcomingChore.name)
             expect(action.chore.assigned).to.equal(mockUser)
 
             action = actions[2]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
                 `⏭ the chore "${mockAssignedChore.name}" has been successfully skipped. ` +
-                    `@${mockUser.name} please do the chore: "${mockUpcommingChore.name}"`
+                    `@${mockUser.name} please do the chore: "${mockUpcomingChore.name}"`
             )
         })
 
@@ -336,7 +336,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -358,11 +358,11 @@ describe('Message handling logic', () => {
 
             expect(actions).to.have.lengthOf(3)
 
-            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecissarily
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             let action: Action = actions[0]
 
             if (action.kind !== 'ModifyChore') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.chore.name).to.equal(mockAssignedChore.name)
@@ -371,7 +371,7 @@ describe('Message handling logic', () => {
             action = actions[1]
 
             if (action.kind !== 'CompleteChore') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.chore.name).to.equal(mockAssignedChore.name)
@@ -379,7 +379,7 @@ describe('Message handling logic', () => {
             action = actions[2]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -401,7 +401,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -427,7 +427,7 @@ describe('Message handling logic', () => {
             let action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(AddCommand.helpText)
@@ -446,7 +446,7 @@ describe('Message handling logic', () => {
             action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(AddCommand.helpText)
@@ -466,7 +466,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(AddCommand.helpText)
@@ -507,7 +507,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -531,7 +531,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(DeleteCommand.helpText)
@@ -561,7 +561,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -584,7 +584,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -616,7 +616,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(`All Chores:
@@ -638,7 +638,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -666,7 +666,7 @@ describe('Message handling logic', () => {
             const action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
-                throw 'Recieved Action of the wrong type'
+                throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
@@ -682,11 +682,11 @@ describe('Actions performed at an interval', () => {
 
         expect(actions).to.have.lengthOf(2)
 
-        // make sure modify chore is first so that if it fails we're not alerting the user unnecissarily
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecessarily
         let action: Action = actions[0]
 
         if (action.kind !== 'ModifyChore') {
-            throw 'Recieved Action of the wrong type'
+            throw 'Received Action of the wrong type'
         }
 
         expect(action.chore.assigned).to.equal(mockUser)
@@ -694,7 +694,7 @@ describe('Actions performed at an interval', () => {
         action = actions[1]
 
         if (action.kind !== 'SendMessage') {
-            throw 'Recieved Action of the wrong type'
+            throw 'Received Action of the wrong type'
         }
 
         expect(action.message.text).to.equal(
@@ -703,7 +703,7 @@ describe('Actions performed at an interval', () => {
     })
 
     it('should not prompt users when there are no outstanding chores', () => {
-        const actions = loop(mockDBWithUpcomming) // some upcomming, but no outstanding
+        const actions = loop(mockDBWithUpcoming) // some upcoming, but no outstanding
 
         expect(actions).to.have.lengthOf(0)
     })
@@ -743,11 +743,11 @@ describe('Actions performed at an interval', () => {
 
         expect(actions).to.have.lengthOf(2)
 
-        // make sure modify chores are first so that if they fail we're not alerting the user unnecissarily
+        // make sure modify chores are first so that if they fail we're not alerting the user unnecessarily
         let action: Action = actions[0]
 
         if (action.kind !== 'ModifyChore') {
-            throw 'Recieved Action of the wrong type'
+            throw 'Received Action of the wrong type'
         }
 
         expect(action.chore.name).to.equal(mockChore.name)
@@ -758,7 +758,7 @@ describe('Actions performed at an interval', () => {
         action = actions[1]
 
         if (action.kind !== 'SendMessage') {
-            throw 'Recieved Action of the wrong type'
+            throw 'Received Action of the wrong type'
         }
 
         expect(action.message.text).to.equal(
@@ -797,11 +797,11 @@ describe('Actions performed at an interval', () => {
 
         expect(actions).to.have.lengthOf(4)
 
-        // make sure modify chore is first so that if it fails we're not alerting the user unnecissarily
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecessarily
         let action: Action = actions[0]
 
         if (action.kind !== 'ModifyChore') {
-            throw 'Recieved Action of the wrong type'
+            throw 'Received Action of the wrong type'
         }
 
         expect(action.chore.assigned).to.equal(mockUser)
@@ -809,7 +809,7 @@ describe('Actions performed at an interval', () => {
         action = actions[1]
 
         if (action.kind !== 'SendMessage') {
-            throw 'Recieved Action of the wrong type'
+            throw 'Received Action of the wrong type'
         }
 
         expect(action.message.text).to.equal(
@@ -819,7 +819,7 @@ describe('Actions performed at an interval', () => {
         action = actions[2]
 
         if (action.kind !== 'ModifyChore') {
-            throw 'Recieved Action of the wrong type'
+            throw 'Received Action of the wrong type'
         }
 
         expect(action.chore.assigned).to.equal(mockUser2)
@@ -827,7 +827,7 @@ describe('Actions performed at an interval', () => {
         action = actions[3]
 
         if (action.kind !== 'SendMessage') {
-            throw 'Recieved Action of the wrong type'
+            throw 'Received Action of the wrong type'
         }
 
         expect(action.message.text).to.equal(
