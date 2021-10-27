@@ -2,13 +2,12 @@ import express from 'express'
 import * as chat from './external/chat'
 import { mockDB } from './external/db'
 import log from './logging/log'
-import { token } from './config.json'
+import { token, channel } from './config.json'
 import { loop, messageHandler } from './logic/main'
 import { exit } from 'process'
 
 // --- Config ---
 const port: string = process.env.SERVER_PORT || '3000'
-const channel: string = process.env.CHORES_BOT_CHANNEL || 'chores'
 
 // frequency of main logic loop in seconds
 const frequencyRaw: string = process.env.CHORES_BOT_FREQUENCY || '60'

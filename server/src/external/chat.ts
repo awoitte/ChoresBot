@@ -1,5 +1,5 @@
 import { Message } from '../models/chat'
-import { Client, Intents } from 'discord.js'
+import { Client, Intents, TextChannel } from 'discord.js'
 import log from '../logging/log'
 import { isDebugFlagSet } from '../utility/debug'
 
@@ -34,20 +34,20 @@ export function listenToChannel(
     client: Client,
     callback: (a: Message) => void
 ): void {
-    log(`TODO: listenToChannel "${channel}"`)
-
     client.on('messageCreate', async (msg) => {
         log(
             `Message Received: [${msg.author.tag} in ${msg.guild?.name}] ${msg.content}`
         )
 
-        callback({
-            text: msg.content,
-            author: {
-                name: msg.author.tag,
-                id: msg.author.id
-            }
-        })
+        if (msg.channel instanceof TextChannel && msg.channel.name == channel) {
+            callback({
+                text: msg.content,
+                author: {
+                    name: msg.author.tag,
+                    id: msg.author.id
+                }
+            })
+        }
 
         if (msg.content === 'ping') {
             msg.react('🏓').catch((reason) => {
