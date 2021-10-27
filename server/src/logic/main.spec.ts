@@ -619,8 +619,9 @@ describe('Message handling logic', () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.message.text).to.equal(`All Chores:
-"${mockChoreName}"`)
+            expect(action.message.text).to.equal(
+                'All Chores:\n' + `"${mockChoreName}"`
+            )
         })
 
         it('should respond if unable to find chore', () => {
@@ -642,7 +643,8 @@ describe('Message handling logic', () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mockUser.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+                `@${mockUser.name} Unable to find chore "${missingChoreName}". ` +
+                    'Try using the !info command to verify the spelling.'
             )
         })
 
