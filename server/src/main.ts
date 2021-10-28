@@ -2,20 +2,11 @@ import express from 'express'
 import * as chat from './external/chat'
 import { mockDB } from './external/db'
 import log from './logging/log'
-import { token, channel } from './config.json'
+import { token, channel, frequency } from './config.json'
 import { loop, messageHandler } from './logic/main'
-import { exit } from 'process'
 
 // --- Config ---
-const port: string = process.env.SERVER_PORT || '3000'
-
-// frequency of main logic loop in seconds
-const frequencyRaw: string = process.env.CHORES_BOT_FREQUENCY || '60'
-const frequency: number = parseInt(frequencyRaw, 10)
-if (isNaN(frequency)) {
-    log(`unable to parse frequency setting: "${frequencyRaw}"`)
-    exit(1)
-}
+const port: string = process.env.SERVER_PORT || '80'
 
 // --- Server ---
 const app = express()

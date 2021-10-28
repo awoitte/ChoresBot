@@ -1,4 +1,5 @@
 {
     "token": "discord token here",
-    "channel": "channel name here"
+    "channel": "channel name here", // no '#'
+    "frequency": 120 // how frequently to check for assignable chores in seconds
 }

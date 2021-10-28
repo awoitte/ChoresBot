@@ -10,7 +10,7 @@
     "tsc": "tsc",
     "start": "node .",
     "build": "npm-run-all lint tsc",
-    "dev:start": "cross-env DEBUG=true npm-run-all build test start",
+    "dev:start": "cross-env DEBUG=true SERVER_PORT=3000 npm-run-all build test start",
     "watch:all": "nodemon --watch src -e ts --exec npm run dev:start",
     "watch:tests": "cross-env npm_config_loglevel=silent nodemon --watch src -e ts --exec npm run test"
   },
