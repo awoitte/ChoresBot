@@ -113,58 +113,22 @@ export const SkipCommand: Command = {
             ]
         }
 
-        const actions: Action[] = []
-
         // skip the chore
         const choreToSkip: Chore = userAssignedChores[0]
 
-        actions.push({
-            kind: 'ModifyChore',
-            chore: skipChore(choreToSkip, message.author)
-        })
-
-        // check for other chores that can be assigned instead
-        const assignableChores = getAllAssignableChores(db)
-        if (assignableChores instanceof Error) {
-            throw assignableChores
-        }
-
-        const assignableChoresWithoutSkipped = assignableChores.filter(
-            // filter out skipped chore manually as the db hasn't been updated yet
-            (chore) => chore.name !== choreToSkip.name
-        )
-
-        const mostUrgentChore = findChoreForUser(
-            assignableChoresWithoutSkipped,
-            message.author
-        )
-
-        if (mostUrgentChore !== undefined) {
-            actions.push({
+        return [
+            {
                 kind: 'ModifyChore',
-                chore: assignChore(mostUrgentChore, message.author)
-            })
-
-            actions.push({
-                kind: 'SendMessage',
-                message: {
-                    text:
-                        `⏭ the chore "${choreToSkip.name}" has been successfully skipped. ` +
-                        `@${message.author.name} please do the chore: "${mostUrgentChore.name}"`,
-                    author: ChoresBotUser
-                }
-            })
-        } else {
-            actions.push({
+                chore: skipChore(choreToSkip, message.author)
+            },
+            {
                 kind: 'SendMessage',
                 message: {
                     text: `⏭ the chore "${choreToSkip.name}" has been successfully skipped`,
                     author: ChoresBotUser
                 }
-            })
-        }
-
-        return actions
+            }
+        ]
     }
 }
 

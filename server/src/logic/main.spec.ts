@@ -279,48 +279,6 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should assign a new chore after one has been skipped when possible', () => {
-            const actions = messageHandler(
-                {
-                    text: '!skip',
-                    author: mockUser
-                },
-                mockDBWithChoreAssignedAndUpcoming
-            )
-
-            expect(actions).to.have.lengthOf(3)
-
-            // make sure modify chores are first so that if they fail we're not alerting the user unnecessarily
-            let action: Action = actions[0]
-
-            if (action.kind !== 'ModifyChore') {
-                throw 'Received Action of the wrong type'
-            }
-
-            expect(action.chore.name).to.equal(mockAssignedChore.name)
-            expect(action.chore.assigned).to.equal(false)
-
-            action = actions[1]
-
-            if (action.kind !== 'ModifyChore') {
-                throw 'Received Action of the wrong type'
-            }
-
-            expect(action.chore.name).to.equal(mockUpcomingChore.name)
-            expect(action.chore.assigned).to.equal(mockUser)
-
-            action = actions[2]
-
-            if (action.kind !== 'SendMessage') {
-                throw 'Received Action of the wrong type'
-            }
-
-            expect(action.message.text).to.equal(
-                `⏭ the chore "${mockAssignedChore.name}" has been successfully skipped. ` +
-                    `@${mockUser.name} please do the chore: "${mockUpcomingChore.name}"`
-            )
-        })
-
         it('should respond when there are no chores assigned to be skipped', () => {
             const actions = messageHandler(
                 {
