@@ -159,8 +159,7 @@ describe('Message handling logic', () => {
             }
 
             expect(action.message.text).to.equal(
-                `Thank you for requesting a chore early! ` +
-                    `@${mockUser.name} you have been assigned the chore "${mockUpcomingChore.name}"`
+                `@${mockUser.name} please do the chore: "${mockUpcomingChore.name}"`
             )
         })
 

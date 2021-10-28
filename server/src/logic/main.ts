@@ -2,8 +2,9 @@ import { ChoresBotUser, Message } from '../models/chat'
 import { Action } from '../models/logic'
 import { DB } from '../external/db'
 import log from '../logging/log'
-import { assignChore, findUserForChore } from './chores'
+import { findUserForChore } from './chores'
 import { AllCommandsByCallsign } from './commands'
+import { assignChoreActions } from './actions'
 
 // messageHandler determines how to respond to chat messages
 export function messageHandler(message: Message, db: DB): Action[] {
@@ -83,16 +84,7 @@ export function loop(db: DB): Action[] {
         throw assignableUsers
     }
 
-    while (outstandingChores.length > 0) {
-        const chore = outstandingChores.shift()
-
-        if (chore === undefined) {
-            log(
-                'impossible state reached, "outstandingChores" contained an undefined chore'
-            )
-            break
-        }
-
+    for (const chore of outstandingChores) {
         const selectedUser = findUserForChore(chore, assignableUsers)
 
         if (selectedUser === undefined) {
@@ -104,18 +96,7 @@ export function loop(db: DB): Action[] {
             (u) => u.id !== selectedUser.id
         )
 
-        actions.push({
-            kind: 'ModifyChore',
-            chore: assignChore(chore, selectedUser)
-        })
-
-        actions.push({
-            kind: 'SendMessage',
-            message: {
-                text: `@${selectedUser.name} please do the chore: "${chore.name}"`,
-                author: ChoresBotUser
-            }
-        })
+        actions.push(...assignChoreActions(chore, selectedUser))
     }
 
     return actions

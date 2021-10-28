@@ -2,9 +2,10 @@ import { ChoresBotUser, User } from '../models/chat'
 import { Action } from '../models/logic'
 import { Chore } from '../models/chores'
 import { Command } from '../models/commands'
-import { frequencyToString, parseFrequency } from './time'
 import { DB } from '../external/db'
 import log from '../logging/log'
+import { frequencyToString, parseFrequency } from './time'
+import { assignChoreActions, completeChoreActions } from './actions'
 import {
     skipChore,
     completeChore,
@@ -85,24 +86,7 @@ export const RequestCommand: Command = {
             ]
         }
 
-        const actions: Action[] = []
-
-        actions.push({
-            kind: 'ModifyChore',
-            chore: assignChore(mostUrgentChore, message.author)
-        })
-
-        actions.push({
-            kind: 'SendMessage',
-            message: {
-                text:
-                    `Thank you for requesting a chore early! ` +
-                    `@${message.author.name} you have been assigned the chore "${mostUrgentChore.name}"`,
-                author: ChoresBotUser
-            }
-        })
-
-        return actions
+        return assignChoreActions(mostUrgentChore, message.author)
     }
 }
 
@@ -462,30 +446,6 @@ function completeChoreByName(
     const completedChore: Chore = completeChore(chore)
 
     return completeChoreActions(completedChore)
-}
-
-function completeChoreActions(completedChore: Chore): Action[] {
-    const actions: Action[] = []
-
-    actions.push({
-        kind: 'ModifyChore',
-        chore: completedChore
-    })
-
-    actions.push({
-        kind: 'CompleteChore',
-        chore: completedChore
-    })
-
-    actions.push({
-        kind: 'SendMessage',
-        message: {
-            text: `✅ the chore "${completedChore.name}" has been successfully completed`,
-            author: ChoresBotUser
-        }
-    })
-
-    return actions
 }
 
 function getAllAssignableChores(db: DB): Chore[] {
