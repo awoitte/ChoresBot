@@ -23,7 +23,8 @@ export function skipChore(chore: Chore, user: User): Chore {
 export function completeChore(chore: Chore): Chore {
     return {
         ...chore,
-        assigned: false
+        assigned: false,
+        skippedBy: undefined
     }
 }
 

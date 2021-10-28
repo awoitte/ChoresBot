@@ -480,6 +480,64 @@ describe('Message handling logic', () => {
                 `@${mockUser.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
             )
         })
+
+        it('should clear the skipped data for a chore on completion', () => {
+            let actions = messageHandler(
+                {
+                    text: '!skip',
+                    author: mockUser
+                },
+                mockDBWithChoreAssigned
+            )
+
+            expect(actions).to.have.lengthOf(2)
+
+            let action: Action = actions[0]
+
+            if (action.kind !== 'ModifyChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.chore.name).to.equal(mockAssignedChore.name)
+            expect(action.chore.assigned).to.equal(false)
+
+            const modifiedChore = action.chore
+
+            const mockDBWithChoreByName = Object.assign({}, mockDB, {
+                getChoreByName: (choreName: string) => {
+                    expect(choreName).to.equal(modifiedChore.name)
+                    return modifiedChore
+                }
+            })
+
+            actions = messageHandler(
+                {
+                    text: `!complete ${modifiedChore.name}`,
+                    author: mockUser
+                },
+                mockDBWithChoreByName
+            )
+
+            expect(actions).to.have.lengthOf(3)
+
+            action = actions[0]
+
+            if (action.kind !== 'ModifyChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.chore.name).to.equal(modifiedChore.name)
+            expect(action.chore.assigned).to.equal(false)
+            expect(action.chore.skippedBy).to.be.undefined
+
+            action = actions[1]
+
+            if (action.kind !== 'CompleteChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.chore.name).to.equal(modifiedChore.name)
+        })
     })
 
     describe('!add command', () => {
