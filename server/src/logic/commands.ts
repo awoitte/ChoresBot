@@ -1,15 +1,14 @@
 import { ChoresBotUser, User } from '../models/chat'
-import { Action } from '../models/logic'
+import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
 import { Command } from '../models/commands'
-import { DB } from '../external/db'
+import { ReadOnlyDB } from '../external/db'
 import log from '../logging/log'
 import { frequencyToString, parseFrequency } from './time'
 import { assignChoreActions, completeChoreActions } from './actions'
 import {
     skipChore,
     completeChore,
-    assignChore,
     findChoreForUser,
     describeChore
 } from './chores'
@@ -166,7 +165,7 @@ e.g.
 !add make a pile Yearly @ Feb 12
 !add floop the pig Once @ Nov 9 2:00 PM`,
     minArgumentCount: 2,
-    handler: (message, db) => {
+    handler: (message) => {
         const commandArgs = getArgumentsString(message.text, AddCommand)
 
         const words = commandArgs.split(' ')
@@ -207,18 +206,15 @@ e.g.
             ]
         }
 
-        const error = db.addChore({
-            name: choreName,
-            assigned: false,
-            frequency
-        })
-
-        if (error) {
-            log(error.message)
-            throw error
-        }
-
         return [
+            {
+                kind: 'AddChore',
+                chore: {
+                    name: choreName,
+                    assigned: false,
+                    frequency
+                }
+            },
             {
                 kind: 'SendMessage',
                 message: {
@@ -244,19 +240,15 @@ chore-name      The name of the chore. Shown when being assigned, completed, etc
     handler: (message, db) => {
         const choreName = getArgumentsString(message.text, DeleteCommand)
 
-        const error = db.deleteChore(choreName)
+        // check if chore exists, maybe it was misspelled
+        const chore = db.getChoreByName(choreName)
 
-        if (error instanceof Error) {
-            log(`error deleting chore "${choreName}": ${error.message}`)
+        if (chore instanceof Error) {
+            log(`error retrieving chores: ${choreName}`)
+            throw chore
+        }
 
-            // check if chore exists, maybe it was misspelled
-            const chore = db.getChoreByName(choreName)
-
-            if (chore !== undefined) {
-                // found the chore, the error was something else
-                throw error
-            }
-
+        if (chore === undefined) {
             return [
                 {
                     kind: 'SendMessage',
@@ -269,6 +261,10 @@ chore-name      The name of the chore. Shown when being assigned, completed, etc
         }
 
         return [
+            {
+                kind: 'DeleteChore',
+                chore
+            },
             {
                 kind: 'SendMessage',
                 message: {
@@ -358,7 +354,7 @@ export const AllCommandsByCallsign: Record<string, Command> =
     }, {})
 
 // --- Chore Completion ---
-function completeAssignedChore(user: User, db: DB): Action[] {
+function completeAssignedChore(user: User, db: ReadOnlyDB): Action[] {
     const userAssignedChores = db.getChoresAssignedToUser(user)
     if (userAssignedChores instanceof Error) {
         throw userAssignedChores
@@ -387,7 +383,7 @@ function completeAssignedChore(user: User, db: DB): Action[] {
 function completeChoreByName(
     choreName: string,
     completedBy: User,
-    db: DB
+    db: ReadOnlyDB
 ): Action[] {
     const chore = db.getChoreByName(choreName)
 
@@ -412,7 +408,7 @@ function completeChoreByName(
     return completeChoreActions(completedChore)
 }
 
-function getAllAssignableChores(db: DB): Chore[] {
+function getAllAssignableChores(db: ReadOnlyDB): Chore[] {
     const outstandingChores = db.getOutstandingUnassignedChores()
 
     if (outstandingChores instanceof Error) {

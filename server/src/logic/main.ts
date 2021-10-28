@@ -1,5 +1,5 @@
 import { ChoresBotUser, Message } from '../models/chat'
-import { Action } from '../models/logic'
+import { Action } from '../models/actions'
 import { DB } from '../external/db'
 import log from '../logging/log'
 import { findUserForChore } from './chores'

@@ -1,10 +1,10 @@
 import { Message } from './chat'
-import { Action } from './logic'
-import { DB } from '../external/db'
+import { Action } from './actions'
+import { ReadOnlyDB } from '../external/db'
 
 export type Command = {
     callsign: string
     minArgumentCount?: number
     helpText?: string
-    handler: (message: Message, db: DB) => Action[]
+    handler: (message: Message, db: ReadOnlyDB) => Action[]
 }

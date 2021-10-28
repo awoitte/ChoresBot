@@ -1,15 +1,10 @@
 import { ChoresBotUser, User } from '../models/chat'
 import { assignChore } from './chores'
-import { Action } from '../models/logic'
+import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
 
 export function completeChoreActions(completedChore: Chore): Action[] {
     return [
-        {
-            kind: 'ModifyChore',
-            chore: completedChore
-        },
-
         {
             kind: 'CompleteChore',
             chore: completedChore

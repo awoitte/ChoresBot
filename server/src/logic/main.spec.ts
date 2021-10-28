@@ -2,7 +2,7 @@ import { describe } from 'mocha'
 import { expect } from 'chai'
 
 import { loop, messageHandler } from './main'
-import { Action } from '../models/logic'
+import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
 import { User } from '../models/chat'
 import { AddCommand, DeleteCommand } from './commands'
@@ -68,6 +68,10 @@ function getOutstandingUnassignedChores() {
     return [mockOutstandingChore]
 }
 
+function getChoreByName() {
+    return mockGenericChore
+}
+
 const mockDBWithUpcoming = Object.assign({}, mockDB, {
     getUpcomingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
@@ -77,15 +81,13 @@ const mockDBWithChoreAssigned = Object.assign({}, mockDB, {
     getChoresAssignedToUser
 })
 
-const mockDBWithChoreAssignedAndUpcoming = Object.assign({}, mockDB, {
-    getUpcomingUnassignedChores,
-    getAssignableUsersInOrderOfRecentCompletion,
-    getChoresAssignedToUser
-})
-
 const mockDBWithOutstandingChores = Object.assign({}, mockDB, {
     getOutstandingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
+})
+
+const mockDBWithChoreByName = Object.assign({}, mockDB, {
+    getChoreByName
 })
 
 // --- Tests ---
@@ -313,12 +315,12 @@ describe('Message handling logic', () => {
                 mockDBWithChoreAssigned
             )
 
-            expect(actions).to.have.lengthOf(3)
+            expect(actions).to.have.lengthOf(2)
 
             // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             let action: Action = actions[0]
 
-            if (action.kind !== 'ModifyChore') {
+            if (action.kind !== 'CompleteChore') {
                 throw 'Received Action of the wrong type'
             }
 
@@ -326,14 +328,6 @@ describe('Message handling logic', () => {
             expect(action.chore.assigned).to.equal(false)
 
             action = actions[1]
-
-            if (action.kind !== 'CompleteChore') {
-                throw 'Received Action of the wrong type'
-            }
-
-            expect(action.chore.name).to.equal(mockAssignedChore.name)
-
-            action = actions[2]
 
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type'
@@ -370,12 +364,6 @@ describe('Message handling logic', () => {
         it('should allow completing a chore by name', () => {
             // Note: the chore isn't assigned to the user
 
-            const mockDBWithChoreByName = Object.assign({}, mockDB, {
-                getChoreByName: () => {
-                    return mockGenericChore
-                }
-            })
-
             const actions = messageHandler(
                 {
                     text: `!complete ${mockGenericChore.name}`,
@@ -384,12 +372,12 @@ describe('Message handling logic', () => {
                 mockDBWithChoreByName
             )
 
-            expect(actions).to.have.lengthOf(3)
+            expect(actions).to.have.lengthOf(2)
 
             // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             let action: Action = actions[0]
 
-            if (action.kind !== 'ModifyChore') {
+            if (action.kind !== 'CompleteChore') {
                 throw 'Received Action of the wrong type'
             }
 
@@ -397,14 +385,6 @@ describe('Message handling logic', () => {
             expect(action.chore.assigned).to.equal(false)
 
             action = actions[1]
-
-            if (action.kind !== 'CompleteChore') {
-                throw 'Received Action of the wrong type'
-            }
-
-            expect(action.chore.name).to.equal(mockGenericChore.name)
-
-            action = actions[2]
 
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type'
@@ -460,7 +440,7 @@ describe('Message handling logic', () => {
 
             const modifiedChore = action.chore
 
-            const mockDBWithChoreByName = Object.assign({}, mockDB, {
+            const mockDBWithModifiedChore = Object.assign({}, mockDB, {
                 getChoreByName: (choreName: string) => {
                     expect(choreName).to.equal(modifiedChore.name)
                     return modifiedChore
@@ -472,28 +452,20 @@ describe('Message handling logic', () => {
                     text: `!complete ${modifiedChore.name}`,
                     author: mockUser
                 },
-                mockDBWithChoreByName
+                mockDBWithModifiedChore
             )
 
-            expect(actions).to.have.lengthOf(3)
+            expect(actions).to.have.lengthOf(2)
 
             action = actions[0]
-
-            if (action.kind !== 'ModifyChore') {
-                throw 'Received Action of the wrong type'
-            }
-
-            expect(action.chore.name).to.equal(modifiedChore.name)
-            expect(action.chore.assigned).to.equal(false)
-            expect(action.chore.skippedBy).to.be.undefined
-
-            action = actions[1]
 
             if (action.kind !== 'CompleteChore') {
                 throw 'Received Action of the wrong type'
             }
 
             expect(action.chore.name).to.equal(modifiedChore.name)
+            expect(action.chore.assigned).to.equal(false)
+            expect(action.chore.skippedBy).to.be.undefined
         })
     })
 
@@ -562,35 +534,35 @@ describe('Message handling logic', () => {
             const mockChoreName = 'water the tiles'
             const mockChoreFrequency = 'Weekly @ wednesday'
 
-            const mockDBWithSpy = Object.assign({}, mockDB, {
-                addChore: (chore: Chore) => {
-                    expect(chore.name).to.equal(mockChoreName)
-
-                    if (
-                        chore.frequency === undefined ||
-                        chore.frequency.kind !== 'Weekly' ||
-                        chore.frequency.weekday !== 'wednesday'
-                    ) {
-                        console.log(chore.frequency)
-                        // should be wednesday
-                        throw new Error('incorrect frequency')
-                    }
-
-                    expect(chore.frequency).to.have.property('kind', 'Weekly')
-                }
-            })
-
             const actions = messageHandler(
                 {
                     text: `!add ${mockChoreName} ${mockChoreFrequency}`,
                     author: mockUser
                 },
-                mockDBWithSpy
+                mockDB
             )
 
-            expect(actions).to.have.lengthOf(1)
+            expect(actions).to.have.lengthOf(2)
 
-            const action: Action = actions[0]
+            let action: Action = actions[0]
+
+            if (action.kind !== 'AddChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            const chore = action.chore
+
+            expect(chore.name).to.equal(mockChoreName)
+
+            if (
+                chore.frequency === undefined ||
+                chore.frequency.kind !== 'Weekly' ||
+                chore.frequency.weekday !== 'wednesday'
+            ) {
+                throw new Error('incorrect frequency')
+            }
+
+            action = actions[1]
 
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type'
@@ -624,22 +596,13 @@ describe('Message handling logic', () => {
         })
 
         it('should respond if unable to find chore', () => {
-            const mockDBDeleteFailure = Object.assign({}, mockDB, {
-                deleteChore: () => {
-                    return new Error(
-                        "db should return an error when it can't delete a chore"
-                    )
-                }
-                // mockDB will respond with undefined when asked to getChoreByName
-            })
-
             const missingChoreName = 'missing chore name'
             const actions = messageHandler(
                 {
                     text: `!delete ${missingChoreName}`,
                     author: mockUser
                 },
-                mockDBDeleteFailure
+                mockDB // mockDB will always be unable to find a chore
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -656,25 +619,32 @@ describe('Message handling logic', () => {
         })
 
         it('should delete a chore', () => {
-            const deletableChoreName = 'delete me'
             const actions = messageHandler(
                 {
-                    text: `!delete ${deletableChoreName}`,
+                    text: `!delete ${mockGenericChore}`,
                     author: mockUser
                 },
-                mockDB // mockDB will respond to deleteChore with success by default
+                mockDBWithChoreByName
             )
 
-            expect(actions).to.have.lengthOf(1)
+            expect(actions).to.have.lengthOf(2)
 
-            const action: Action = actions[0]
+            let action: Action = actions[0]
+
+            if (action.kind !== 'DeleteChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.chore.name).to.equal(mockGenericChore.name)
+
+            action = actions[1]
 
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
-                `@${mockUser.name} chore '${deletableChoreName}' successfully deleted`
+                `@${mockUser.name} chore '${mockGenericChore}' successfully deleted`
             )
         })
     })
@@ -735,18 +705,12 @@ describe('Message handling logic', () => {
         })
 
         it('should describe a chore', () => {
-            const mockDBWithGenericChore = Object.assign({}, mockDB, {
-                getChoreByName: () => {
-                    return mockGenericChore
-                }
-            })
-
             const actions = messageHandler(
                 {
                     text: `!info ${mockGenericChore.name}`,
                     author: mockUser
                 },
-                mockDBWithGenericChore
+                mockDBWithChoreByName
             )
 
             expect(actions).to.have.lengthOf(1)
