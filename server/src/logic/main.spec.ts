@@ -10,7 +10,6 @@ import { AddCommand, DeleteCommand } from './commands'
 import { mockDB } from '../external/db'
 import { Frequency } from '../models/time'
 import { describeChore } from './chores'
-import exp from 'constants'
 
 // --- Mocks ---
 const mockUser: User = {
