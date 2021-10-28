@@ -10,7 +10,8 @@ import {
     skipChore,
     completeChore,
     findChoreForUser,
-    describeChore
+    describeChore,
+    unassignChore
 } from './chores'
 
 export const PingCommand: Command = {
@@ -337,6 +338,59 @@ export const InfoCommand: Command = {
     }
 }
 
+export const OptInCommand: Command = {
+    callsign: '!opt-in',
+    handler: (message) => {
+        return [
+            {
+                kind: 'AddUser',
+                user: message.author
+            },
+            {
+                kind: 'SendMessage',
+                message: {
+                    text: `@${message.author.name} thank you for opting in to ChoresBot!!! ✨💚`,
+                    author: ChoresBotUser
+                }
+            }
+        ]
+    }
+}
+
+export const OptOutCommand: Command = {
+    callsign: '!opt-out',
+    handler: (message, db) => {
+        const actions: Action[] = []
+
+        const userAssignedChores = db.getChoresAssignedToUser(message.author)
+        if (userAssignedChores instanceof Error) {
+            throw userAssignedChores
+        }
+
+        for (const chore of userAssignedChores) {
+            actions.push({
+                kind: 'ModifyChore',
+                chore: unassignChore(chore)
+            })
+        }
+
+        actions.push(
+            {
+                kind: 'DeleteUser',
+                user: message.author
+            },
+            {
+                kind: 'SendMessage',
+                message: {
+                    text: `@${message.author.name} successfully opted-out, you should no longer be assigned any chores`,
+                    author: ChoresBotUser
+                }
+            }
+        )
+
+        return actions
+    }
+}
 export const AllCommands: Command[] = [
     PingCommand,
     RequestCommand,
@@ -344,7 +398,9 @@ export const AllCommands: Command[] = [
     CompleteCommand,
     AddCommand,
     DeleteCommand,
-    InfoCommand
+    InfoCommand,
+    OptInCommand,
+    OptOutCommand
 ]
 
 export const AllCommandsByCallsign: Record<string, Command> =

@@ -35,6 +35,13 @@ export function assignChore(chore: Chore, user: User): Chore {
     }
 }
 
+export function unassignChore(chore: Chore): Chore {
+    return {
+        ...chore,
+        assigned: false
+    }
+}
+
 export function describeChore(chore: Chore): string {
     let description = `Chore "${chore.name}"
 Frequency: ${frequencyToString(chore.frequency)}`

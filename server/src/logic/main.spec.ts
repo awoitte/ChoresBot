@@ -10,6 +10,7 @@ import { AddCommand, DeleteCommand } from './commands'
 import { mockDB } from '../external/db'
 import { Frequency } from '../models/time'
 import { describeChore } from './chores'
+import exp from 'constants'
 
 // --- Mocks ---
 const mockUser: User = {
@@ -723,6 +724,109 @@ describe('Message handling logic', () => {
 
             expect(action.message.text).to.equal(
                 describeChore(mockGenericChore)
+            )
+        })
+    })
+
+    describe('!opt-in command', () => {
+        it('should allow a user to add themselves', () => {
+            const actions = messageHandler(
+                {
+                    text: `!opt-in`,
+                    author: mockUser
+                },
+                mockDB
+            )
+
+            expect(actions).to.have.lengthOf(2)
+
+            let action: Action = actions[0]
+
+            if (action.kind !== 'AddUser') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.user.id).to.equal(mockUser.id)
+
+            action = actions[1]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} thank you for opting in to ChoresBot!!! ✨💚`
+            )
+        })
+    })
+
+    describe('!opt-out command', () => {
+        it('should allow a user to remove themselves', () => {
+            const actions = messageHandler(
+                {
+                    text: `!opt-out`,
+                    author: mockUser
+                },
+                mockDB
+            )
+
+            expect(actions).to.have.lengthOf(2)
+
+            let action: Action = actions[0]
+
+            if (action.kind !== 'DeleteUser') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.user.id).to.equal(mockUser.id)
+
+            action = actions[1]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} successfully opted-out, you should no longer be assigned any chores`
+            )
+        })
+
+        it('should unassign a user from any chores when they opt-out', () => {
+            const actions = messageHandler(
+                {
+                    text: `!opt-out`,
+                    author: mockUser
+                },
+                mockDBWithChoreAssigned
+            )
+
+            expect(actions).to.have.lengthOf(3)
+
+            let action: Action = actions[0]
+
+            if (action.kind !== 'ModifyChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.chore.name).to.equal(mockAssignedChore.name)
+            expect(action.chore.assigned).to.be.false
+
+            action = actions[1]
+
+            if (action.kind !== 'DeleteUser') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.user.id).to.equal(mockUser.id)
+
+            action = actions[2]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `@${mockUser.name} successfully opted-out, you should no longer be assigned any chores`
             )
         })
     })

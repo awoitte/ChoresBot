@@ -1,4 +1,4 @@
-import { Message } from './chat'
+import { Message, User } from './chat'
 import { Chore } from './chores'
 
 export type Action =
@@ -7,6 +7,8 @@ export type Action =
     | AddChore
     | ModifyChore
     | DeleteChore
+    | AddUser
+    | DeleteUser
 
 export type SendMessage = {
     kind: 'SendMessage'
@@ -31,4 +33,14 @@ export type ModifyChore = {
 export type DeleteChore = {
     kind: 'DeleteChore'
     chore: Chore
+}
+
+export type AddUser = {
+    kind: 'AddUser'
+    user: User
+}
+
+export type DeleteUser = {
+    kind: 'DeleteUser'
+    user: User
 }
