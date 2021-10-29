@@ -91,9 +91,9 @@ const mockDBWithChoreByName = Object.assign({}, mockDB, {
 })
 
 // --- Tests ---
-describe('Message handling logic', () => {
-    it('should parse messages and determine actions', () => {
-        const actions = messageHandler(
+describe('Message handling logic', async () => {
+    it('should parse messages and determine actions', async () => {
+        const actions = await messageHandler(
             {
                 text: 'test',
                 author: {
@@ -109,8 +109,8 @@ describe('Message handling logic', () => {
     })
 
     describe('ping command', () => {
-        it('should reply to "ping" with "pong"', () => {
-            const actions = messageHandler(
+        it('should reply to "ping" with "pong"', async () => {
+            const actions = await messageHandler(
                 {
                     text: 'ping',
                     author: {
@@ -134,8 +134,8 @@ describe('Message handling logic', () => {
     })
 
     describe('!request command', () => {
-        it('should provide the closest upcoming chore when requested', () => {
-            const actions = messageHandler(
+        it('should provide the closest upcoming chore when requested', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!request',
                     author: mockUser
@@ -165,8 +165,8 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should respond when a chore is requested but the user is already assigned to a chore', () => {
-            const actions = messageHandler(
+        it('should respond when a chore is requested but the user is already assigned to a chore', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!request',
                     author: mockUser
@@ -188,8 +188,8 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should respond when there are no upcoming chores when requested', () => {
-            const actions = messageHandler(
+        it('should respond when there are no upcoming chores when requested', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!request',
                     author: mockUser
@@ -210,7 +210,7 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should respond when all upcoming chores have been skipped when requested', () => {
+        it('should respond when all upcoming chores have been skipped when requested', async () => {
             const mockDBUpcomingChoreAlreadySkipped = Object.assign(
                 {},
                 mockDB,
@@ -225,7 +225,7 @@ describe('Message handling logic', () => {
                 }
             )
 
-            const actions = messageHandler(
+            const actions = await messageHandler(
                 {
                     text: '!request',
                     author: mockUser
@@ -249,8 +249,8 @@ describe('Message handling logic', () => {
     })
 
     describe('!skip command', () => {
-        it('should allow chores to be skipped by the assigned user', () => {
-            const actions = messageHandler(
+        it('should allow chores to be skipped by the assigned user', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!skip',
                     author: mockUser
@@ -281,8 +281,8 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should respond when there are no chores assigned to be skipped', () => {
-            const actions = messageHandler(
+        it('should respond when there are no chores assigned to be skipped', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!skip',
                     author: mockUser
@@ -306,8 +306,8 @@ describe('Message handling logic', () => {
     })
 
     describe('!complete command', () => {
-        it('should respond when a chore has been completed', () => {
-            const actions = messageHandler(
+        it('should respond when a chore has been completed', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!complete',
                     author: mockUser
@@ -338,8 +338,8 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should respond when there are no chores assigned to be completed', () => {
-            const actions = messageHandler(
+        it('should respond when there are no chores assigned to be completed', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!complete',
                     author: mockUser
@@ -361,10 +361,10 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should allow completing a chore by name', () => {
+        it('should allow completing a chore by name', async () => {
             // Note: the chore isn't assigned to the user
 
-            const actions = messageHandler(
+            const actions = await messageHandler(
                 {
                     text: `!complete ${mockGenericChore.name}`,
                     author: mockUser
@@ -395,9 +395,9 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should respond when unable to find chore to be completed', () => {
+        it('should respond when unable to find chore to be completed', async () => {
             const missingChoreName = 'missing chore name'
-            const actions = messageHandler(
+            const actions = await messageHandler(
                 {
                     text: `!complete ${missingChoreName}`,
                     author: mockUser
@@ -418,8 +418,8 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should clear the skipped data for a chore on completion', () => {
-            let actions = messageHandler(
+        it('should clear the skipped data for a chore on completion', async () => {
+            let actions = await messageHandler(
                 {
                     text: '!skip',
                     author: mockUser
@@ -447,7 +447,7 @@ describe('Message handling logic', () => {
                 }
             })
 
-            actions = messageHandler(
+            actions = await messageHandler(
                 {
                     text: `!complete ${modifiedChore.name}`,
                     author: mockUser
@@ -470,9 +470,9 @@ describe('Message handling logic', () => {
     })
 
     describe('!add command', () => {
-        it('should offer help text if sent with one or zero arguments', () => {
+        it('should offer help text if sent with one or zero arguments', async () => {
             // 0 args
-            let actions = messageHandler(
+            let actions = await messageHandler(
                 {
                     text: '!add',
                     author: mockUser
@@ -491,7 +491,7 @@ describe('Message handling logic', () => {
             expect(action.message.text).to.equal(AddCommand.helpText)
 
             // 1 args
-            actions = messageHandler(
+            actions = await messageHandler(
                 {
                     text: '!add test',
                     author: mockUser
@@ -510,8 +510,8 @@ describe('Message handling logic', () => {
             expect(action.message.text).to.equal(AddCommand.helpText)
         })
 
-        it('should offer help text if sent without frequency', () => {
-            const actions = messageHandler(
+        it('should offer help text if sent without frequency', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!add many "args" but no frequency',
                     author: mockUser
@@ -530,11 +530,11 @@ describe('Message handling logic', () => {
             expect(action.message.text).to.equal(AddCommand.helpText)
         })
 
-        it('should add a command with frequency if supplied', () => {
+        it('should add a command with frequency if supplied', async () => {
             const mockChoreName = 'water the tiles'
             const mockChoreFrequency = 'Weekly @ wednesday'
 
-            const actions = messageHandler(
+            const actions = await messageHandler(
                 {
                     text: `!add ${mockChoreName} ${mockChoreFrequency}`,
                     author: mockUser
@@ -575,8 +575,8 @@ describe('Message handling logic', () => {
     })
 
     describe('!delete command', () => {
-        it('should offer help text if sent with no arguments', () => {
-            const actions = messageHandler(
+        it('should offer help text if sent with no arguments', async () => {
+            const actions = await messageHandler(
                 {
                     text: '!delete',
                     author: mockUser
@@ -595,9 +595,9 @@ describe('Message handling logic', () => {
             expect(action.message.text).to.equal(DeleteCommand.helpText)
         })
 
-        it('should respond if unable to find chore', () => {
+        it('should respond if unable to find chore', async () => {
             const missingChoreName = 'missing chore name'
-            const actions = messageHandler(
+            const actions = await messageHandler(
                 {
                     text: `!delete ${missingChoreName}`,
                     author: mockUser
@@ -618,8 +618,8 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should delete a chore', () => {
-            const actions = messageHandler(
+        it('should delete a chore', async () => {
+            const actions = await messageHandler(
                 {
                     text: `!delete ${mockGenericChore}`,
                     author: mockUser
@@ -650,7 +650,7 @@ describe('Message handling logic', () => {
     })
 
     describe('!info command', () => {
-        it('should show all chore names if given no arguments', () => {
+        it('should show all chore names if given no arguments', async () => {
             const mockChoreName = 'clean the dirt'
 
             const mockDBWithChoreName = Object.assign({}, mockDB, {
@@ -659,7 +659,7 @@ describe('Message handling logic', () => {
                 }
             })
 
-            const actions = messageHandler(
+            const actions = await messageHandler(
                 {
                     text: '!info',
                     author: mockUser
@@ -680,9 +680,9 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should respond if unable to find chore', () => {
+        it('should respond if unable to find chore', async () => {
             const missingChoreName = 'missing chore name'
-            const actions = messageHandler(
+            const actions = await messageHandler(
                 {
                     text: `!info ${missingChoreName}`,
                     author: mockUser
@@ -704,8 +704,8 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should describe a chore', () => {
-            const actions = messageHandler(
+        it('should describe a chore', async () => {
+            const actions = await messageHandler(
                 {
                     text: `!info ${mockGenericChore.name}`,
                     author: mockUser
@@ -728,8 +728,8 @@ describe('Message handling logic', () => {
     })
 
     describe('!opt-in command', () => {
-        it('should allow a user to add themselves', () => {
-            const actions = messageHandler(
+        it('should allow a user to add themselves', async () => {
+            const actions = await messageHandler(
                 {
                     text: `!opt-in`,
                     author: mockUser
@@ -760,8 +760,8 @@ describe('Message handling logic', () => {
     })
 
     describe('!opt-out command', () => {
-        it('should allow a user to remove themselves', () => {
-            const actions = messageHandler(
+        it('should allow a user to remove themselves', async () => {
+            const actions = await messageHandler(
                 {
                     text: `!opt-out`,
                     author: mockUser
@@ -790,8 +790,8 @@ describe('Message handling logic', () => {
             )
         })
 
-        it('should unassign a user from any chores when they opt-out', () => {
-            const actions = messageHandler(
+        it('should unassign a user from any chores when they opt-out', async () => {
+            const actions = await messageHandler(
                 {
                     text: `!opt-out`,
                     author: mockUser
@@ -832,8 +832,8 @@ describe('Message handling logic', () => {
 })
 
 describe('Actions performed at an interval', () => {
-    it('should prompt users to complete chores', () => {
-        const actions = loop(mockDBWithOutstandingChores)
+    it('should prompt users to complete chores', async () => {
+        const actions = await loop(mockDBWithOutstandingChores)
 
         expect(actions).to.have.lengthOf(2)
 
@@ -857,13 +857,13 @@ describe('Actions performed at an interval', () => {
         )
     })
 
-    it('should not prompt users when there are no outstanding chores', () => {
-        const actions = loop(mockDBWithUpcoming) // some upcoming, but no outstanding
+    it('should not prompt users when there are no outstanding chores', async () => {
+        const actions = await loop(mockDBWithUpcoming) // some upcoming, but no outstanding
 
         expect(actions).to.have.lengthOf(0)
     })
 
-    it('should not re-assign a chore to a user after they skip it', () => {
+    it('should not re-assign a chore to a user after they skip it', async () => {
         let mockChore: Chore = {
             name: 'clean the dirt',
             assigned: mockUser,
@@ -888,7 +888,7 @@ describe('Actions performed at an interval', () => {
             }
         )
 
-        let actions = messageHandler(
+        let actions = await messageHandler(
             {
                 text: '!skip',
                 author: mockUser
@@ -920,12 +920,12 @@ describe('Actions performed at an interval', () => {
             `⏭ the chore "${mockChore.name}" has been successfully skipped`
         )
 
-        actions = loop(mockDBSameChoreAssignedAndOutstanding)
+        actions = await loop(mockDBSameChoreAssignedAndOutstanding)
 
         expect(actions).to.have.lengthOf(0)
     })
 
-    it('should not assign multiple chores to the same user', () => {
+    it('should not assign multiple chores to the same user', async () => {
         const mockChore1: Chore = {
             name: 'clean the dirt',
             assigned: false,
@@ -948,7 +948,7 @@ describe('Actions performed at an interval', () => {
             }
         })
 
-        const actions = loop(mockDBMultipleChoresAndMultipleUsers)
+        const actions = await loop(mockDBMultipleChoresAndMultipleUsers)
 
         expect(actions).to.have.lengthOf(4)
 

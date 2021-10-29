@@ -16,7 +16,7 @@ import {
 
 export const PingCommand: Command = {
     callsign: 'ping',
-    handler: () => {
+    handler: async () => {
         return [
             {
                 kind: 'SendMessage',
@@ -31,11 +31,10 @@ export const PingCommand: Command = {
 
 export const RequestCommand: Command = {
     callsign: '!request',
-    handler: (message, db) => {
-        const userAssignedChores = db.getChoresAssignedToUser(message.author)
-        if (userAssignedChores instanceof Error) {
-            throw userAssignedChores
-        }
+    handler: async (message, db) => {
+        const userAssignedChores = await db.getChoresAssignedToUser(
+            message.author
+        )
 
         if (userAssignedChores.length > 0) {
             const mostUrgentChore = userAssignedChores[0]
@@ -53,7 +52,7 @@ export const RequestCommand: Command = {
             ]
         }
 
-        const assignableChores = getAllAssignableChores(db)
+        const assignableChores = await getAllAssignableChores(db)
 
         if (assignableChores.length == 0) {
             return [
@@ -92,11 +91,10 @@ export const RequestCommand: Command = {
 
 export const SkipCommand: Command = {
     callsign: '!skip',
-    handler: (message, db) => {
-        const userAssignedChores = db.getChoresAssignedToUser(message.author)
-        if (userAssignedChores instanceof Error) {
-            throw userAssignedChores
-        }
+    handler: async (message, db) => {
+        const userAssignedChores = await db.getChoresAssignedToUser(
+            message.author
+        )
 
         // check if the user is able to skip
         if (userAssignedChores.length === 0) {
@@ -134,7 +132,7 @@ export const SkipCommand: Command = {
 
 export const CompleteCommand: Command = {
     callsign: '!complete',
-    handler: (message, db) => {
+    handler: async (message, db) => {
         const commandArgs = getArgumentsString(message.text, CompleteCommand)
 
         if (commandArgs.length === 0) {
@@ -166,7 +164,7 @@ e.g.
 !add make a pile Yearly @ Feb 12
 !add floop the pig Once @ Nov 9 2:00 PM`,
     minArgumentCount: 2,
-    handler: (message) => {
+    handler: async (message) => {
         const commandArgs = getArgumentsString(message.text, AddCommand)
 
         const words = commandArgs.split(' ')
@@ -238,15 +236,16 @@ export const DeleteCommand: Command = {
 
 chore-name      The name of the chore. Shown when being assigned, completed, etc.
                 Note: make sure spelling and capitalization matches exactly`,
-    handler: (message, db) => {
+    handler: async (message, db) => {
         const choreName = getArgumentsString(message.text, DeleteCommand)
 
         // check if chore exists, maybe it was misspelled
-        const chore = db.getChoreByName(choreName)
-
-        if (chore instanceof Error) {
+        let chore
+        try {
+            chore = await db.getChoreByName(choreName)
+        } catch (e) {
             log(`error retrieving chores: ${choreName}`)
-            throw chore
+            throw e
         }
 
         if (chore === undefined) {
@@ -279,17 +278,18 @@ chore-name      The name of the chore. Shown when being assigned, completed, etc
 
 export const InfoCommand: Command = {
     callsign: '!info',
-    handler: (message, db) => {
+    handler: async (message, db) => {
         const choreName = getArgumentsString(message.text, InfoCommand)
 
         if (choreName === '') {
             // no chore name supplied, list all chores
 
-            const allChores = db.getAllChoreNames()
-
-            if (allChores instanceof Error) {
-                log(`error retrieving all chore names: ${allChores.message}`)
-                throw allChores
+            let allChores
+            try {
+                allChores = await db.getAllChoreNames()
+            } catch (e) {
+                log(`error retrieving all chore names`)
+                throw e
             }
 
             const allChoresList = allChores
@@ -307,11 +307,12 @@ export const InfoCommand: Command = {
             ]
         }
 
-        const chore = db.getChoreByName(choreName)
-
-        if (chore instanceof Error) {
-            log(`error retrieving chore "${choreName}": ${chore.message}`)
-            throw chore
+        let chore
+        try {
+            chore = await db.getChoreByName(choreName)
+        } catch (e) {
+            log(`error retrieving chore "${choreName}"`)
+            throw e
         }
 
         if (chore === undefined) {
@@ -340,7 +341,7 @@ export const InfoCommand: Command = {
 
 export const OptInCommand: Command = {
     callsign: '!opt-in',
-    handler: (message) => {
+    handler: async (message) => {
         return [
             {
                 kind: 'AddUser',
@@ -359,13 +360,12 @@ export const OptInCommand: Command = {
 
 export const OptOutCommand: Command = {
     callsign: '!opt-out',
-    handler: (message, db) => {
+    handler: async (message, db) => {
         const actions: Action[] = []
 
-        const userAssignedChores = db.getChoresAssignedToUser(message.author)
-        if (userAssignedChores instanceof Error) {
-            throw userAssignedChores
-        }
+        const userAssignedChores = await db.getChoresAssignedToUser(
+            message.author
+        )
 
         for (const chore of userAssignedChores) {
             actions.push({
@@ -410,11 +410,11 @@ export const AllCommandsByCallsign: Record<string, Command> =
     }, {})
 
 // --- Chore Completion ---
-function completeAssignedChore(user: User, db: ReadOnlyDB): Action[] {
-    const userAssignedChores = db.getChoresAssignedToUser(user)
-    if (userAssignedChores instanceof Error) {
-        throw userAssignedChores
-    }
+async function completeAssignedChore(
+    user: User,
+    db: ReadOnlyDB
+): Promise<Action[]> {
+    const userAssignedChores = await db.getChoresAssignedToUser(user)
 
     // check if the user has a chore assigned to complete
     if (userAssignedChores.length === 0) {
@@ -436,12 +436,12 @@ function completeAssignedChore(user: User, db: ReadOnlyDB): Action[] {
     return completeChoreActions(completedChore)
 }
 
-function completeChoreByName(
+async function completeChoreByName(
     choreName: string,
     completedBy: User,
     db: ReadOnlyDB
-): Action[] {
-    const chore = db.getChoreByName(choreName)
+): Promise<Action[]> {
+    const chore = await db.getChoreByName(choreName)
 
     if (chore instanceof Error) {
         throw chore
@@ -464,19 +464,16 @@ function completeChoreByName(
     return completeChoreActions(completedChore)
 }
 
-function getAllAssignableChores(db: ReadOnlyDB): Chore[] {
-    const outstandingChores = db.getOutstandingUnassignedChores()
-
-    if (outstandingChores instanceof Error) {
+async function getAllAssignableChores(db: ReadOnlyDB): Promise<Chore[]> {
+    let outstandingChores
+    try {
+        outstandingChores = await db.getOutstandingUnassignedChores()
+    } catch (e) {
         log('Unable to get outstanding chores')
-        throw outstandingChores
+        throw e
     }
 
-    const upcomingChores = db.getUpcomingUnassignedChores()
-
-    if (upcomingChores instanceof Error) {
-        throw upcomingChores
-    }
+    const upcomingChores = await db.getUpcomingUnassignedChores()
 
     return [...outstandingChores, ...upcomingChores]
 }

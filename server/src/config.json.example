@@ -1,5 +1,6 @@
 {
     "token": "discord token here",
     "channel": "channel name here", // no '#'
-    "frequency": 120 // how frequently to check for assignable chores in seconds
+    "frequency": 120, // how frequently to check for assignable chores in seconds
+    "dbConnectionString": "postgresql://dbuser:secretpassword@database.server.com:3211/mydb"
 }

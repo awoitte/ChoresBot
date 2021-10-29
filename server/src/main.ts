@@ -1,30 +1,44 @@
 import express from 'express'
 import * as chat from './external/chat'
-import { mockDB } from './external/db'
+import { DB, mockDB, pgDB } from './external/db'
+import { Pool } from 'pg'
 import log from './logging/log'
-import { token, channel, frequency } from './config.json'
+import { token, channel, frequency, dbConnectionString } from './config.json'
+import { isDebugFlagSet } from './utility/debug'
 import { loop, messageHandler } from './logic/main'
+;(async () => {
+    // --- Config ---
+    const port: string = process.env.SERVER_PORT || '80'
 
-// --- Config ---
-const port: string = process.env.SERVER_PORT || '80'
+    // --- Server ---
+    const app = express()
 
-// --- Server ---
-const app = express()
+    app.use(express.static('../client/dist'))
 
-app.use(express.static('../client/dist'))
+    app.listen(port, () => {
+        log(`Listening at http://localhost:${port}`)
+    })
 
-app.listen(port, () => {
-    log(`Listening at http://localhost:${port}`)
-})
+    // --- DB ---
+    let db: DB
+    if (isDebugFlagSet()) {
+        db = mockDB
+    } else {
+        const pool = new Pool({
+            connectionString: dbConnectionString
+        })
+        db = await pgDB(pool)
+    }
 
-// --- Chat Bot ---
-const client = chat.initClient()
-chat.listenToChannel(channel, client, (msg) => {
-    const actions = messageHandler(msg, mockDB) // TODO: use actual db
-    log(`actions: ${actions}`)
-})
-chat.login(client, token)
+    // --- Chat Bot ---
+    const client = chat.initClient()
+    chat.listenToChannel(channel, client, async (msg) => {
+        const actions = await messageHandler(msg, db) // TODO: use actual db
+        log(`actions: ${actions}`)
+    })
+    chat.login(client, token)
 
-setInterval(() => {
-    loop(mockDB)
-}, frequency * 1000)
+    setInterval(() => {
+        loop(db)
+    }, frequency * 1000)
+})()

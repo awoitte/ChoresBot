@@ -6,5 +6,5 @@ export type Command = {
     callsign: string
     minArgumentCount?: number
     helpText?: string
-    handler: (message: Message, db: ReadOnlyDB) => Action[]
+    handler: (message: Message, db: ReadOnlyDB) => Promise<Action[]>
 }

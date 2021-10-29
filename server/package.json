@@ -22,6 +22,7 @@
     "@types/express": "^4.17.13",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.10.3",
+    "@types/pg": "^8.6.1",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "chai": "^4.3.4",
@@ -39,6 +40,7 @@
   },
   "dependencies": {
     "discord.js": "^13.2.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "pg": "^8.7.1"
   }
 }

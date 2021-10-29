@@ -7,7 +7,10 @@ import { AllCommandsByCallsign } from './commands'
 import { assignChoreActions } from './actions'
 
 // messageHandler determines how to respond to chat messages
-export function messageHandler(message: Message, db: DB): Action[] {
+export async function messageHandler(
+    message: Message,
+    db: DB
+): Promise<Action[]> {
     log(`New message: [${message.author.name}] "${message.text}"`)
 
     const text = message.text.toLowerCase()
@@ -49,7 +52,7 @@ export function messageHandler(message: Message, db: DB): Action[] {
         }
 
         try {
-            return command.handler(message, db)
+            return await command.handler(message, db)
         } catch (error) {
             return [
                 {
@@ -67,21 +70,23 @@ export function messageHandler(message: Message, db: DB): Action[] {
 }
 
 // loop is called at a set interval and handles logic that isn't prompted by a chat message
-export function loop(db: DB): Action[] {
+export async function loop(db: DB): Promise<Action[]> {
     const actions: Action[] = []
 
-    const outstandingChores = db.getOutstandingUnassignedChores()
-
-    if (outstandingChores instanceof Error) {
+    let outstandingChores
+    try {
+        outstandingChores = await db.getOutstandingUnassignedChores()
+    } catch (e) {
         log('Unable to get outstanding chores')
-        throw outstandingChores
+        throw e
     }
 
-    let assignableUsers = db.getAssignableUsersInOrderOfRecentCompletion()
-
-    if (assignableUsers instanceof Error) {
+    let assignableUsers
+    try {
+        assignableUsers = await db.getAssignableUsersInOrderOfRecentCompletion()
+    } catch (e) {
         log('Unable to get assignable users')
-        throw assignableUsers
+        throw e
     }
 
     for (const chore of outstandingChores) {
