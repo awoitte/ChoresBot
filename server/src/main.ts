@@ -24,10 +24,7 @@ import { loop, messageHandler } from './logic/main'
     if (isDebugFlagSet()) {
         db = mockDB
     } else {
-        const pool = new Pool({
-            connectionString: dbConnectionString
-        })
-        db = await pgDB(pool)
+        db = await pgDB(dbConnectionString)
     }
 
     // --- Chat Bot ---

@@ -1,10 +1,15 @@
+import { Pool } from 'pg'
+
 import { User } from '../models/chat'
 import { Chore } from '../models/chores'
 
-import { Pool } from 'pg'
+import initDBQuery from '../queries/init-db'
+import destroyDBQuery from '../queries/destroy-db'
+import * as userQueries from '../queries/users'
 
 export interface ReadOnlyDB {
     getAssignableUsersInOrderOfRecentCompletion: () => Promise<User[]>
+    getAllUsers: () => Promise<User[]>
 
     // outstanding meaning past their scheduled time
     getOutstandingUnassignedChores: () => Promise<Chore[]>
@@ -12,21 +17,26 @@ export interface ReadOnlyDB {
     // upcoming meaning before their scheduled time
     getUpcomingUnassignedChores: () => Promise<Chore[]>
 
-    getChoreByName: (name: string) => Promise<Chore | undefined>
+    getChoreByName: (name: string) => Promise<Chore | void>
     getChoresAssignedToUser: (user: User) => Promise<Chore[]>
     getAllChoreNames: () => Promise<string[]>
 }
 
 export interface DB extends ReadOnlyDB {
-    addUser: (user: User) => Promise<undefined>
-    deleteUser: (user: User) => Promise<undefined>
+    addUser: (user: User) => Promise<void>
+    deleteUser: (user: User) => Promise<void>
 
-    addChore: (chore: Chore) => Promise<undefined>
-    modifyChore: (chore: Chore) => Promise<undefined>
-    deleteChore: (name: string) => Promise<undefined>
+    addChore: (chore: Chore) => Promise<void>
+    modifyChore: (chore: Chore) => Promise<void>
+    deleteChore: (name: string) => Promise<void>
+
+    addChoreCompletion: (name: string) => Promise<void>
 }
 
 export const mockDB: DB = {
+    getAllUsers: async () => {
+        return []
+    },
     addUser: async () => {
         return undefined
     },
@@ -59,74 +69,88 @@ export const mockDB: DB = {
     },
     getAllChoreNames: async () => {
         return []
+    },
+    addChoreCompletion: async () => {
+        return undefined
     }
 }
 
-export async function pgDB(pool: Pool): Promise<DB> {
-    pool.query('SELECT $1::text as message', ['Hello world!'])
+export interface PostgresDB extends DB {
+    initDB: () => Promise<void>
+    release: () => Promise<void>
+    destroyEntireDB: () => Promise<void>
+}
+
+export async function pgDB(connectionString: string): Promise<PostgresDB> {
+    const pool = new Pool({
+        connectionString
+    })
+    const client = await pool.connect()
+
     return {
-        addUser: async () => {
-            return undefined
+        release: async () => {
+            await client.release()
+        },
+        initDB: async () => {
+            await client.query(initDBQuery)
+        },
+        destroyEntireDB: async () => {
+            await client.query(destroyDBQuery)
+        },
+        addUser: async (user) => {
+            await client.query(userQueries.addUser, [user.name, user.id])
         },
         deleteUser: async () => {
+            // TODO
             return undefined
         },
+        getAllUsers: async () => {
+            const userRes = await client.query(userQueries.getAllUsers)
+
+            return userRes.rows.map((row) => ({
+                name: row.name,
+                id: row.id
+            }))
+        },
         getAssignableUsersInOrderOfRecentCompletion: async () => {
+            // TODO
             return []
         },
         getOutstandingUnassignedChores: async () => {
+            // TODO
             return []
         },
         getUpcomingUnassignedChores: async () => {
+            // TODO
             return []
         },
         addChore: async () => {
+            // TODO
             return undefined
         },
         modifyChore: async () => {
+            // TODO
             return undefined
         },
         deleteChore: async () => {
+            // TODO
             return undefined
         },
         getChoreByName: async () => {
+            // TODO
             return undefined
         },
         getChoresAssignedToUser: async () => {
+            // TODO
             return []
         },
         getAllChoreNames: async () => {
+            // TODO
             return []
+        },
+        addChoreCompletion: async () => {
+            // TODO
+            return undefined
         }
-    }
-}
-
-export async function initPostgresDB(pool: Pool): Promise<void> {
-    const client = await pool.connect()
-
-    try {
-        await client.query('BEGIN')
-        await client.query(`CREATE TABLE test (
-            test_col INT
-        )`)
-    } catch (e) {
-        client.query('ROLLBACK')
-        throw e
-    } finally {
-        client.release()
-    }
-}
-
-export async function destroyPostgresDB(pool: Pool): Promise<void> {
-    const client = await pool.connect()
-
-    try {
-        await client.query('BEGIN')
-        await client.query(`DROP TABLE test`)
-    } catch (e) {
-        client.query('ROLLBACK')
-        throw e
-    } finally {
-        client.release()
     }
 }
