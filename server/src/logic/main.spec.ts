@@ -140,7 +140,7 @@ describe('Message handling logic', async () => {
                     },
 
                     getUpcomingUnassignedChores: () => {
-                        return [mock.GenericChore]
+                        return [mock.genericChore]
                     }
                 }
             )
@@ -286,7 +286,7 @@ describe('Message handling logic', async () => {
 
             const actions = await messageHandler(
                 {
-                    text: `!complete ${mock.GenericChore.name}`,
+                    text: `!complete ${mock.genericChore.name}`,
                     author: mock.User1
                 },
                 mock.DBWithChoreByName
@@ -301,7 +301,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mock.GenericChore.name)
+            expect(action.chore.name).to.equal(mock.genericChore.name)
             expect(action.chore.assigned).to.equal(false)
 
             action = actions[1]
@@ -311,7 +311,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `✅ the chore "${mock.GenericChore.name}" has been successfully completed`
+                `✅ the chore "${mock.genericChore.name}" has been successfully completed`
             )
         })
 
@@ -541,7 +541,7 @@ describe('Message handling logic', async () => {
         it('should delete a chore', async () => {
             const actions = await messageHandler(
                 {
-                    text: `!delete ${mock.GenericChore}`,
+                    text: `!delete ${mock.genericChore}`,
                     author: mock.User1
                 },
                 mock.DBWithChoreByName
@@ -555,7 +555,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mock.GenericChore.name)
+            expect(action.chore.name).to.equal(mock.genericChore.name)
 
             action = actions[1]
 
@@ -564,7 +564,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} chore '${mock.GenericChore}' successfully deleted`
+                `@${mock.User1.name} chore '${mock.genericChore}' successfully deleted`
             )
         })
     })
@@ -627,7 +627,7 @@ describe('Message handling logic', async () => {
         it('should describe a chore', async () => {
             const actions = await messageHandler(
                 {
-                    text: `!info ${mock.GenericChore.name}`,
+                    text: `!info ${mock.genericChore.name}`,
                     author: mock.User1
                 },
                 mock.DBWithChoreByName
@@ -642,7 +642,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                describeChore(mock.GenericChore)
+                describeChore(mock.genericChore)
             )
         })
     })

@@ -1,7 +1,6 @@
 import express from 'express'
 import * as chat from './external/chat'
 import { DB, mockDB, pgDB } from './external/db'
-import { Pool } from 'pg'
 import log from './logging/log'
 import { token, channel, frequency, dbConnectionString } from './config.json'
 import { isDebugFlagSet } from './utility/debug'

@@ -7,3 +7,9 @@ export type Chore = {
     frequency: Frequency
     skippedBy?: User[]
 }
+
+export type ChoreCompletion = {
+    choreName: string
+    by: string
+    at: Date
+}

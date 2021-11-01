@@ -1,0 +1,51 @@
+# ChoresBot
+
+A discord bot to assist in household chore completion. Uses a round-robin system to distribute chores evenly.
+
+---
+
+To build:
+
+`npm run build`
+
+---
+
+To run:
+
+`npm run start` or `node .`
+
+# Dev Environment
+
+To start in debug mode (runs the server with the `DEBUG` environment variable set):
+
+`npm run dev:start`
+
+The server should now be running with the webpage accessible on port 3000.
+
+---
+
+To restart the server in debug mode on file changes:
+
+`npm run watch:all`
+
+The server should now be running with the webpage accessible on port 3000. When a `*.ts` file changes the server will be killed and restarted.
+
+---
+
+To run tests once:
+
+`npm run test`
+
+---
+
+To run tests on any file changes:
+
+`npm run watch:tests`
+
+When a `*.ts` file changes the tests will automatically be re-run.
+
+## DB Testing
+
+In order to run database query unit tests you must have a postgreSQL database running somewhere accessible. Then set the environment variable `CHORES_BOT_TEST_DB` to a postgreSQL connection string (e.g. `postgresql://dbuser:secretpassword@database.server.com:3211/mydb`).
+
+NOTE: this database should be empty, the tests will frequently destroy and re-initialize all relevant tables and data.

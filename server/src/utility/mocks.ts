@@ -36,7 +36,7 @@ export const OutstandingChore: Chore = {
     frequency: Once
 }
 
-export const GenericChore: Chore = {
+export const genericChore: Chore = {
     name: 'clean the dirt',
     assigned: User1,
     skippedBy: [User1],
@@ -60,7 +60,7 @@ function getOutstandingUnassignedChores() {
 }
 
 function getChoreByName() {
-    return GenericChore
+    return genericChore
 }
 
 export const DBWithUpcoming = Object.assign({}, mockDB, {
