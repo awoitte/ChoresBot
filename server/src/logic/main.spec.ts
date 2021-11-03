@@ -140,7 +140,7 @@ describe('Message handling logic', async () => {
                     },
 
                     getUpcomingUnassignedChores: () => {
-                        return [mock.genericChore]
+                        return [mock.skippedChore]
                     }
                 }
             )

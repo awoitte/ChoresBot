@@ -1,7 +1,8 @@
-import { Pool } from 'pg'
+import { Pool, PoolClient } from 'pg'
 
 import { User } from '../models/chat'
 import { Chore, ChoreCompletion } from '../models/chores'
+import { Frequency } from '../models/time'
 
 import initDBQuery from '../queries/init-db'
 import destroyDBQuery from '../queries/destroy-db'
@@ -11,6 +12,7 @@ import * as choresQueries from '../queries/chores'
 export interface ReadOnlyDB {
     getAssignableUsersInOrderOfRecentCompletion: () => Promise<User[]>
     getAllUsers: () => Promise<User[]>
+    getUserByID: (id: string) => Promise<User | void>
 
     // outstanding meaning past their scheduled time
     getOutstandingUnassignedChores: () => Promise<Chore[]>
@@ -39,6 +41,9 @@ export interface DB extends ReadOnlyDB {
 export const mockDB: DB = {
     getAllUsers: async () => {
         return []
+    },
+    getUserByID: async () => {
+        return undefined
     },
     addUser: async () => {
         return undefined
@@ -93,29 +98,7 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
     })
     const client = await pool.connect()
 
-    // Cleanup
-    // https://stackoverflow.com/questions/14031763/doing-a-cleanup-action-just-before-node-js-exits
-    process.stdin.resume() //so the program will not close instantly
-
-    async function exitHandler() {
-        await client.release()
-        process.exit()
-    }
-
-    //do something when app is closing
-    process.on('exit', exitHandler)
-
-    //catches ctrl+c event
-    process.on('SIGINT', exitHandler)
-
-    // catches "kill pid" (for example: nodemon restart)
-    process.on('SIGUSR1', exitHandler)
-    process.on('SIGUSR2', exitHandler)
-
-    //catches uncaught exceptions
-    process.on('uncaughtException', exitHandler)
-
-    return {
+    const db: PostgresDB = {
         release: async () => {
             await client.release()
         },
@@ -134,14 +117,23 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
         getAllUsers: async () => {
             const userRes = await client.query(userQueries.getAllUsers)
 
-            return userRes.rows.map((row) => ({
-                name: row.name,
-                id: row.id
-            }))
+            return userRes.rows.map(rowToUser)
+        },
+        getUserByID: async (id) => {
+            const userRes = await client.query(userQueries.getUserByID, [id])
+
+            if (userRes.rowCount != 1) {
+                return
+            }
+
+            return rowToUser(userRes.rows[0])
         },
         getAssignableUsersInOrderOfRecentCompletion: async () => {
-            // TODO
-            return []
+            const userRes = await client.query(
+                userQueries.getUsersSortedByCompletions
+            )
+
+            return userRes.rows.map(rowToUser)
         },
         getOutstandingUnassignedChores: async () => {
             // TODO
@@ -152,18 +144,34 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
             return []
         },
         addChore: async (chore) => {
-            await client.query(choresQueries.addChores, [chore.name])
+            await client.query(
+                choresQueries.addChores,
+                choreToQueryParams(chore)
+            )
+
+            await addChoreSkips(chore, client)
         },
-        modifyChore: async () => {
-            // TODO
-            return undefined
+        modifyChore: async (chore) => {
+            await client.query(
+                choresQueries.modifyChore,
+                choreToQueryParams(chore)
+            )
+
+            await addChoreSkips(chore, client)
         },
         deleteChore: async (choreName) => {
             await client.query(choresQueries.deleteChore, [choreName])
         },
-        getChoreByName: async () => {
-            // TODO
-            return undefined
+        getChoreByName: async (choreName) => {
+            const choreRes = await client.query(choresQueries.getChoreByName, [
+                choreName
+            ])
+
+            if (choreRes.rowCount != 1) {
+                return
+            }
+
+            return await rowToChore(choreRes.rows[0], db)
         },
         getChoresAssignedToUser: async () => {
             // TODO
@@ -191,6 +199,116 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
                 by: row.by,
                 at: row.at
             }))
+        }
+    }
+
+    return db
+}
+
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+function choreToQueryParams(chore: Chore): any[] {
+    let date, weekday, assigned
+    if (chore.frequency.kind === 'Weekly') {
+        weekday = chore.frequency.weekday
+    } else if (chore.frequency.kind === 'Daily') {
+        date = chore.frequency.time
+    } else {
+        date = chore.frequency.date
+    }
+
+    if (chore.assigned !== false) {
+        assigned = chore.assigned.id
+    }
+
+    return [chore.name, assigned, chore.frequency.kind, date, weekday]
+}
+
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+function rowToUser(row: any): User {
+    return {
+        name: row.name,
+        id: row.id
+    }
+}
+
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+async function rowToChore(row: any, db: ReadOnlyDB): Promise<Chore> {
+    let assigned: false | User = false
+    if (row.assigned !== null) {
+        const user = await db.getUserByID(row.assigned)
+
+        if (user === undefined) {
+            throw new Error('unable to find assigned user')
+        }
+
+        assigned = user
+    }
+
+    const chore: Chore = {
+        name: row.name,
+        assigned,
+        frequency: parseFrequencyRowData(
+            row.frequency_kind,
+            row.frequency_weekday,
+            row.frequency_date
+        )
+    }
+
+    if (Array.isArray(row.skipped_by)) {
+        const skips = row.skipped_by.filter((x: any) => x !== null)
+        // null is returned if there aren't any skips
+
+        if (skips.length > 0) {
+            chore.skippedBy = []
+
+            for (const userID of skips) {
+                const user = await db.getUserByID(userID)
+                if (user !== undefined) {
+                    chore.skippedBy.push(user)
+                }
+            }
+        }
+    }
+
+    return chore
+}
+
+function parseFrequencyRowData(
+    kind: string,
+    weekday: string,
+    date: Date
+): Frequency {
+    switch (kind) {
+        case 'Daily':
+            return {
+                kind: 'Daily',
+                time: date
+            }
+        case 'Weekly':
+            return {
+                kind: 'Weekly',
+                weekday: weekday
+            }
+        case 'Monthly':
+            return {
+                kind: 'Yearly',
+                date: date
+            }
+        case 'Once':
+            return {
+                kind: 'Once',
+                date: date
+            }
+        default:
+            throw new Error('unable to parse frequency')
+    }
+}
+
+async function addChoreSkips(chore: Chore, client: PoolClient): Promise<void> {
+    if (chore.skippedBy !== undefined) {
+        for (const user of chore.skippedBy) {
+            // query only adds if one doesn't already exist
+            await client.query(choresQueries.addSkip, [chore.name, user.id])
         }
     }
 }

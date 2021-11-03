@@ -13,6 +13,11 @@ export const User2: User = {
     id: 'mockUser2'
 }
 
+export const User3: User = {
+    name: 'mockUser3',
+    id: 'mockUser3'
+}
+
 export const Once: Frequency = {
     kind: 'Once',
     date: new Date()
@@ -38,8 +43,14 @@ export const OutstandingChore: Chore = {
 
 export const genericChore: Chore = {
     name: 'clean the dirt',
-    assigned: User1,
-    skippedBy: [User1],
+    assigned: false,
+    frequency: Once
+}
+
+export const skippedChore: Chore = {
+    name: 'polish the plants',
+    assigned: false,
+    skippedBy: [User1, User2, User3],
     frequency: Once
 }
 

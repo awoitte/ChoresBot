@@ -2,6 +2,8 @@ import { describe, run } from 'mocha'
 import { expect, use } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
+import { Chore } from '../models/chores'
+
 import { PostgresDB, pgDB } from './db'
 import * as mock from '../utility/mocks'
 
@@ -20,58 +22,10 @@ if (connectionString === undefined) {
 async function runDBTestSuite(connectionString: string) {
     const db: PostgresDB = await pgDB(connectionString)
 
+    await db.destroyEntireDB() // if prior tests crashed there might be bad data to clean up
+
     describe('Database', () => {
         beforeEach(db.initDB.bind(db))
-
-        describe('Users', () => {
-            it('should add and remember users', async () => {
-                await db.addUser(mock.User1)
-                const users = await db.getAllUsers()
-
-                expect(users).to.have.length(1)
-
-                const user = users[0]
-
-                expect(user.id).to.equal(mock.User1.id)
-                expect(user.name).to.equal(mock.User1.name)
-            })
-
-            it('should not allow adding duplicate users', async () => {
-                const clonedUser = Object.assign({}, mock.User1, {
-                    name: 'some other name'
-                    // id is the same
-                })
-
-                await db.addUser(mock.User1)
-
-                await expect(db.addUser(clonedUser)).to.eventually.throw
-            })
-
-            it('should allow deleting users', async () => {
-                await db.addUser(mock.User1)
-                await db.deleteUser(mock.User1)
-
-                const users = await db.getAllUsers()
-
-                expect(users).to.have.length(0)
-            })
-
-            it('should allow re-adding a deleted user', async () => {
-                await db.addUser(mock.User1)
-                await db.deleteUser(mock.User1)
-
-                await expect(db.addUser(mock.User1)).to.eventually.not.throw
-
-                const users = await db.getAllUsers()
-
-                expect(users).to.have.length(1)
-
-                const user = users[0]
-
-                expect(user.id).to.equal(mock.User1.id)
-                expect(user.name).to.equal(mock.User1.name)
-            })
-        })
 
         describe('Chores', () => {
             it('should add and remember chores', async () => {
@@ -84,9 +38,7 @@ async function runDBTestSuite(connectionString: string) {
             })
 
             it('should not allow adding duplicate chores', async () => {
-                const clonedChore = Object.assign({}, mock.genericChore, {
-                    name: 'some other name'
-                })
+                const clonedChore = Object.assign({}, mock.genericChore)
 
                 await db.addChore(mock.genericChore)
 
@@ -114,6 +66,104 @@ async function runDBTestSuite(connectionString: string) {
                 expect(chores).to.have.length(1)
 
                 expect(chores[0]).to.equal(mock.genericChore.name)
+            })
+
+            it('should get chores by name', async () => {
+                await db.addChore(mock.genericChore)
+
+                const chore = await db.getChoreByName(mock.genericChore.name)
+
+                if (chore === undefined) {
+                    throw new Error("couldn't find chore")
+                }
+
+                expect(chore.name).to.equal(mock.genericChore.name)
+                expect(chore.assigned).to.equal(mock.genericChore.assigned)
+                expect(chore.frequency).to.deep.equal(
+                    mock.genericChore.frequency
+                )
+            })
+
+            it('should not get deleted chores by name', async () => {
+                await db.addChore(mock.genericChore)
+                await db.deleteChore(mock.genericChore.name)
+
+                const chore = await db.getChoreByName(mock.genericChore.name)
+
+                expect(chore).to.be.undefined
+            })
+
+            it('should not get deleted chores by name', async () => {
+                await db.addChore(mock.genericChore)
+                await db.deleteChore(mock.genericChore.name)
+
+                const chore = await db.getChoreByName(mock.genericChore.name)
+
+                expect(chore).to.be.undefined
+            })
+
+            it('should allow modifying chores', async () => {
+                const mockChore: Chore = {
+                    name: 'A',
+                    assigned: false,
+                    skippedBy: undefined, // defining explicitly to illustrate the difference
+                    frequency: {
+                        kind: 'Daily',
+                        time: new Date()
+                    }
+                }
+
+                const mockModifiedChore: Chore = {
+                    name: 'A', // name is the same as we want it to replace previous version
+                    assigned: mock.User1,
+                    skippedBy: [mock.User2],
+                    frequency: {
+                        kind: 'Once',
+                        date: new Date(0)
+                    }
+                }
+
+                await db.addUser(mock.User1)
+                await db.addUser(mock.User2)
+
+                await db.addChore(mockChore)
+
+                // check it's stored properly
+                let chore = await db.getChoreByName(mockChore.name)
+
+                if (chore === undefined) {
+                    throw new Error("couldn't find chore")
+                }
+
+                expect(chore.name).to.equal(mockChore.name)
+                expect(chore.assigned).to.equal(mockChore.assigned)
+                expect(chore.frequency).to.deep.equal(mockChore.frequency)
+                expect(chore.skippedBy).to.deep.equal(mockChore.skippedBy)
+
+                await db.modifyChore(mockModifiedChore)
+
+                chore = await db.getChoreByName(mockChore.name)
+
+                if (chore === undefined) {
+                    throw new Error("couldn't find chore")
+                }
+
+                expect(chore.name).to.equal(mockModifiedChore.name)
+                expect(chore.assigned).to.deep.equal(mockModifiedChore.assigned)
+                expect(chore.frequency).to.deep.equal(
+                    mockModifiedChore.frequency
+                )
+                expect(chore.skippedBy).to.deep.equal(
+                    mockModifiedChore.skippedBy
+                )
+            })
+
+            it('should not allow modifying deleted chores', async () => {
+                await db.addChore(mock.genericChore)
+                await db.deleteChore(mock.genericChore.name)
+
+                await expect(db.modifyChore(mock.genericChore)).to.eventually
+                    .throw
             })
 
             it('should store chore completions', async () => {
@@ -167,7 +217,118 @@ async function runDBTestSuite(connectionString: string) {
             })
         })
 
+        describe('Users', () => {
+            it('should add and remember users', async () => {
+                await db.addUser(mock.User1)
+                const users = await db.getAllUsers()
+
+                expect(users).to.have.length(1)
+
+                const user = users[0]
+
+                expect(user.id).to.equal(mock.User1.id)
+                expect(user.name).to.equal(mock.User1.name)
+            })
+
+            it('should not allow adding duplicate users', async () => {
+                const clonedUser = Object.assign({}, mock.User1, {
+                    name: 'some other name'
+                    // id is the same
+                })
+
+                await db.addUser(mock.User1)
+
+                await expect(db.addUser(clonedUser)).to.eventually.throw
+            })
+
+            it('should allow deleting users', async () => {
+                await db.addUser(mock.User1)
+                await db.deleteUser(mock.User1)
+
+                const users = await db.getAllUsers()
+
+                expect(users).to.have.length(0)
+            })
+
+            it('should allow re-adding a deleted user', async () => {
+                await db.addUser(mock.User1)
+                await db.deleteUser(mock.User1)
+
+                await expect(db.addUser(mock.User1)).to.eventually.not.throw
+
+                const users = await db.getAllUsers()
+
+                expect(users).to.have.length(1)
+
+                const user = users[0]
+
+                expect(user.id).to.equal(mock.User1.id)
+                expect(user.name).to.equal(mock.User1.name)
+            })
+
+            it('should get users by id', async () => {
+                await db.addUser(mock.User1)
+
+                const user = await db.getUserByID(mock.User1.id)
+
+                if (user === undefined) {
+                    throw new Error("didn't find user")
+                }
+
+                expect(user.id).to.equal(mock.User1.id)
+                expect(user.name).to.equal(mock.User1.name)
+            })
+
+            it('should not get deleted users by id', async () => {
+                await db.addUser(mock.User1)
+                await db.deleteUser(mock.User1)
+
+                const user = await db.getUserByID(mock.User1.id)
+
+                expect(user).to.be.undefined
+            })
+
+            it('should properly retrieve users ordered by recent completions', async () => {
+                await db.addUser(mock.User1)
+                await db.addUser(mock.User2)
+                await db.addUser(mock.User3)
+                await db.addChore(mock.genericChore)
+
+                await db.addChoreCompletion(mock.genericChore.name, mock.User1)
+
+                let users =
+                    await db.getAssignableUsersInOrderOfRecentCompletion()
+
+                expect(users).to.have.length(3)
+
+                expect(users[0].id).to.equal(mock.User1.id)
+                // user 2 and 3 in non-deterministic order
+
+                await db.addChoreCompletion(mock.genericChore.name, mock.User2)
+
+                users = await db.getAssignableUsersInOrderOfRecentCompletion()
+
+                expect(users).to.have.length(3)
+
+                expect(users[0].id).to.equal(mock.User2.id)
+                expect(users[1].id).to.equal(mock.User1.id)
+                expect(users[2].id).to.equal(mock.User3.id)
+
+                await db.addChoreCompletion(mock.genericChore.name, mock.User3)
+
+                users = await db.getAssignableUsersInOrderOfRecentCompletion()
+
+                expect(users).to.have.length(3)
+
+                expect(users[0].id).to.equal(mock.User3.id)
+                expect(users[1].id).to.equal(mock.User2.id)
+                expect(users[2].id).to.equal(mock.User1.id)
+            })
+        })
+
         afterEach(db.destroyEntireDB.bind(db))
+
+        after(db.release.bind(db))
 
         // In order to run the test suite asynchronously we must use 'mocha --delay' and call run() here
         // async is required to run the tests with a real db connection
