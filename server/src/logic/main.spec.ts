@@ -58,7 +58,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!request',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithUpcoming
             )
@@ -71,8 +71,8 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mock.UpcomingChore.name)
-            expect(action.chore.assigned).to.equal(mock.User1)
+            expect(action.chore.name).to.equal(mock.upcomingChore.name)
+            expect(action.chore.assigned).to.equal(mock.user1)
 
             action = actions[1]
 
@@ -81,7 +81,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} please do the chore: "${mock.UpcomingChore.name}"`
+                `@${mock.user1.name} please do the chore: "${mock.upcomingChore.name}"`
             )
         })
 
@@ -89,7 +89,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!request',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithChoreAssigned
             )
@@ -103,7 +103,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} you are already assigned the chore "${mock.AssignedChore.name}". ` +
+                `@${mock.user1.name} you are already assigned the chore "${mock.assignedChore.name}". ` +
                     `If you would like to skip you can use the "!skip" command`
             )
         })
@@ -112,7 +112,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!request',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB // mockDB will always respond with empty lists by default
             )
@@ -126,7 +126,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} there are no upcoming chores`
+                `@${mock.user1.name} there are no upcoming chores`
             )
         })
 
@@ -136,7 +136,7 @@ describe('Message handling logic', async () => {
                 mockDB,
                 {
                     getAssignableUsersInOrderOfRecentCompletion: () => {
-                        return [mock.User1]
+                        return [mock.user1]
                     },
 
                     getUpcomingUnassignedChores: () => {
@@ -148,7 +148,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!request',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDBUpcomingChoreAlreadySkipped
             )
@@ -162,7 +162,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} unable to find you a suitable new chore. ` +
+                `@${mock.user1.name} unable to find you a suitable new chore. ` +
                     `This might happen if all available chores have been skipped`
             )
         })
@@ -173,7 +173,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!skip',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithChoreAssigned
             )
@@ -187,7 +187,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mock.AssignedChore.name)
+            expect(action.chore.name).to.equal(mock.assignedChore.name)
             expect(action.chore.assigned).to.equal(false)
 
             action = actions[1]
@@ -197,7 +197,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `⏭ the chore "${mock.AssignedChore.name}" has been successfully skipped`
+                `⏭ the chore "${mock.assignedChore.name}" has been successfully skipped`
             )
         })
 
@@ -205,7 +205,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!skip',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB // mockDB will always respond with empty lists by default
             )
@@ -219,7 +219,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} you have no chores currently assigned. ` +
+                `@${mock.user1.name} you have no chores currently assigned. ` +
                     `If you would like to request a new chore you can use the "!request" command`
             )
         })
@@ -230,7 +230,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!complete',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithChoreAssigned
             )
@@ -244,7 +244,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mock.AssignedChore.name)
+            expect(action.chore.name).to.equal(mock.assignedChore.name)
             expect(action.chore.assigned).to.equal(false)
 
             action = actions[1]
@@ -254,7 +254,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `✅ the chore "${mock.AssignedChore.name}" has been successfully completed`
+                `✅ the chore "${mock.assignedChore.name}" has been successfully completed`
             )
         })
 
@@ -262,7 +262,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!complete',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB // mockDB will always respond with empty lists by default
             )
@@ -276,7 +276,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} you have no chores currently assigned. ` +
+                `@${mock.user1.name} you have no chores currently assigned. ` +
                     `If you would like to request a new chore you can use the "!request" command`
             )
         })
@@ -287,7 +287,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!complete ${mock.genericChore.name}`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithChoreByName
             )
@@ -320,7 +320,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!complete ${missingChoreName}`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB // mockDB will always be unable to find a chore
             )
@@ -334,7 +334,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+                `@${mock.user1.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
             )
         })
 
@@ -342,7 +342,7 @@ describe('Message handling logic', async () => {
             let actions = await messageHandler(
                 {
                     text: '!skip',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithChoreAssigned
             )
@@ -355,7 +355,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mock.AssignedChore.name)
+            expect(action.chore.name).to.equal(mock.assignedChore.name)
             expect(action.chore.assigned).to.equal(false)
 
             const modifiedChore = action.chore
@@ -370,7 +370,7 @@ describe('Message handling logic', async () => {
             actions = await messageHandler(
                 {
                     text: `!complete ${modifiedChore.name}`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDBWithModifiedChore
             )
@@ -395,7 +395,7 @@ describe('Message handling logic', async () => {
             let actions = await messageHandler(
                 {
                     text: '!add',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB
             )
@@ -414,7 +414,7 @@ describe('Message handling logic', async () => {
             actions = await messageHandler(
                 {
                     text: '!add test',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB
             )
@@ -434,7 +434,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!add many "args" but no frequency',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB
             )
@@ -457,7 +457,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!add ${mockChoreName} ${mockChoreFrequency}`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB
             )
@@ -489,7 +489,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} new chore '${mockChoreName}' successfully added with frequency '${mockChoreFrequency}'`
+                `@${mock.user1.name} new chore '${mockChoreName}' successfully added with frequency '${mockChoreFrequency}'`
             )
         })
     })
@@ -499,7 +499,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!delete',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB
             )
@@ -520,7 +520,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!delete ${missingChoreName}`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB // mockDB will always be unable to find a chore
             )
@@ -534,7 +534,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+                `@${mock.user1.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
             )
         })
 
@@ -542,7 +542,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!delete ${mock.genericChore}`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithChoreByName
             )
@@ -564,7 +564,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} chore '${mock.genericChore}' successfully deleted`
+                `@${mock.user1.name} chore '${mock.genericChore}' successfully deleted`
             )
         })
     })
@@ -582,7 +582,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!info',
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDBWithChoreName
             )
@@ -605,7 +605,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!info ${missingChoreName}`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB // mockDB will respond with undefined when asked to getChoreByName
             )
@@ -619,7 +619,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} Unable to find chore "${missingChoreName}". ` +
+                `@${mock.user1.name} Unable to find chore "${missingChoreName}". ` +
                     'Try using the !info command to verify the spelling.'
             )
         })
@@ -628,7 +628,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!info ${mock.genericChore.name}`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithChoreByName
             )
@@ -652,7 +652,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!opt-in`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB
             )
@@ -665,7 +665,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.user.id).to.equal(mock.User1.id)
+            expect(action.user.id).to.equal(mock.user1.id)
 
             action = actions[1]
 
@@ -674,7 +674,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} thank you for opting in to ChoresBot!!! ✨💚`
+                `@${mock.user1.name} thank you for opting in to ChoresBot!!! ✨💚`
             )
         })
     })
@@ -684,7 +684,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!opt-out`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mockDB
             )
@@ -697,7 +697,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.user.id).to.equal(mock.User1.id)
+            expect(action.user.id).to.equal(mock.user1.id)
 
             action = actions[1]
 
@@ -706,7 +706,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} successfully opted-out, you should no longer be assigned any chores`
+                `@${mock.user1.name} successfully opted-out, you should no longer be assigned any chores`
             )
         })
 
@@ -714,7 +714,7 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: `!opt-out`,
-                    author: mock.User1
+                    author: mock.user1
                 },
                 mock.DBWithChoreAssigned
             )
@@ -727,7 +727,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.chore.name).to.equal(mock.AssignedChore.name)
+            expect(action.chore.name).to.equal(mock.assignedChore.name)
             expect(action.chore.assigned).to.be.false
 
             action = actions[1]
@@ -736,7 +736,7 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.user.id).to.equal(mock.User1.id)
+            expect(action.user.id).to.equal(mock.user1.id)
 
             action = actions[2]
 
@@ -745,7 +745,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.User1.name} successfully opted-out, you should no longer be assigned any chores`
+                `@${mock.user1.name} successfully opted-out, you should no longer be assigned any chores`
             )
         })
     })
@@ -764,7 +764,7 @@ describe('Actions performed at an interval', () => {
             throw 'Received Action of the wrong type'
         }
 
-        expect(action.chore.assigned).to.equal(mock.User1)
+        expect(action.chore.assigned).to.equal(mock.user1)
 
         action = actions[1]
 
@@ -773,7 +773,7 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${mock.User1.name} please do the chore: "${mock.OutstandingChore.name}"`
+            `@${mock.user1.name} please do the chore: "${mock.outstandingChore.name}"`
         )
     })
 
@@ -786,8 +786,8 @@ describe('Actions performed at an interval', () => {
     it('should not re-assign a chore to a user after they skip it', async () => {
         let mockChore: Chore = {
             name: 'clean the dirt',
-            assigned: mock.User1,
-            frequency: mock.Once
+            assigned: mock.user1,
+            frequency: mock.once
         }
 
         const mockDBSameChoreAssignedAndOutstanding = Object.assign(
@@ -795,7 +795,7 @@ describe('Actions performed at an interval', () => {
             mockDB,
             {
                 getAssignableUsersInOrderOfRecentCompletion: () => {
-                    return [mock.User1]
+                    return [mock.user1]
                 },
 
                 getChoresAssignedToUser: () => {
@@ -811,7 +811,7 @@ describe('Actions performed at an interval', () => {
         let actions = await messageHandler(
             {
                 text: '!skip',
-                author: mock.User1
+                author: mock.user1
             },
             mockDBSameChoreAssignedAndOutstanding
         )
@@ -849,18 +849,18 @@ describe('Actions performed at an interval', () => {
         const mockChore1: Chore = {
             name: 'clean the dirt',
             assigned: false,
-            frequency: mock.Once
+            frequency: mock.once
         }
 
         const mockChore2: Chore = {
             name: 'floss the steps',
             assigned: false,
-            frequency: mock.Once
+            frequency: mock.once
         }
 
         const mockDBMultipleChoresAndMultipleUsers = Object.assign({}, mockDB, {
             getAssignableUsersInOrderOfRecentCompletion: () => {
-                return [mock.User1, mock.User2]
+                return [mock.user1, mock.user2]
             },
 
             getOutstandingUnassignedChores: () => {
@@ -879,7 +879,7 @@ describe('Actions performed at an interval', () => {
             throw 'Received Action of the wrong type'
         }
 
-        expect(action.chore.assigned).to.equal(mock.User1)
+        expect(action.chore.assigned).to.equal(mock.user1)
 
         action = actions[1]
 
@@ -888,7 +888,7 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${mock.User1.name} please do the chore: "${mockChore1.name}"`
+            `@${mock.user1.name} please do the chore: "${mockChore1.name}"`
         )
 
         action = actions[2]
@@ -897,7 +897,7 @@ describe('Actions performed at an interval', () => {
             throw 'Received Action of the wrong type'
         }
 
-        expect(action.chore.assigned).to.equal(mock.User2)
+        expect(action.chore.assigned).to.equal(mock.user2)
 
         action = actions[3]
 
@@ -906,7 +906,7 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${mock.User2.name} please do the chore: "${mockChore2.name}"`
+            `@${mock.user2.name} please do the chore: "${mockChore2.name}"`
         )
     })
 })

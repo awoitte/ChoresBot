@@ -3,71 +3,71 @@ import { User } from '../models/chat'
 import { Chore } from '../models/chores'
 import { Frequency } from '../models/time'
 
-export const User1: User = {
+export const user1: User = {
     name: 'mockName',
     id: 'mockID'
 }
 
-export const User2: User = {
+export const user2: User = {
     name: 'mockUser2',
     id: 'mockUser2'
 }
 
-export const User3: User = {
+export const user3: User = {
     name: 'mockUser3',
     id: 'mockUser3'
 }
 
-export const Once: Frequency = {
+export const once: Frequency = {
     kind: 'Once',
     date: new Date()
 }
 
-export const UpcomingChore: Chore = {
+export const upcomingChore: Chore = {
     name: 'walk the cat',
-    assigned: User1,
-    frequency: Once
+    assigned: user1,
+    frequency: once
 }
 
-export const AssignedChore: Chore = {
+export const assignedChore: Chore = {
     name: 'floop the pig',
-    assigned: User1,
-    frequency: Once
+    assigned: user1,
+    frequency: once
 }
 
-export const OutstandingChore: Chore = {
+export const outstandingChore: Chore = {
     name: 'make a pile',
-    assigned: User1,
-    frequency: Once
+    assigned: user1,
+    frequency: once
 }
 
 export const genericChore: Chore = {
     name: 'clean the dirt',
     assigned: false,
-    frequency: Once
+    frequency: once
 }
 
 export const skippedChore: Chore = {
     name: 'polish the plants',
     assigned: false,
-    skippedBy: [User1, User2, User3],
-    frequency: Once
+    skippedBy: [user1, user2, user3],
+    frequency: once
 }
 
 function getUpcomingUnassignedChores() {
-    return [UpcomingChore]
+    return [upcomingChore]
 }
 
 function getAssignableUsersInOrderOfRecentCompletion() {
-    return [User1]
+    return [user1]
 }
 
 function getChoresAssignedToUser() {
-    return [AssignedChore]
+    return [assignedChore]
 }
 
 function getOutstandingUnassignedChores() {
-    return [OutstandingChore]
+    return [outstandingChore]
 }
 
 function getChoreByName() {

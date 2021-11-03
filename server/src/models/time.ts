@@ -2,6 +2,7 @@ export type Daily = {
     kind: 'Daily'
     time: Date
 }
+
 export type Weekly = {
     kind: 'Weekly'
     weekday: string
@@ -21,27 +22,36 @@ export type Frequency = Daily | Weekly | Yearly | Once
 
 // For use with Date.getDay()
 export const Weekdays = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday'
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday'
 ]
 
 // For user with Date.getMonth()
 export const Months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december'
 ]
+
+export const hourInMilliseconds =
+    1000 * // milliseconds per second
+    60 * // seconds per minute
+    60 // minutes per hour
+
+export const dayInMilliseconds = hourInMilliseconds * 24 //hours per day
+
+export const weekInMilliseconds = dayInMilliseconds * 7 // days per week

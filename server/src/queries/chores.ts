@@ -45,7 +45,8 @@ export const getAllChoreNames = `
 SELECT name FROM chores WHERE deleted IS NULL
 `
 
-export const getChoreByName = `
+function getChoresWhere(whereClause: string) {
+    return `
 SELECT 
     name,
     assigned,
@@ -60,9 +61,14 @@ LEFT JOIN (${mostRecentCompletions})
 LEFT JOIN chore_skips s
     ON s.chore = name
     AND (s.at > c.at OR c.at IS NULL)
-WHERE name = $1 AND deleted IS NULL
+${whereClause}
 GROUP BY name
-`
+    `
+}
+
+export const getChoreByName = getChoresWhere(
+    `WHERE name = $1 AND deleted IS NULL`
+)
 
 export const completeChore = `
 INSERT INTO chore_completions(chore, by) VALUES ($1, $2)
@@ -70,4 +76,17 @@ INSERT INTO chore_completions(chore, by) VALUES ($1, $2)
 
 export const getChoreCompletions = `
 SELECT by, at FROM chore_completions WHERE chore = $1
+`
+
+export const getChoresAssignedToUser = getChoresWhere(`
+WHERE assigned = $1 AND deleted IS NULL
+`)
+
+export const getAllUnassignedChores = getChoresWhere(`
+WHERE assigned IS NULL
+`)
+
+export const getMostRecentCompletionForChore = `
+SELECT at FROM (${mostRecentCompletions}) AS completions
+WHERE chore = $1
 `

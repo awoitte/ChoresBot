@@ -3,6 +3,7 @@ import { Pool, PoolClient } from 'pg'
 import { User } from '../models/chat'
 import { Chore, ChoreCompletion } from '../models/chores'
 import { Frequency } from '../models/time'
+import { isChoreOverdue } from '../logic/chores'
 
 import initDBQuery from '../queries/init-db'
 import destroyDBQuery from '../queries/destroy-db'
@@ -136,8 +137,32 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
             return userRes.rows.map(rowToUser)
         },
         getOutstandingUnassignedChores: async () => {
-            // TODO
-            return []
+            const unassignedRes = await client.query(
+                choresQueries.getAllUnassignedChores
+            )
+
+            const unassignedChores = await rowsToChores(unassignedRes.rows, db)
+
+            const now = new Date()
+
+            const outstandingChores: Chore[] = []
+            for (const chore of unassignedChores) {
+                const recentCompletionRes = await client.query(
+                    choresQueries.getMostRecentCompletionForChore,
+                    [chore.name]
+                )
+                let recentCompletion
+
+                if (recentCompletionRes.rowCount === 1) {
+                    recentCompletion = recentCompletionRes.rows[0].at
+                }
+
+                if (isChoreOverdue(chore, recentCompletion, now)) {
+                    outstandingChores.push(chore)
+                }
+            }
+
+            return outstandingChores
         },
         getUpcomingUnassignedChores: async () => {
             // TODO
@@ -173,9 +198,13 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
 
             return await rowToChore(choreRes.rows[0], db)
         },
-        getChoresAssignedToUser: async () => {
-            // TODO
-            return []
+        getChoresAssignedToUser: async (user) => {
+            const choresRes = await client.query(
+                choresQueries.getChoresAssignedToUser,
+                [user.id]
+            )
+
+            return await rowsToChores(choresRes.rows, db)
         },
         getAllChoreNames: async () => {
             const choresRes = await client.query(choresQueries.getAllChoreNames)
@@ -273,6 +302,17 @@ async function rowToChore(row: any, db: ReadOnlyDB): Promise<Chore> {
     return chore
 }
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+async function rowsToChores(rows: any[], db: ReadOnlyDB): Promise<Chore[]> {
+    const chores: Chore[] = []
+
+    for (const row of rows) {
+        chores.push(await rowToChore(row, db))
+    }
+
+    return chores
+}
+
 function parseFrequencyRowData(
     kind: string,
     weekday: string,
@@ -289,7 +329,7 @@ function parseFrequencyRowData(
                 kind: 'Weekly',
                 weekday: weekday
             }
-        case 'Monthly':
+        case 'Yearly':
             return {
                 kind: 'Yearly',
                 date: date
