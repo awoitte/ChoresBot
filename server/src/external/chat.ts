@@ -1,14 +1,19 @@
-import { Message } from '../models/chat'
+import { Message, User } from '../models/chat'
 import { Client, Intents, TextChannel } from 'discord.js'
+import { userMention } from '@discordjs/builders'
 import log from '../logging/log'
 import { isDebugFlagSet } from '../utility/debug'
 
-export function sendChatMessage(message: Message): void {
-    log(`TODO: sendChatMessage "${message.text}"`)
+export interface Chat {
+    login(token: string): Promise<void>
+    sendChatMessage(message: Message): Promise<void>
 }
 
-export function initClient(): Client {
-    return new Client({
+export async function initChat(
+    channelName: string,
+    callback: (message: Message) => Promise<void>
+): Promise<Chat> {
+    const client = new Client({
         intents: [
             Intents.FLAGS.DIRECT_MESSAGES,
             Intents.FLAGS.GUILDS,
@@ -17,29 +22,16 @@ export function initClient(): Client {
             Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS
         ]
     })
-}
 
-export function login(client: Client, token: string): void {
-    client.on('ready', () => {
-        log(`Logged in as "${client?.user?.tag}"!`)
-    })
-
-    if (!isDebugFlagSet()) {
-        client.login(token)
-    }
-}
-
-export function listenToChannel(
-    channel: string,
-    client: Client,
-    callback: (a: Message) => void
-): void {
     client.on('messageCreate', async (msg) => {
         log(
             `Message Received: [${msg.author.tag} in ${msg.guild?.name}] ${msg.content}`
         )
 
-        if (msg.channel instanceof TextChannel && msg.channel.name == channel) {
+        if (
+            msg.channel instanceof TextChannel &&
+            msg.channel.name == channelName
+        ) {
             callback({
                 text: msg.content,
                 author: {
@@ -69,4 +61,50 @@ export function listenToChannel(
     client.on('messageReactionRemove', (reaction, user) => {
         log(`messageReactionRemove: [${user.username}] ${reaction.emoji}`)
     })
+
+    return {
+        login: async (token) => {
+            client.on('ready', () => {
+                log(`Logged in as "${client?.user?.tag}"!`)
+            })
+
+            if (!isDebugFlagSet()) {
+                client.login(token)
+            }
+        },
+        sendChatMessage: async (message) => {
+            const guilds = await client.guilds.fetch()
+
+            if (guilds.size === 0) {
+                throw new Error('Not registered to any guilds/servers')
+            }
+
+            if (guilds.size != 1) {
+                log(
+                    `Warning: ChoresBot is registered to multiple guilds/servers, sending messages to all`
+                )
+            }
+
+            for (const guildRef of guilds.values()) {
+                const guild = await guildRef.fetch()
+                const channels = await guild.channels.fetch()
+
+                // TODO: remove this, it's temporary
+                console.log(`guild name: ${guild.name}`)
+
+                for (const channel of channels.values()) {
+                    if (
+                        channel instanceof TextChannel &&
+                        channel.name == channelName
+                    ) {
+                        channel.send(message.text)
+                    }
+                }
+            }
+        }
+    }
+}
+
+export function tagUser(user: User): string {
+    return userMention(user.id)
 }

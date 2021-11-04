@@ -18,6 +18,7 @@ export type SendMessage = {
 export type CompleteChore = {
     kind: 'CompleteChore'
     chore: Chore
+    user: User
 }
 
 export type AddChore = {

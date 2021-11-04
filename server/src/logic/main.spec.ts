@@ -7,6 +7,7 @@ import { Chore } from '../models/chores'
 import { AddCommand, DeleteCommand } from './commands'
 
 import { mockDB } from '../external/db'
+import { tagUser } from '../external/chat'
 import { describeChore } from './chores'
 import * as mock from '../utility/mocks'
 
@@ -81,7 +82,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} please do the chore: "${mock.upcomingChore.name}"`
+                `${tagUser(mock.user1)} please do the chore: "${
+                    mock.upcomingChore.name
+                }"`
             )
         })
 
@@ -103,7 +106,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} you are already assigned the chore "${mock.assignedChore.name}". ` +
+                `${tagUser(mock.user1)} you are already assigned the chore "${
+                    mock.assignedChore.name
+                }". ` +
                     `If you would like to skip you can use the "!skip" command`
             )
         })
@@ -126,7 +131,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} there are no upcoming chores`
+                `${tagUser(mock.user1)} there are no upcoming chores`
             )
         })
 
@@ -162,7 +167,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} unable to find you a suitable new chore. ` +
+                `${tagUser(
+                    mock.user1
+                )} unable to find you a suitable new chore. ` +
                     `This might happen if all available chores have been skipped`
             )
         })
@@ -219,7 +226,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} you have no chores currently assigned. ` +
+                `${tagUser(
+                    mock.user1
+                )} you have no chores currently assigned. ` +
                     `If you would like to request a new chore you can use the "!request" command`
             )
         })
@@ -246,6 +255,7 @@ describe('Message handling logic', async () => {
 
             expect(action.chore.name).to.equal(mock.assignedChore.name)
             expect(action.chore.assigned).to.equal(false)
+            expect(action.user.id).to.equal(mock.user1.id)
 
             action = actions[1]
 
@@ -276,7 +286,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} you have no chores currently assigned. ` +
+                `${tagUser(
+                    mock.user1
+                )} you have no chores currently assigned. ` +
                     `If you would like to request a new chore you can use the "!request" command`
             )
         })
@@ -303,6 +315,7 @@ describe('Message handling logic', async () => {
 
             expect(action.chore.name).to.equal(mock.genericChore.name)
             expect(action.chore.assigned).to.equal(false)
+            expect(action.user.id).to.equal(mock.user1.id)
 
             action = actions[1]
 
@@ -334,7 +347,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+                `${tagUser(
+                    mock.user1
+                )} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
             )
         })
 
@@ -385,6 +400,7 @@ describe('Message handling logic', async () => {
 
             expect(action.chore.name).to.equal(modifiedChore.name)
             expect(action.chore.assigned).to.equal(false)
+            expect(action.user.id).to.equal(mock.user1.id)
             expect(action.chore.skippedBy).to.be.undefined
         })
     })
@@ -489,7 +505,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} new chore '${mockChoreName}' successfully added with frequency '${mockChoreFrequency}'`
+                `${tagUser(
+                    mock.user1
+                )} new chore '${mockChoreName}' successfully added with frequency '${mockChoreFrequency}'`
             )
         })
     })
@@ -534,7 +552,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+                `${tagUser(
+                    mock.user1
+                )} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
             )
         })
 
@@ -564,7 +584,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} chore '${mock.genericChore}' successfully deleted`
+                `${tagUser(mock.user1)} chore '${
+                    mock.genericChore
+                }' successfully deleted`
             )
         })
     })
@@ -619,7 +641,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} Unable to find chore "${missingChoreName}". ` +
+                `${tagUser(
+                    mock.user1
+                )} Unable to find chore "${missingChoreName}". ` +
                     'Try using the !info command to verify the spelling.'
             )
         })
@@ -674,7 +698,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} thank you for opting in to ChoresBot!!! ✨💚`
+                `${tagUser(
+                    mock.user1
+                )} thank you for opting in to ChoresBot!!! ✨💚`
             )
         })
     })
@@ -706,7 +732,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} successfully opted-out, you should no longer be assigned any chores`
+                `${tagUser(
+                    mock.user1
+                )} successfully opted-out, you should no longer be assigned any chores`
             )
         })
 
@@ -745,7 +773,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `@${mock.user1.name} successfully opted-out, you should no longer be assigned any chores`
+                `${tagUser(
+                    mock.user1
+                )} successfully opted-out, you should no longer be assigned any chores`
             )
         })
     })
@@ -773,7 +803,9 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${mock.user1.name} please do the chore: "${mock.outstandingChore.name}"`
+            `${tagUser(mock.user1)} please do the chore: "${
+                mock.outstandingChore.name
+            }"`
         )
     })
 
@@ -888,7 +920,7 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${mock.user1.name} please do the chore: "${mockChore1.name}"`
+            `${tagUser(mock.user1)} please do the chore: "${mockChore1.name}"`
         )
 
         action = actions[2]
@@ -906,7 +938,7 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `@${mock.user2.name} please do the chore: "${mockChore2.name}"`
+            `${tagUser(mock.user2)} please do the chore: "${mockChore2.name}"`
         )
     })
 })

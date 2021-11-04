@@ -3,6 +3,7 @@ import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
 import { Command } from '../models/commands'
 import { ReadOnlyDB } from '../external/db'
+import { tagUser } from '../external/chat'
 import log from '../logging/log'
 import { frequencyToString, parseFrequency } from './time'
 import { assignChoreActions, completeChoreActions } from './actions'
@@ -44,7 +45,11 @@ export const RequestCommand: Command = {
                     kind: 'SendMessage',
                     message: {
                         text:
-                            `@${message.author.name} you are already assigned the chore "${mostUrgentChore.name}". ` +
+                            `${tagUser(
+                                message.author
+                            )} you are already assigned the chore "${
+                                mostUrgentChore.name
+                            }". ` +
                             `If you would like to skip you can use the "!skip" command`,
                         author: ChoresBotUser
                     }
@@ -59,7 +64,9 @@ export const RequestCommand: Command = {
                 {
                     kind: 'SendMessage',
                     message: {
-                        text: `@${message.author.name} there are no upcoming chores`,
+                        text: `${tagUser(
+                            message.author
+                        )} there are no upcoming chores`,
                         author: ChoresBotUser
                     }
                 }
@@ -77,7 +84,9 @@ export const RequestCommand: Command = {
                     kind: 'SendMessage',
                     message: {
                         text:
-                            `@${message.author.name} unable to find you a suitable new chore. ` +
+                            `${tagUser(
+                                message.author
+                            )} unable to find you a suitable new chore. ` +
                             `This might happen if all available chores have been skipped`,
                         author: ChoresBotUser
                     }
@@ -103,7 +112,9 @@ export const SkipCommand: Command = {
                     kind: 'SendMessage',
                     message: {
                         text:
-                            `@${message.author.name} you have no chores currently assigned. ` +
+                            `${tagUser(
+                                message.author
+                            )} you have no chores currently assigned. ` +
                             `If you would like to request a new chore you can use the "!request" command`,
                         author: ChoresBotUser
                     }
@@ -147,16 +158,18 @@ export const AddCommand: Command = {
     callsign: '!add',
     helpText: `!add chore-name frequency
 
-chore-name      The name of the chore. Shown when being assigned, completed, etc.
-                Should be something that clearly describes the chore.
-                Note: don't use the @ symbol in the name
+chore-name
+    The name of the chore. Shown when being assigned, completed, etc.
+    Should be something that clearly describes the chore.
+    Note: don't use the @ symbol in the name
 
-frequency       How frequently the chore should be completed/assigned.
-                Must be one of the following formats:
-                    Daily @ <time>
-                    Weekly @ <day>
-                    Yearly @ <date>
-                    Once @ <date/time>
+frequency
+    How frequently the chore should be completed/assigned.
+    Must be one of the following formats:
+        Daily @ <time>
+        Weekly @ <day>
+        Yearly @ <date>
+        Once @ <date/time>
 
 e.g.
 !add walk the cat Daily @ 9:00 AM
@@ -217,9 +230,9 @@ e.g.
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `@${
-                        message.author.name
-                    } new chore '${choreName}' successfully added with frequency '${frequencyToString(
+                    text: `${tagUser(
+                        message.author
+                    )} new chore '${choreName}' successfully added with frequency '${frequencyToString(
                         frequency
                     )}'`,
                     author: ChoresBotUser
@@ -234,8 +247,9 @@ export const DeleteCommand: Command = {
     minArgumentCount: 1,
     helpText: `!delete chore-name
 
-chore-name      The name of the chore. Shown when being assigned, completed, etc.
-                Note: make sure spelling and capitalization matches exactly`,
+chore-name
+    The name of the chore. Shown when being assigned, completed, etc.
+    Note: make sure spelling and capitalization matches exactly`,
     handler: async (message, db) => {
         const choreName = getArgumentsString(message.text, DeleteCommand)
 
@@ -253,7 +267,9 @@ chore-name      The name of the chore. Shown when being assigned, completed, etc
                 {
                     kind: 'SendMessage',
                     message: {
-                        text: `@${message.author.name} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                        text: `${tagUser(
+                            message.author
+                        )} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
                         author: ChoresBotUser
                     }
                 }
@@ -268,7 +284,9 @@ chore-name      The name of the chore. Shown when being assigned, completed, etc
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `@${message.author.name} chore '${choreName}' successfully deleted`,
+                    text: `${tagUser(
+                        message.author
+                    )} chore '${choreName}' successfully deleted`,
                     author: ChoresBotUser
                 }
             }
@@ -320,7 +338,9 @@ export const InfoCommand: Command = {
                 {
                     kind: 'SendMessage',
                     message: {
-                        text: `@${message.author.name} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                        text: `${tagUser(
+                            message.author
+                        )} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
                         author: ChoresBotUser
                     }
                 }
@@ -350,7 +370,9 @@ export const OptInCommand: Command = {
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `@${message.author.name} thank you for opting in to ChoresBot!!! ✨💚`,
+                    text: `${tagUser(
+                        message.author
+                    )} thank you for opting in to ChoresBot!!! ✨💚`,
                     author: ChoresBotUser
                 }
             }
@@ -382,7 +404,9 @@ export const OptOutCommand: Command = {
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `@${message.author.name} successfully opted-out, you should no longer be assigned any chores`,
+                    text: `${tagUser(
+                        message.author
+                    )} successfully opted-out, you should no longer be assigned any chores`,
                     author: ChoresBotUser
                 }
             }
@@ -423,7 +447,9 @@ async function completeAssignedChore(
                 kind: 'SendMessage',
                 message: {
                     text:
-                        `@${user.name} you have no chores currently assigned. ` +
+                        `${tagUser(
+                            user
+                        )} you have no chores currently assigned. ` +
                         `If you would like to request a new chore you can use the "!request" command`,
                     author: ChoresBotUser
                 }
@@ -433,7 +459,7 @@ async function completeAssignedChore(
 
     const completedChore: Chore = completeChore(userAssignedChores[0])
 
-    return completeChoreActions(completedChore)
+    return completeChoreActions(completedChore, user)
 }
 
 async function completeChoreByName(
@@ -452,7 +478,9 @@ async function completeChoreByName(
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `@${completedBy.name} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                    text: `${tagUser(
+                        completedBy
+                    )} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
                     author: ChoresBotUser
                 }
             }
@@ -461,7 +489,7 @@ async function completeChoreByName(
 
     const completedChore: Chore = completeChore(chore)
 
-    return completeChoreActions(completedChore)
+    return completeChoreActions(completedChore, completedBy)
 }
 
 async function getAllAssignableChores(db: ReadOnlyDB): Promise<Chore[]> {

@@ -1,6 +1,7 @@
-import { Frequency, Months } from '../models/time'
+import { Frequency, Weekdays, Months } from '../models/time'
 import { MaybeError } from '../models/utility'
 import log from '../logging/log'
+import moment from 'moment'
 
 export function parseFrequency(value: string): MaybeError<Frequency> {
     const atSignIndex = value.indexOf('@')
@@ -13,28 +14,39 @@ export function parseFrequency(value: string): MaybeError<Frequency> {
     const time = value.slice(atSignIndex + 1).trim()
 
     switch (kind) {
-        case 'daily':
+        case 'daily': {
             return {
                 kind: 'Daily',
-                time: new Date(time)
+                time: moment(time).toDate()
             }
-        case 'weekly':
+        }
+        case 'weekly': {
+            const timeLower = time.toLowerCase()
+
+            if (Weekdays.indexOf(timeLower) === -1) {
+                return new Error('Unrecognized weekday')
+            }
+
             return {
                 kind: 'Weekly',
-                weekday: time
+                weekday: timeLower
             }
-        case 'yearly':
+        }
+        case 'yearly': {
             return {
                 kind: 'Yearly',
-                date: new Date(time)
+                date: moment(time).toDate()
             }
-        case 'once':
+        }
+        case 'once': {
             return {
                 kind: 'Once',
-                date: new Date(time)
+                date: moment(time).toDate()
             }
-        default:
+        }
+        default: {
             return new Error('Unable to parse frequency')
+        }
     }
 }
 
