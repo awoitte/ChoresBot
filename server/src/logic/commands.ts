@@ -3,7 +3,7 @@ import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
 import { Command } from '../models/commands'
 import { ReadOnlyDB } from '../external/db'
-import { tagUser } from '../external/chat'
+import { tagUser, inlineCode } from '../external/chat'
 import log from '../logging/log'
 import { frequencyToString, parseFrequency } from './time'
 import { assignChoreActions, completeChoreActions } from './actions'
@@ -50,7 +50,9 @@ export const RequestCommand: Command = {
                             )} you are already assigned the chore "${
                                 mostUrgentChore.name
                             }". ` +
-                            `If you would like to skip you can use the "!skip" command`,
+                            `If you would like to skip you can use the ${inlineCode(
+                                SkipCommand.callsign
+                            )} command`,
                         author: ChoresBotUser
                     }
                 }
@@ -115,7 +117,9 @@ export const SkipCommand: Command = {
                             `${tagUser(
                                 message.author
                             )} you have no chores currently assigned. ` +
-                            `If you would like to request a new chore you can use the "!request" command`,
+                            `If you would like to request a new chore you can use the ${inlineCode(
+                                RequestCommand.callsign
+                            )} command`,
                         author: ChoresBotUser
                     }
                 }
@@ -269,7 +273,9 @@ chore-name
                     message: {
                         text: `${tagUser(
                             message.author
-                        )} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                        )} Unable to find chore "${choreName}". Try using the ${inlineCode(
+                            InfoCommand.callsign
+                        )} command to verify the spelling.`,
                         author: ChoresBotUser
                     }
                 }
@@ -341,7 +347,9 @@ export const InfoCommand: Command = {
                     message: {
                         text: `${tagUser(
                             message.author
-                        )} Unable to find chore "${choreName}". Try using the !info command without a chore name to verify the spelling.`,
+                        )} Unable to find chore "${choreName}". Try using the ${inlineCode(
+                            InfoCommand.callsign
+                        )} command without a chore name to verify the spelling.`,
                         author: ChoresBotUser
                     }
                 }
@@ -454,7 +462,9 @@ async function completeAssignedChore(
                         `${tagUser(
                             user
                         )} you have no chores currently assigned. ` +
-                        `If you would like to request a new chore you can use the "!request" command`,
+                        `If you would like to request a new chore you can use the ${inlineCode(
+                            RequestCommand.callsign
+                        )} command`,
                     author: ChoresBotUser
                 }
             }
@@ -484,7 +494,9 @@ async function completeChoreByName(
                 message: {
                     text: `${tagUser(
                         completedBy
-                    )} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                    )} Unable to find chore "${choreName}". Try using the ${inlineCode(
+                        InfoCommand.callsign
+                    )} command to verify the spelling.`,
                     author: ChoresBotUser
                 }
             }

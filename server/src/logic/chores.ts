@@ -1,8 +1,8 @@
 import { Chore, ChoreCompletion } from '../models/chores'
 import { User } from '../models/chat'
-import { dayInMilliseconds, weekInMilliseconds, Weekdays } from '../models/time'
+import { dayInMilliseconds, Weekdays } from '../models/time'
 import { frequencyToString } from './time'
-import log from '../logging/log'
+import { bold } from '../external/chat'
 
 export function skipChore(chore: Chore, user: User): Chore {
     const skippedBy: User[] = []
@@ -48,28 +48,40 @@ export function describeChore(
     chore: Chore,
     mostRecentCompletion: ChoreCompletion | undefined
 ): string {
-    let description = `Chore "${chore.name}"
-Frequency: ${frequencyToString(chore.frequency)}`
+    let description = `${bold('Chore')}: "${chore.name}"
+${bold('Frequency')}: ${frequencyToString(chore.frequency)}`
 
     if (chore.assigned === false) {
-        description += `\nCurrently unassigned`
+        const nextDueDate = getChoreDueDate(chore, mostRecentCompletion?.at)
+        if (nextDueDate) {
+            description += `\n${bold(
+                'Next scheduled assignment'
+            )}: ${nextDueDate.toString()}`
+        } else {
+            description += bold(`\nNo future due date`)
+        }
     } else {
-        description += `\nCurrently assigned to @${chore.assigned.name}`
+        // Note: don't actually tag the user so we don't ping them
+        description += `\n${bold('Currently assigned to')}: @${
+            chore.assigned.name
+        }`
     }
 
     if (mostRecentCompletion !== undefined) {
-        description += `\nMost recently completed at: ${mostRecentCompletion.at.toString()} by ${
+        description += `\n${bold(
+            'Most recently completed at'
+        )}: ${mostRecentCompletion.at.toString()} by ${
             mostRecentCompletion.by.name
         }`
     } else {
-        description += `\nNever completed`
+        description += bold(`\nNever completed`)
     }
 
     if (chore.skippedBy !== undefined) {
         const skippedList = chore.skippedBy
             .map((user) => `@${user.name}`)
             .join(', ')
-        description += `\nRecently skipped by ${skippedList}`
+        description += `\n${bold('Recently skipped by')}: ${skippedList}`
     }
 
     return description

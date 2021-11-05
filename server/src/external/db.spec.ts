@@ -3,7 +3,6 @@ import { expect, use } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
 import { Chore } from '../models/chores'
-import { Frequency, hourInMilliseconds } from '../models/time'
 
 import { PostgresDB, pgDB } from './db'
 import * as mock from '../utility/mocks'

@@ -104,3 +104,5 @@ export async function initChat(
 export function tagUser(user: User): string {
     return userMention(user.id)
 }
+
+export { bold, underscore, italic, inlineCode } from '@discordjs/builders'

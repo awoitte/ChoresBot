@@ -4,10 +4,16 @@ import { expect } from 'chai'
 import { loop, messageHandler } from './main'
 import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
-import { AddCommand, DeleteCommand } from './commands'
+import {
+    AddCommand,
+    DeleteCommand,
+    InfoCommand,
+    RequestCommand,
+    SkipCommand
+} from './commands'
 
 import { mockDB } from '../external/db'
-import { tagUser } from '../external/chat'
+import { tagUser, inlineCode } from '../external/chat'
 import * as mock from '../utility/mocks'
 
 // --- Tests ---
@@ -108,7 +114,9 @@ describe('Message handling logic', async () => {
                 `${tagUser(mock.user1)} you are already assigned the chore "${
                     mock.assignedChore.name
                 }". ` +
-                    `If you would like to skip you can use the "!skip" command`
+                    `If you would like to skip you can use the ${inlineCode(
+                        SkipCommand.callsign
+                    )} command`
             )
         })
 
@@ -228,7 +236,9 @@ describe('Message handling logic', async () => {
                 `${tagUser(
                     mock.user1
                 )} you have no chores currently assigned. ` +
-                    `If you would like to request a new chore you can use the "!request" command`
+                    `If you would like to request a new chore you can use the ${inlineCode(
+                        RequestCommand.callsign
+                    )} command`
             )
         })
     })
@@ -288,7 +298,9 @@ describe('Message handling logic', async () => {
                 `${tagUser(
                     mock.user1
                 )} you have no chores currently assigned. ` +
-                    `If you would like to request a new chore you can use the "!request" command`
+                    `If you would like to request a new chore you can use the ${inlineCode(
+                        RequestCommand.callsign
+                    )} command`
             )
         })
 
@@ -348,7 +360,9 @@ describe('Message handling logic', async () => {
             expect(action.message.text).to.equal(
                 `${tagUser(
                     mock.user1
-                )} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+                )} Unable to find chore "${missingChoreName}". Try using the ${inlineCode(
+                    InfoCommand.callsign
+                )} command to verify the spelling.`
             )
         })
 
@@ -553,7 +567,9 @@ describe('Message handling logic', async () => {
             expect(action.message.text).to.equal(
                 `${tagUser(
                     mock.user1
-                )} Unable to find chore "${missingChoreName}". Try using the !info command to verify the spelling.`
+                )} Unable to find chore "${missingChoreName}". Try using the ${inlineCode(
+                    InfoCommand.callsign
+                )} command to verify the spelling.`
             )
         })
 
@@ -643,7 +659,9 @@ describe('Message handling logic', async () => {
                 `${tagUser(
                     mock.user1
                 )} Unable to find chore "${missingChoreName}". ` +
-                    'Try using the !info command without a chore name to verify the spelling.'
+                    `Try using the ${inlineCode(
+                        InfoCommand.callsign
+                    )} command without a chore name to verify the spelling.`
             )
         })
 
