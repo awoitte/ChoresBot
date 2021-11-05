@@ -14,6 +14,16 @@ To run:
 
 `npm run start` or `node .`
 
+# Environment Variables
+
+DISCORD_TOKEN: your discord bot token
+DISCORD_CHANNEL: text channel on discord to listen and respond in
+FREQUENCY: how often to check for and assign chores
+POSTGRESQL_ADDON_URI: postgres URI of database (e.g. `postgresql://dbuser:secretpassword@database.server.com:3211/mydb`)
+PORT: port for web server to listen on
+VERBOSE: set to "TRUE" to show logs
+DEBUG: set to "TRUE" to use local services only
+
 # Dev Environment
 
 To start in debug mode (runs the server with the `DEBUG` environment variable set):

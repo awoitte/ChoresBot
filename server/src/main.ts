@@ -11,17 +11,17 @@ import { asyncLoop } from './utility/async'
 import { Action } from './models/actions'
 
 import { loop, messageHandler } from './logic/main'
-
-import {
-    token,
-    channel,
-    frequency,
-    dbConnectionString,
-    port
-} from './config.json'
 ;(async () => {
     // --- Config ---
-    const serverPort: string = process.env.SERVER_PORT || port.toString()
+    const serverPort: string = process.env.PORT || '80'
+    const dbConnectionString = process.env.POSTGRESQL_ADDON_URI || ''
+    const frequencyString = process.env.FREQUENCY || '120'
+    let frequency = parseInt(frequencyString, 10)
+    if (isNaN(frequency)) {
+        frequency = 120
+    }
+    const channel = process.env.DISCORD_CHANNEL || 'chores'
+    const token = process.env.DISCORD_TOKEN || ''
 
     // --- Server ---
     const app = express()

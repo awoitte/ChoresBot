@@ -1,8 +1,0 @@
-{
-    "token": "discord token here",
-    "channel": "channel name here", // no '#'
-    "frequency": 120, // how frequently to check for assignable chores in seconds
-    "dbConnectionString": "postgresql://dbuser:secretpassword@database.server.com:3211/mydb",
-    "port": 80, // port the server should listen on, typically port 80 for websites, override also available with environment variable "SERVER_PORT"
-    "verbose": false // show or hide log messages
-}
