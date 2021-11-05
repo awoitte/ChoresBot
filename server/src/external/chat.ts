@@ -29,7 +29,8 @@ export async function initChat(
 
         if (
             msg.channel instanceof TextChannel &&
-            msg.channel.name == channelName
+            msg.channel.name == channelName &&
+            !msg.author.bot // if ChoresBot isn't the author
         ) {
             callback({
                 text: msg.content,
