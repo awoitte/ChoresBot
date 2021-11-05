@@ -347,11 +347,14 @@ export const InfoCommand: Command = {
             ]
         }
 
+        const completions = await db.getAllChoreCompletions(chore.name)
+        const mostRecentCompletion = completions.shift()
+
         return [
             {
                 kind: 'SendMessage',
                 message: {
-                    text: describeChore(chore),
+                    text: describeChore(chore, mostRecentCompletion),
                     author: ChoresBotUser
                 }
             }

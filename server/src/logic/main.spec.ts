@@ -8,7 +8,6 @@ import { AddCommand, DeleteCommand } from './commands'
 
 import { mockDB } from '../external/db'
 import { tagUser } from '../external/chat'
-import { describeChore } from './chores'
 import * as mock from '../utility/mocks'
 
 // --- Tests ---
@@ -664,10 +663,6 @@ describe('Message handling logic', async () => {
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type'
             }
-
-            expect(action.message.text).to.equal(
-                describeChore(mock.genericChore)
-            )
         })
     })
 

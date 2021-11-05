@@ -1,4 +1,4 @@
-import { Chore } from '../models/chores'
+import { Chore, ChoreCompletion } from '../models/chores'
 import { User } from '../models/chat'
 import { dayInMilliseconds, weekInMilliseconds, Weekdays } from '../models/time'
 import { frequencyToString } from './time'
@@ -44,7 +44,10 @@ export function unassignChore(chore: Chore): Chore {
     }
 }
 
-export function describeChore(chore: Chore): string {
+export function describeChore(
+    chore: Chore,
+    mostRecentCompletion: ChoreCompletion | undefined
+): string {
     let description = `Chore "${chore.name}"
 Frequency: ${frequencyToString(chore.frequency)}`
 
@@ -52,6 +55,14 @@ Frequency: ${frequencyToString(chore.frequency)}`
         description += `\nCurrently unassigned`
     } else {
         description += `\nCurrently assigned to @${chore.assigned.name}`
+    }
+
+    if (mostRecentCompletion !== undefined) {
+        description += `\nMost recently completed at: ${mostRecentCompletion.at.toString()} by ${
+            mostRecentCompletion.by.name
+        }`
+    } else {
+        description += `\nNever completed`
     }
 
     if (chore.skippedBy !== undefined) {

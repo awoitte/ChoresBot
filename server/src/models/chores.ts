@@ -10,6 +10,6 @@ export type Chore = {
 
 export type ChoreCompletion = {
     choreName: string
-    by: string
+    by: User
     at: Date
 }

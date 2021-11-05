@@ -94,6 +94,7 @@ async function performActions(
             }
             case 'CompleteChore': {
                 await db.addChoreCompletion(action.chore.name, action.user)
+                await db.modifyChore(action.chore)
                 break
             }
             case 'AddChore': {

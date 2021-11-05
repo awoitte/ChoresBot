@@ -75,7 +75,10 @@ INSERT INTO chore_completions(chore, by) VALUES ($1, $2)
 `
 
 export const getChoreCompletions = `
-SELECT by, at FROM chore_completions WHERE chore = $1
+SELECT by, name, at FROM chore_completions
+INNER JOIN users u ON u.id = by
+WHERE chore = $1
+ORDER BY at DESC
 `
 
 export const getChoresAssignedToUser = getChoresWhere(`

@@ -225,7 +225,10 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
 
             return choresRes.rows.map((row) => ({
                 choreName,
-                by: row.by,
+                by: {
+                    name: row.name,
+                    id: row.by
+                },
                 at: row.at
             }))
         }

@@ -1,4 +1,4 @@
-import { Frequency, Weekdays, Months } from '../models/time'
+import { Frequency, Weekdays } from '../models/time'
 import { MaybeError } from '../models/utility'
 import log from '../logging/log'
 import moment from 'moment'
@@ -173,21 +173,19 @@ export function parseFrequency(value: string): MaybeError<Frequency> {
 export function frequencyToString(frequency: Frequency): string {
     switch (frequency.kind) {
         case 'Daily': {
-            const hours = `${frequency.time.getHours()}:${frequency.time.getMinutes()}`
-            return `${frequency.kind} @ ${hours}`
+            const time = moment(frequency.time)
+            return `${frequency.kind} @ ${time.format('hh:mm a')}`
         }
         case 'Weekly': {
             return `${frequency.kind} @ ${frequency.weekday}`
         }
         case 'Yearly': {
-            const month = Months[frequency.date.getMonth()]
-            return `${frequency.kind} @ ${month}`
+            const date = moment(frequency.date)
+            return `${frequency.kind} @ ${date.format('MMM Do hh:mm a')}`
         }
         case 'Once': {
-            const month = Months[frequency.date.getMonth()]
-            return `${
-                frequency.kind
-            } @ ${month} ${frequency.date.getDate()} ${frequency.date.getFullYear()}`
+            const date = moment(frequency.date)
+            return `${frequency.kind} @ ${date.format('MMM Do YYYY hh:mm a')}`
         }
         default:
             log(`kind missing in frequencyToString`)
