@@ -2,8 +2,8 @@ import { Pool, PoolClient } from 'pg'
 
 import { User } from '../models/chat'
 import { Chore, ChoreCompletion } from '../models/chores'
-import { Frequency } from '../models/time'
-import { isChoreOverdue } from '../logic/chores'
+import { dayInMilliseconds, Frequency } from '../models/time'
+import { getChoreDueDate } from '../logic/chores'
 
 import initDBQuery from '../queries/init-db'
 import destroyDBQuery from '../queries/destroy-db'
@@ -137,36 +137,13 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
             return userRes.rows.map(rowToUser)
         },
         getOutstandingUnassignedChores: async () => {
-            const unassignedRes = await client.query(
-                choresQueries.getAllUnassignedChores
-            )
-
-            const unassignedChores = await rowsToChores(unassignedRes.rows, db)
-
             const now = new Date()
-
-            const outstandingChores: Chore[] = []
-            for (const chore of unassignedChores) {
-                const recentCompletionRes = await client.query(
-                    choresQueries.getMostRecentCompletionForChore,
-                    [chore.name]
-                )
-                let recentCompletion
-
-                if (recentCompletionRes.rowCount === 1) {
-                    recentCompletion = recentCompletionRes.rows[0].at
-                }
-
-                if (isChoreOverdue(chore, recentCompletion, now)) {
-                    outstandingChores.push(chore)
-                }
-            }
-
-            return outstandingChores
+            return getUnassignedOutstandingChoresAsOfDate(client, db, now)
         },
         getUpcomingUnassignedChores: async () => {
-            // TODO
-            return []
+            const now = new Date()
+            const tomorrow = new Date(now.getTime() + dayInMilliseconds)
+            return getUnassignedOutstandingChoresAsOfDate(client, db, tomorrow)
         },
         addChore: async (chore) => {
             await client.query(
@@ -354,4 +331,44 @@ async function addChoreSkips(chore: Chore, client: PoolClient): Promise<void> {
             await client.query(choresQueries.addSkip, [chore.name, user.id])
         }
     }
+}
+
+async function getUnassignedOutstandingChoresAsOfDate(
+    client: PoolClient,
+    db: DB,
+    date: Date
+) {
+    const unassignedRes = await client.query(
+        choresQueries.getAllUnassignedChores
+    )
+
+    const unassignedChores = await rowsToChores(unassignedRes.rows, db)
+
+    const upcomingChores: [Chore, Date][] = []
+    for (const chore of unassignedChores) {
+        const recentCompletionRes = await client.query(
+            choresQueries.getMostRecentCompletionForChore,
+            [chore.name]
+        )
+        let recentCompletion
+
+        if (recentCompletionRes.rowCount >= 1) {
+            recentCompletion = recentCompletionRes.rows[0].at
+        }
+
+        const dueDate = getChoreDueDate(chore, recentCompletion)
+        if (dueDate === undefined) {
+            continue
+        }
+
+        if (dueDate < date) {
+            upcomingChores.push([chore, dueDate])
+        }
+    }
+
+    upcomingChores.sort(
+        (tupleA, tupleB) => tupleA[1].getTime() - tupleB[1].getTime()
+    )
+
+    return upcomingChores.map((tuple) => tuple[0])
 }

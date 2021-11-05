@@ -57,7 +57,7 @@ export const RequestCommand: Command = {
             ]
         }
 
-        const assignableChores = await getAllAssignableChores(db)
+        const assignableChores = await db.getUpcomingUnassignedChores()
 
         if (assignableChores.length == 0) {
             return [
@@ -258,8 +258,8 @@ chore-name
         try {
             chore = await db.getChoreByName(choreName)
         } catch (e) {
-            log(`error retrieving chores: ${choreName}`)
-            throw e
+            log(`error retrieving chore "${choreName}": ${e}`)
+            // don't re-throw so user gets more specific message
         }
 
         if (chore === undefined) {
@@ -325,12 +325,13 @@ export const InfoCommand: Command = {
             ]
         }
 
+        // check if chore exists, maybe it was misspelled
         let chore
         try {
             chore = await db.getChoreByName(choreName)
         } catch (e) {
-            log(`error retrieving chore "${choreName}"`)
-            throw e
+            log(`error retrieving chore "${choreName}": ${e}`)
+            // don't re-throw so user gets more specific message
         }
 
         if (chore === undefined) {
@@ -340,7 +341,7 @@ export const InfoCommand: Command = {
                     message: {
                         text: `${tagUser(
                             message.author
-                        )} Unable to find chore "${choreName}". Try using the !info command to verify the spelling.`,
+                        )} Unable to find chore "${choreName}". Try using the !info command without a chore name to verify the spelling.`,
                         author: ChoresBotUser
                     }
                 }
@@ -493,20 +494,6 @@ async function completeChoreByName(
     const completedChore: Chore = completeChore(chore)
 
     return completeChoreActions(completedChore, completedBy)
-}
-
-async function getAllAssignableChores(db: ReadOnlyDB): Promise<Chore[]> {
-    let outstandingChores
-    try {
-        outstandingChores = await db.getOutstandingUnassignedChores()
-    } catch (e) {
-        log('Unable to get outstanding chores')
-        throw e
-    }
-
-    const upcomingChores = await db.getUpcomingUnassignedChores()
-
-    return [...outstandingChores, ...upcomingChores]
 }
 
 // --- Utility ---

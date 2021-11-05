@@ -102,92 +102,83 @@ function isUserEligibleForChore(chore: Chore, user: User): boolean {
     return true
 }
 
-export function isChoreOverdue(
+export function getChoreDueDate(
     chore: Chore,
-    mostRecentCompletion: Date | undefined,
-    now: Date
-): boolean {
+    mostRecentCompletion: Date | undefined
+): Date | undefined {
     const frequency = chore.frequency
 
     if (mostRecentCompletion === undefined) {
         if (frequency.kind === 'Once') {
-            return frequency.date.getTime() < now.getTime()
+            return frequency.date
         } else {
-            //a recurring chore that has never been completed is always due
-            return true
+            // a recurring chore that has never been completed is due ASAP
+            // ASAP here represented by a date in the far-ish past (unix epoch)
+            return new Date(0)
         }
-    }
-
-    if (mostRecentCompletion.getTime() > now.getTime()) {
-        log(
-            `Warning! Chore was somehow completed in the future. Chore "${
-                chore.name
-            }". Completed [${mostRecentCompletion.getTime()}]. Now [${now.getTime()}].`
-        )
-        return false
     }
 
     const completion = mostRecentCompletion // for brevity
     switch (frequency.kind) {
         case 'Daily': {
-            const startOfDay = new Date(now.getTime())
-            startOfDay.setHours(0)
-            startOfDay.setMinutes(0)
-
-            if (completion.getTime() > startOfDay.getTime()) {
-                // already completed today
-                return false
-            }
-
-            const startOfYesterday = new Date(
-                startOfDay.getTime() - dayInMilliseconds
-            )
-            if (completion.getTime() < startOfYesterday.getTime()) {
-                // if it wasn't completed yesterday it's always overdue
-                return true
-            }
-
-            const timeDue = frequency.time
-            const pastTheHour = timeDue.getHours() < now.getHours()
-            const pastMinutesOnTheHour =
-                timeDue.getHours() === now.getHours() &&
-                timeDue.getMinutes() < now.getMinutes()
-            // don't worry about seconds
-
-            return pastTheHour || pastMinutesOnTheHour
+            // due one day after the latest completion at the time specified
+            const due = new Date(completion.getTime() + dayInMilliseconds)
+            due.setHours(frequency.time.getHours())
+            due.setMinutes(frequency.time.getMinutes())
+            return due
         }
         case 'Weekly': {
-            const dayNow = now.getDay()
-
-            const startOfThisWeek = new Date(now.getTime()) // deep clone
-            startOfThisWeek.setTime(now.getTime() - dayNow * dayInMilliseconds) // setDay(0)
-
-            if (completion.getTime() > startOfThisWeek.getTime()) {
-                // completed already this week
-                return false
+            // due one week after latest completion on the day specified
+            const weekday = Weekdays.indexOf(frequency.weekday)
+            if (weekday === -1) {
+                throw new Error('unable to parse weekday')
             }
 
-            const startOfLastWeek = new Date(
-                startOfThisWeek.getTime() - weekInMilliseconds
-            )
+            // weekdays are tricky as there's no way to directly set a date to a specific weekday
+            // we'll need to advance one day at a time instead
 
-            if (completion.getTime() < startOfLastWeek.getTime()) {
-                return true
+            let due = new Date(completion.getTime())
+            // advance until we're at the start of next week
+            do {
+                // use do...while to avoid false positive if completion was on weekday 0
+                due = new Date(due.getTime() + dayInMilliseconds)
+            } while (due.getDay() !== 0)
+
+            while (due.getDay() != weekday) {
+                // advance until we're at the proper weekday
+                due = new Date(due.getTime() + dayInMilliseconds)
             }
 
-            const dayDue = Weekdays.indexOf(frequency.weekday.toLowerCase())
+            due.setHours(0)
+            due.setMinutes(0)
 
-            return dayDue <= dayNow
+            return due
         }
         case 'Yearly': {
-            // TODO
-            return false
+            // due one year after latest completion at the month/day/time specified
+            const due = new Date(frequency.date.getTime())
+            due.setFullYear(completion.getFullYear() + 1)
+            return due
         }
         case 'Once': {
-            // if we made it here then it's already been completed
-            return false
+            // if we made it here then it's already been completed (and will never be due)
+            return undefined
         }
         default:
             throw new Error('unable to parse frequency')
     }
+}
+
+export function isChoreOverdue(
+    chore: Chore,
+    mostRecentCompletion: Date | undefined,
+    now: Date
+): boolean {
+    const dueDate = getChoreDueDate(chore, mostRecentCompletion)
+    if (dueDate === undefined) {
+        // it's never due, so it's not overdue
+        return false
+    }
+
+    return now.getTime() > dueDate.getTime()
 }

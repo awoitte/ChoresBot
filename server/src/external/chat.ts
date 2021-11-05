@@ -18,8 +18,7 @@ export async function initChat(
             Intents.FLAGS.DIRECT_MESSAGES,
             Intents.FLAGS.GUILDS,
             Intents.FLAGS.GUILD_MESSAGES,
-            Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-            Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS
+            Intents.FLAGS.GUILD_MESSAGE_REACTIONS
         ]
     })
 
@@ -88,9 +87,6 @@ export async function initChat(
             for (const guildRef of guilds.values()) {
                 const guild = await guildRef.fetch()
                 const channels = await guild.channels.fetch()
-
-                // TODO: remove this, it's temporary
-                console.log(`guild name: ${guild.name}`)
 
                 for (const channel of channels.values()) {
                     if (

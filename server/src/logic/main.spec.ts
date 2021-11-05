@@ -643,7 +643,7 @@ describe('Message handling logic', async () => {
                 `${tagUser(
                     mock.user1
                 )} Unable to find chore "${missingChoreName}". ` +
-                    'Try using the !info command to verify the spelling.'
+                    'Try using the !info command without a chore name to verify the spelling.'
             )
         })
 
@@ -799,7 +799,7 @@ describe('Actions performed at an interval', () => {
 
         expect(action.message.text).to.equal(
             `${tagUser(mock.user1)} please do the chore: "${
-                mock.outstandingChore.name
+                mock.overdueChore.name
             }"`
         )
     })

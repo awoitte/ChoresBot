@@ -192,53 +192,57 @@ async function runDBTestSuite(connectionString: string) {
             })
 
             it('should get all outstanding unassigned chores', async () => {
-                const overdueDate = new Date()
-                overdueDate.setTime(overdueDate.getTime() - hourInMilliseconds)
-
-                const overdue: Frequency = {
-                    kind: 'Once',
-                    date: overdueDate
-                }
-
-                const overdueChore: Chore = Object.assign(
-                    {},
-                    mock.genericChore,
-                    {
-                        name: 'overdue',
-                        frequency: overdue,
-                        assigned: false
-                    }
-                )
-
-                const upcomingDate = new Date()
-                upcomingDate.setTime(
-                    upcomingDate.getTime() + hourInMilliseconds
-                )
-
-                const upcoming: Frequency = {
-                    kind: 'Once',
-                    date: upcomingDate
-                }
-
-                const upcomingChore: Chore = Object.assign(
-                    {},
-                    mock.genericChore,
-                    {
-                        name: 'upcoming',
-                        frequency: upcoming,
-                        assigned: false
-                    }
-                )
-
                 await db.addUser(mock.user1)
-                await db.addChore(overdueChore)
-                await db.addChore(upcomingChore)
+                await db.addChore(mock.overdueChore)
+                await db.addChore(mock.moreOverdueChore)
+                await db.addChore(mock.upcomingChore)
+                await db.addChore(mock.assignedChore)
 
-                const outstandingChores =
+                let outstandingChores =
                     await db.getOutstandingUnassignedChores()
 
+                expect(outstandingChores).to.have.length(2)
+                expect(outstandingChores[0].name).to.equal(
+                    mock.moreOverdueChore.name
+                )
+                expect(outstandingChores[1].name).to.equal(
+                    mock.overdueChore.name
+                )
+
+                await db.addChoreCompletion(mock.overdueChore.name, mock.user1)
+
+                outstandingChores = await db.getOutstandingUnassignedChores()
                 expect(outstandingChores).to.have.length(1)
-                expect(outstandingChores[0].name).to.equal(overdueChore.name)
+                expect(outstandingChores[0].name).to.equal(
+                    mock.moreOverdueChore.name
+                )
+            })
+
+            it('should get all upcoming unassigned chores', async () => {
+                await db.addUser(mock.user1)
+                await db.addChore(mock.overdueChore)
+                await db.addChore(mock.upcomingChore)
+                await db.addChore(mock.furtherUpcomingChore)
+                await db.addChore(mock.assignedChore)
+
+                let upcomingChores = await db.getUpcomingUnassignedChores()
+
+                expect(upcomingChores).to.have.length(3)
+                expect(upcomingChores[0].name).to.equal(mock.overdueChore.name)
+                expect(upcomingChores[1].name).to.equal(mock.upcomingChore.name)
+                expect(upcomingChores[2].name).to.equal(
+                    mock.furtherUpcomingChore.name
+                )
+
+                await db.addChoreCompletion(mock.upcomingChore.name, mock.user1)
+
+                upcomingChores = await db.getUpcomingUnassignedChores()
+
+                expect(upcomingChores).to.have.length(2)
+                expect(upcomingChores[0].name).to.equal(mock.overdueChore.name)
+                expect(upcomingChores[1].name).to.equal(
+                    mock.furtherUpcomingChore.name
+                )
             })
 
             it('should store chore completions', async () => {

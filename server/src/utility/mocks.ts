@@ -1,7 +1,7 @@
 import { mockDB } from '../external/db'
 import { User } from '../models/chat'
 import { Chore } from '../models/chores'
-import { Frequency } from '../models/time'
+import { Frequency, hourInMilliseconds } from '../models/time'
 
 export const user1: User = {
     name: 'mockName',
@@ -23,20 +23,8 @@ export const once: Frequency = {
     date: new Date()
 }
 
-export const upcomingChore: Chore = {
-    name: 'walk the cat',
-    assigned: user1,
-    frequency: once
-}
-
 export const assignedChore: Chore = {
     name: 'floop the pig',
-    assigned: user1,
-    frequency: once
-}
-
-export const outstandingChore: Chore = {
-    name: 'make a pile',
     assigned: user1,
     frequency: once
 }
@@ -54,6 +42,62 @@ export const skippedChore: Chore = {
     frequency: once
 }
 
+const overdueDate = new Date()
+overdueDate.setTime(overdueDate.getTime() - hourInMilliseconds)
+
+const overdue: Frequency = {
+    kind: 'Once',
+    date: overdueDate
+}
+
+export const overdueChore: Chore = Object.assign({}, genericChore, {
+    name: 'make a pile',
+    frequency: overdue,
+    assigned: false
+})
+
+const moreOverdueDate = new Date(overdueDate.getTime() - hourInMilliseconds)
+
+const moreOverdue: Frequency = {
+    kind: 'Once',
+    date: moreOverdueDate
+}
+
+export const moreOverdueChore: Chore = Object.assign({}, genericChore, {
+    name: 'make more piles',
+    frequency: moreOverdue,
+    assigned: false
+})
+
+const upcomingDate = new Date()
+upcomingDate.setTime(upcomingDate.getTime() + hourInMilliseconds)
+
+const upcoming: Frequency = {
+    kind: 'Once',
+    date: upcomingDate
+}
+
+export const upcomingChore: Chore = Object.assign({}, genericChore, {
+    name: 'upcoming',
+    frequency: upcoming,
+    assigned: false
+})
+
+const furtherUpcomingDate = new Date(
+    upcomingDate.getTime() + hourInMilliseconds
+)
+
+const furtherUpcoming: Frequency = {
+    kind: 'Once',
+    date: furtherUpcomingDate
+}
+
+export const furtherUpcomingChore: Chore = Object.assign({}, genericChore, {
+    name: 'further upcoming',
+    frequency: furtherUpcoming,
+    assigned: false
+})
+
 function getUpcomingUnassignedChores() {
     return [upcomingChore]
 }
@@ -67,7 +111,7 @@ function getChoresAssignedToUser() {
 }
 
 function getOutstandingUnassignedChores() {
-    return [outstandingChore]
+    return [overdueChore]
 }
 
 function getChoreByName() {
