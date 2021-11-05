@@ -5,6 +5,9 @@
   "private": true,
   "main": "dist/main.js",
   "types": "main.d.ts",
+  "engines": {
+      "node": "^16"
+  },
   "scripts": {
     "lint": "npx eslint --ext .js,.jsx,.ts,.tsx src/",
     "test": "mocha --delay",
