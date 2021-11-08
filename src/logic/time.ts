@@ -2,10 +2,10 @@ import { Frequency, Weekdays } from '../models/time'
 import { MaybeError } from '../models/utility'
 import toTitleCase from '../utility/titleCase'
 import log from '../logging/log'
-import moment from 'moment'
+import moment from 'moment-timezone'
 
 const locale = process.env.LOCALE || 'en-US'
-const timeZone = process.env.TIMEZONE || 'EST'
+const timeZone = process.env.TIMEZONE || 'America/Eastern'
 
 export function parseFrequency(value: string): MaybeError<Frequency> {
     const atSignIndex = value.indexOf('@')
@@ -29,7 +29,7 @@ export function parseFrequency(value: string): MaybeError<Frequency> {
                 'HHmm',
                 'hhmm a'
             ]
-            const parsedTime = moment(time, validFormats)
+            const parsedTime = moment.tz(time, validFormats, timeZone)
 
             if (!parsedTime.isValid()) {
                 return new Error(
@@ -68,7 +68,7 @@ export function parseFrequency(value: string): MaybeError<Frequency> {
                 'MM DD YYYY',
                 'MM-DD-YYYY'
             ]
-            const parsedTime = moment(time, validFormats)
+            const parsedTime = moment.tz(time, validFormats, timeZone)
 
             if (!parsedTime.isValid()) {
                 return new Error(
@@ -156,7 +156,7 @@ export function parseFrequency(value: string): MaybeError<Frequency> {
                 'MM-DD-YYYY HHmm',
                 'MM-DD-YYYY HHmm a'
             ]
-            const parsedTime = moment(time, validFormats)
+            const parsedTime = moment.tz(time, validFormats, timeZone)
 
             if (!parsedTime.isValid()) {
                 return new Error(`unrecognized date`)

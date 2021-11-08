@@ -26,7 +26,7 @@ To run:
 | VERBOSE              | set to "TRUE" to show logs                                                                                                                                                                             |
 | DEBUG                | set to "TRUE" to use alternate testing DB (see below), also enables logs                                                                                                                               |
 | LOCALE               | locale used for date/time formatting ([Formatting info](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#locale_identification_and_negotiation)) (Default: en-US) |
-| TIMEZONE             | timezone to display times in (Default: EST)                                                                                                                                                            |
+| TIMEZONE             | timezone to display times in (Default: America/Eastern)                                                                                                                                                |
 
 # Dev Environment
 

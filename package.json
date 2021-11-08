@@ -6,7 +6,7 @@
   "main": "dist/main.js",
   "types": "main.d.ts",
   "engines": {
-      "node": "^16"
+    "node": "^16"
   },
   "scripts": {
     "lint": "npx eslint --ext .js,.jsx,.ts,.tsx src/",
@@ -49,6 +49,7 @@
     "discord.js": "^13.2.0",
     "express": "^4.17.1",
     "moment": "^2.29.1",
+    "moment-timezone": "^0.5.33",
     "pg": "^8.7.1"
   }
 }
