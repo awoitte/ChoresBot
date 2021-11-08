@@ -1,7 +1,11 @@
 import { Frequency, Weekdays } from '../models/time'
 import { MaybeError } from '../models/utility'
+import toTitleCase from '../utility/titleCase'
 import log from '../logging/log'
 import moment from 'moment'
+
+const locale = process.env.LOCALE || 'en-US'
+const timeZone = process.env.TIMEZONE || 'EST'
 
 export function parseFrequency(value: string): MaybeError<Frequency> {
     const atSignIndex = value.indexOf('@')
@@ -173,22 +177,37 @@ export function parseFrequency(value: string): MaybeError<Frequency> {
 export function frequencyToString(frequency: Frequency): string {
     switch (frequency.kind) {
         case 'Daily': {
-            const time = moment(frequency.time)
-            return `${frequency.kind} @ ${time.format('hh:mm a')}`
+            return `${frequency.kind} @ ${formatDateTime(frequency.time, {
+                timeStyle: 'short'
+            })}`
         }
         case 'Weekly': {
-            return `${frequency.kind} @ ${frequency.weekday}`
+            return `${frequency.kind} @ ${toTitleCase(frequency.weekday)}`
         }
         case 'Yearly': {
-            const date = moment(frequency.date)
-            return `${frequency.kind} @ ${date.format('MMM Do hh:mm a')}`
+            return `${frequency.kind} @ ${formatDateTime(frequency.date, {
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            })}`
         }
         case 'Once': {
-            const date = moment(frequency.date)
-            return `${frequency.kind} @ ${date.format('MMM Do YYYY hh:mm a')}`
+            return `${frequency.kind} @ ${formatDateTime(frequency.date, {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            })}`
         }
         default:
             log(`kind missing in frequencyToString`)
             return 'Unknown'
     }
+}
+
+export function formatDateTime(
+    date: Date,
+    options?: Intl.DateTimeFormatOptions
+): string {
+    const fullOptions = Object.assign({}, { timeZone }, options)
+    return Intl.DateTimeFormat(locale, fullOptions).format(date)
 }

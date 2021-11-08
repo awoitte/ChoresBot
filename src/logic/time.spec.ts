@@ -1,8 +1,8 @@
 import { describe } from 'mocha'
 import { expect } from 'chai'
 
-import { parseFrequency } from './time'
-import { Months } from '../models/time'
+import { parseFrequency, frequencyToString } from './time'
+import { Frequency, Months } from '../models/time'
 
 describe('Frequency parsing algorithm', () => {
     it('should parse weekly', () => {
@@ -180,3 +180,62 @@ describe('Frequency parsing algorithm', () => {
         expect(frequency.date.getFullYear()).to.equal(now.getFullYear())
     })
 })
+
+if (process.env.LOCALE == 'en-US' && process.env.TIMEZONE == 'EST') {
+    // These tests expect EST timezone and en-US locale
+    describe('frequency formatting', () => {
+        it('should display weekly with the weekday name', () => {
+            const frequency: Frequency = {
+                kind: 'Weekly',
+                weekday: 'wednesday'
+            }
+
+            expect(frequencyToString(frequency)).to.equal('Weekly @ Wednesday')
+        })
+
+        it('should display time only for daily frequency', () => {
+            const time = new Date()
+            time.setHours(1)
+            time.setMinutes(20)
+            const frequency: Frequency = {
+                kind: 'Daily',
+                time
+            }
+
+            expect(frequencyToString(frequency)).to.equal('Daily @ 1:20 AM')
+        })
+
+        it('should display date and time but not year for yearly frequency', () => {
+            const date = new Date()
+            date.setHours(1) // February
+            date.setMinutes(20)
+            date.setMonth(1)
+            date.setDate(15)
+            const frequency: Frequency = {
+                kind: 'Yearly',
+                date
+            }
+
+            expect(frequencyToString(frequency)).to.equal(
+                'Yearly @ February 15, 1:20 AM'
+            )
+        })
+
+        it('should display full date and time for "once" frequency', () => {
+            const date = new Date()
+            date.setHours(1) // February
+            date.setMinutes(20)
+            date.setMonth(1)
+            date.setDate(15)
+            date.setFullYear(2022)
+            const frequency: Frequency = {
+                kind: 'Once',
+                date
+            }
+
+            expect(frequencyToString(frequency)).to.equal(
+                'Once @ Feb 15, 2022, 1:20 AM'
+            )
+        })
+    })
+}

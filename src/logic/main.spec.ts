@@ -520,7 +520,7 @@ describe('Message handling logic', async () => {
             expect(action.message.text).to.equal(
                 `${tagUser(
                     mock.user1
-                )} new chore '${mockChoreName}' successfully added with frequency '${mockChoreFrequency}'`
+                )} new chore '${mockChoreName}' successfully added with frequency 'Weekly @ Wednesday'`
             )
         })
     })

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "npx eslint --ext .js,.jsx,.ts,.tsx src/",
-    "test": "mocha --delay",
+    "test": "cross-env LOCALE=en-US TIMEZONE=EST mocha --delay",
     "tsc": "tsc",
     "start": "node .",
     "build": "npm-run-all lint tsc",

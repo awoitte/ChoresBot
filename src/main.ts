@@ -26,7 +26,7 @@ import { loop, messageHandler } from './logic/main'
     // --- Server ---
     const app = express()
 
-    app.use(express.static('../client/dist'))
+    app.use(express.static('./client/dist'))
 
     app.listen(serverPort, () => {
         log(`Listening at http://localhost:${serverPort}`)
