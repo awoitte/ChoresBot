@@ -33,7 +33,7 @@ ${(0, chat_1.bold)('Frequency')}: ${(0, time_2.frequencyToString)(chore.frequenc
     if (chore.assigned === false) {
         const nextDueDate = getChoreDueDate(chore, mostRecentCompletion === null || mostRecentCompletion === void 0 ? void 0 : mostRecentCompletion.at);
         if (nextDueDate) {
-            description += `\n${(0, chat_1.bold)('Next scheduled assignment')}: ${nextDueDate.toString()}`;
+            description += `\n${(0, chat_1.bold)('Next scheduled assignment')}: ${(0, time_2.formatDateTime)(nextDueDate)}`;
         }
         else {
             description += (0, chat_1.bold)(`\nNo future due date`);
@@ -44,7 +44,7 @@ ${(0, chat_1.bold)('Frequency')}: ${(0, time_2.frequencyToString)(chore.frequenc
         description += `\n${(0, chat_1.bold)('Currently assigned to')}: @${chore.assigned.name}`;
     }
     if (mostRecentCompletion !== undefined) {
-        description += `\n${(0, chat_1.bold)('Most recently completed at')}: ${mostRecentCompletion.at.toString()} by ${mostRecentCompletion.by.name}`;
+        description += `\n${(0, chat_1.bold)('Most recently completed at')}: ${(0, time_2.formatDateTime)(mostRecentCompletion.at)} by ${mostRecentCompletion.by.name}`;
     }
     else {
         description += (0, chat_1.bold)(`\nNever completed`);

@@ -331,7 +331,7 @@ const mock = __importStar(require("../utility/mocks"));
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} new chore '${mockChoreName}' successfully added with frequency '${mockChoreFrequency}'`);
+            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} new chore '${mockChoreName}' successfully added with frequency 'Weekly @ Wednesday'`);
         }));
     });
     (0, mocha_1.describe)('!delete command', () => {

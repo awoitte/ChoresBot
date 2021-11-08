@@ -181,8 +181,11 @@ describe('Frequency parsing algorithm', () => {
     })
 })
 
-if (process.env.LOCALE == 'en-US' && process.env.TIMEZONE == 'EST') {
-    // These tests expect EST timezone and en-US locale
+if (
+    process.env.LOCALE == 'en-US' &&
+    process.env.TIMEZONE == 'America/New_York'
+) {
+    // These tests expect 'America/New_York' timezone and 'en-US' locale
     describe('frequency formatting', () => {
         it('should display weekly with the weekday name', () => {
             const frequency: Frequency = {

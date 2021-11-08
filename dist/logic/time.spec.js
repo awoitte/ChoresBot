@@ -121,4 +121,51 @@ const time_2 = require("../models/time");
         (0, chai_1.expect)(frequency.date.getFullYear()).to.equal(now.getFullYear());
     });
 });
+if (process.env.LOCALE == 'en-US' && process.env.TIMEZONE == 'EST') {
+    // These tests expect EST timezone and en-US locale
+    (0, mocha_1.describe)('frequency formatting', () => {
+        it('should display weekly with the weekday name', () => {
+            const frequency = {
+                kind: 'Weekly',
+                weekday: 'wednesday'
+            };
+            (0, chai_1.expect)((0, time_1.frequencyToString)(frequency)).to.equal('Weekly @ Wednesday');
+        });
+        it('should display time only for daily frequency', () => {
+            const time = new Date();
+            time.setHours(1);
+            time.setMinutes(20);
+            const frequency = {
+                kind: 'Daily',
+                time
+            };
+            (0, chai_1.expect)((0, time_1.frequencyToString)(frequency)).to.equal('Daily @ 1:20 AM');
+        });
+        it('should display date and time but not year for yearly frequency', () => {
+            const date = new Date();
+            date.setHours(1); // February
+            date.setMinutes(20);
+            date.setMonth(1);
+            date.setDate(15);
+            const frequency = {
+                kind: 'Yearly',
+                date
+            };
+            (0, chai_1.expect)((0, time_1.frequencyToString)(frequency)).to.equal('Yearly @ February 15, 1:20 AM');
+        });
+        it('should display full date and time for "once" frequency', () => {
+            const date = new Date();
+            date.setHours(1); // February
+            date.setMinutes(20);
+            date.setMonth(1);
+            date.setDate(15);
+            date.setFullYear(2022);
+            const frequency = {
+                kind: 'Once',
+                date
+            };
+            (0, chai_1.expect)((0, time_1.frequencyToString)(frequency)).to.equal('Once @ Feb 15, 2022, 1:20 AM');
+        });
+    });
+}
 //# sourceMappingURL=time.spec.js.map

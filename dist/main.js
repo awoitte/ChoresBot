@@ -32,7 +32,7 @@ const main_1 = require("./logic/main");
     const token = process.env.DISCORD_TOKEN || '';
     // --- Server ---
     const app = (0, express_1.default)();
-    app.use(express_1.default.static('../client/dist'));
+    app.use(express_1.default.static('./client/dist'));
     app.listen(serverPort, () => {
         (0, log_1.default)(`Listening at http://localhost:${serverPort}`);
     });

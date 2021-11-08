@@ -3,10 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.frequencyToString = exports.parseFrequency = void 0;
+exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
 const time_1 = require("../models/time");
+const titleCase_1 = __importDefault(require("../utility/titleCase"));
 const log_1 = __importDefault(require("../logging/log"));
-const moment_1 = __importDefault(require("moment"));
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
+const locale = process.env.LOCALE || 'en-US';
+const timeZone = process.env.TIMEZONE || 'America/New_York';
 function parseFrequency(value) {
     const atSignIndex = value.indexOf('@');
     if (atSignIndex === -1) {
@@ -14,7 +17,6 @@ function parseFrequency(value) {
     }
     const kind = value.slice(0, atSignIndex).trim().toLowerCase();
     const time = value.slice(atSignIndex + 1).trim();
-    console.log(time);
     switch (kind) {
         case 'daily': {
             const validFormats = [
@@ -27,7 +29,7 @@ function parseFrequency(value) {
                 'HHmm',
                 'hhmm a'
             ];
-            const parsedTime = (0, moment_1.default)(time, validFormats);
+            const parsedTime = moment_timezone_1.default.tz(time, validFormats, timeZone);
             if (!parsedTime.isValid()) {
                 return new Error(`unrecognized time of day, please use one of the following formats: ${JSON.stringify(validFormats)}`);
             }
@@ -58,7 +60,7 @@ function parseFrequency(value) {
                 'MM DD YYYY',
                 'MM-DD-YYYY'
             ];
-            const parsedTime = (0, moment_1.default)(time, validFormats);
+            const parsedTime = moment_timezone_1.default.tz(time, validFormats, timeZone);
             if (!parsedTime.isValid()) {
                 return new Error(`unrecognized date, please use one of the following formats: ${JSON.stringify(validFormats)}`);
             }
@@ -128,7 +130,7 @@ function parseFrequency(value) {
                 'MM-DD-YYYY HHmm',
                 'MM-DD-YYYY HHmm a'
             ];
-            const parsedTime = (0, moment_1.default)(time, validFormats);
+            const parsedTime = moment_timezone_1.default.tz(time, validFormats, timeZone);
             if (!parsedTime.isValid()) {
                 return new Error(`unrecognized date`);
             }
@@ -146,19 +148,26 @@ exports.parseFrequency = parseFrequency;
 function frequencyToString(frequency) {
     switch (frequency.kind) {
         case 'Daily': {
-            const time = (0, moment_1.default)(frequency.time);
-            return `${frequency.kind} @ ${time.format('hh:mm a')}`;
+            return `${frequency.kind} @ ${formatDateTime(frequency.time, {
+                timeStyle: 'short'
+            })}`;
         }
         case 'Weekly': {
-            return `${frequency.kind} @ ${frequency.weekday}`;
+            return `${frequency.kind} @ ${(0, titleCase_1.default)(frequency.weekday)}`;
         }
         case 'Yearly': {
-            const date = (0, moment_1.default)(frequency.date);
-            return `${frequency.kind} @ ${date.format('MMM Do hh:mm a')}`;
+            return `${frequency.kind} @ ${formatDateTime(frequency.date, {
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            })}`;
         }
         case 'Once': {
-            const date = (0, moment_1.default)(frequency.date);
-            return `${frequency.kind} @ ${date.format('MMM Do YYYY hh:mm a')}`;
+            return `${frequency.kind} @ ${formatDateTime(frequency.date, {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            })}`;
         }
         default:
             (0, log_1.default)(`kind missing in frequencyToString`);
@@ -166,4 +175,9 @@ function frequencyToString(frequency) {
     }
 }
 exports.frequencyToString = frequencyToString;
+function formatDateTime(date, options) {
+    const fullOptions = Object.assign({}, { timeZone }, options);
+    return Intl.DateTimeFormat(locale, fullOptions).format(date);
+}
+exports.formatDateTime = formatDateTime;
 //# sourceMappingURL=time.js.map

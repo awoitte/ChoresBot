@@ -5,7 +5,7 @@ import log from '../logging/log'
 import moment from 'moment-timezone'
 
 const locale = process.env.LOCALE || 'en-US'
-const timeZone = process.env.TIMEZONE || 'America/Eastern'
+const timeZone = process.env.TIMEZONE || 'America/New_York'
 
 export function parseFrequency(value: string): MaybeError<Frequency> {
     const atSignIndex = value.indexOf('@')
