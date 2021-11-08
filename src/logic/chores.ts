@@ -1,7 +1,7 @@
 import { Chore, ChoreCompletion } from '../models/chores'
 import { User } from '../models/chat'
 import { dayInMilliseconds, Weekdays } from '../models/time'
-import { frequencyToString } from './time'
+import { frequencyToString, formatDateTime } from './time'
 import { bold } from '../external/chat'
 
 export function skipChore(chore: Chore, user: User): Chore {
@@ -56,7 +56,7 @@ ${bold('Frequency')}: ${frequencyToString(chore.frequency)}`
         if (nextDueDate) {
             description += `\n${bold(
                 'Next scheduled assignment'
-            )}: ${nextDueDate.toString()}`
+            )}: ${formatDateTime(nextDueDate)}`
         } else {
             description += bold(`\nNo future due date`)
         }
@@ -70,7 +70,7 @@ ${bold('Frequency')}: ${frequencyToString(chore.frequency)}`
     if (mostRecentCompletion !== undefined) {
         description += `\n${bold(
             'Most recently completed at'
-        )}: ${mostRecentCompletion.at.toString()} by ${
+        )}: ${formatDateTime(mostRecentCompletion.at)} by ${
             mostRecentCompletion.by.name
         }`
     } else {
