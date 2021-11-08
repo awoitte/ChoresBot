@@ -124,6 +124,7 @@ const time_2 = require("../models/time");
 if (process.env.LOCALE == 'en-US' &&
     process.env.TIMEZONE == 'America/New_York') {
     // These tests expect 'America/New_York' timezone and 'en-US' locale
+    // should be set automatically by the `npm run test` script
     (0, mocha_1.describe)('frequency formatting', () => {
         it('should display weekly with the weekday name', () => {
             const frequency = {

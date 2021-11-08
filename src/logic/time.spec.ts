@@ -186,6 +186,7 @@ if (
     process.env.TIMEZONE == 'America/New_York'
 ) {
     // These tests expect 'America/New_York' timezone and 'en-US' locale
+    // should be set automatically by the `npm run test` script
     describe('frequency formatting', () => {
         it('should display weekly with the weekday name', () => {
             const frequency: Frequency = {

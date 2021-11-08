@@ -56,7 +56,10 @@ ${bold('Frequency')}: ${frequencyToString(chore.frequency)}`
         if (nextDueDate) {
             description += `\n${bold(
                 'Next scheduled assignment'
-            )}: ${formatDateTime(nextDueDate)}`
+            )}: ${formatDateTime(nextDueDate, {
+                dateStyle: 'short',
+                timeStyle: 'short'
+            })}`
         } else {
             description += bold(`\nNo future due date`)
         }
@@ -70,9 +73,9 @@ ${bold('Frequency')}: ${frequencyToString(chore.frequency)}`
     if (mostRecentCompletion !== undefined) {
         description += `\n${bold(
             'Most recently completed at'
-        )}: ${formatDateTime(mostRecentCompletion.at)} by ${
-            mostRecentCompletion.by.name
-        }`
+        )}: ${formatDateTime(mostRecentCompletion.at, {
+            dateStyle: 'short'
+        })} by ${mostRecentCompletion.by.name}`
     } else {
         description += bold(`\nNever completed`)
     }
