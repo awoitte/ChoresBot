@@ -16,7 +16,6 @@ export function parseFrequency(value: string): MaybeError<Frequency> {
 
     const kind = value.slice(0, atSignIndex).trim().toLowerCase()
     const time = value.slice(atSignIndex + 1).trim()
-    console.log(time)
 
     switch (kind) {
         case 'daily': {
