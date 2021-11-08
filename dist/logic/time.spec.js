@@ -121,8 +121,9 @@ const time_2 = require("../models/time");
         (0, chai_1.expect)(frequency.date.getFullYear()).to.equal(now.getFullYear());
     });
 });
-if (process.env.LOCALE == 'en-US' && process.env.TIMEZONE == 'EST') {
-    // These tests expect EST timezone and en-US locale
+if (process.env.LOCALE == 'en-US' &&
+    process.env.TIMEZONE == 'America/New_York') {
+    // These tests expect 'America/New_York' timezone and 'en-US' locale
     (0, mocha_1.describe)('frequency formatting', () => {
         it('should display weekly with the weekday name', () => {
             const frequency = {
