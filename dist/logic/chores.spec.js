@@ -127,5 +127,41 @@ const time_1 = require("../models/time");
         now = new Date(date.getTime() + time_1.dayInMilliseconds);
         (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.false;
     });
+    it('should account for daylight savings time', () => {
+        let now;
+        let completion;
+        const timeDue = new Date(mock.beforeDST.getTime());
+        timeDue.setHours(12); // mid-day to help avoid "overflow" errors
+        timeDue.setMinutes(30);
+        const mockChore = Object.assign({}, mock.genericChore, {
+            frequency: {
+                kind: 'Daily',
+                time: timeDue
+            }
+        });
+        // verify not due just before time
+        completion = new Date(mock.beforeDST.getTime() - time_1.dayInMilliseconds);
+        // (set manually to avoid DST shenanigans)
+        now = new Date(timeDue.getTime());
+        now.setHours(12);
+        now.setMinutes(29);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.false;
+        // verify due just after time
+        now = new Date(timeDue.getTime());
+        now.setHours(12);
+        now.setMinutes(31);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.true;
+        // verify not due just before time with DST
+        completion = new Date(mock.beforeDST.getTime());
+        now = new Date(mock.afterDST.getTime());
+        now.setHours(12);
+        now.setMinutes(29);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.false;
+        // verify due just after time with DST
+        now = new Date(mock.afterDST.getTime());
+        now.setHours(12);
+        now.setMinutes(31);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.true;
+    });
 });
 //# sourceMappingURL=chores.spec.js.map

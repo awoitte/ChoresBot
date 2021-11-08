@@ -148,7 +148,12 @@ exports.parseFrequency = parseFrequency;
 function frequencyToString(frequency) {
     switch (frequency.kind) {
         case 'Daily': {
-            return `${frequency.kind} @ ${formatDateTime(frequency.time, {
+            // the frequency time may have been created at a different daylight savings time status
+            // so make a new `Date` at today's date with the time set manually to avoid offset shenanigans
+            const time = new Date();
+            time.setHours(frequency.time.getHours());
+            time.setMinutes(frequency.time.getMinutes());
+            return `${frequency.kind} @ ${formatDateTime(time, {
                 timeStyle: 'short'
             })}`;
         }

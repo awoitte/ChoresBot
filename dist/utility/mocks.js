@@ -1,8 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = void 0;
+exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = void 0;
 const db_1 = require("../external/db");
 const time_1 = require("../models/time");
+exports.beforeDST = new Date();
+exports.beforeDST.setFullYear(2021);
+exports.beforeDST.setMonth(time_1.Months.indexOf('November'));
+exports.beforeDST.setDate(6);
+exports.afterDST = new Date(exports.beforeDST.getTime());
+exports.afterDST.setDate(7);
 exports.user1 = {
     name: 'mockName',
     id: 'mockID'

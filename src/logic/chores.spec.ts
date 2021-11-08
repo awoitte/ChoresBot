@@ -137,4 +137,55 @@ describe('Overdue Algorithm', () => {
         now = new Date(date.getTime() + dayInMilliseconds)
         expect(isChoreOverdue(mockChore, completion, now)).to.be.false
     })
+
+    it('should account for daylight savings time', () => {
+        let now: Date
+        let completion: Date
+
+        const timeDue: Date = new Date(mock.beforeDST.getTime())
+
+        timeDue.setHours(12) // mid-day to help avoid "overflow" errors
+        timeDue.setMinutes(30)
+
+        const mockChore = Object.assign({}, mock.genericChore, {
+            frequency: {
+                kind: 'Daily',
+                time: timeDue
+            }
+        })
+
+        // verify not due just before time
+        completion = new Date(mock.beforeDST.getTime() - dayInMilliseconds)
+
+        // (set manually to avoid DST shenanigans)
+        now = new Date(timeDue.getTime())
+        now.setHours(12)
+        now.setMinutes(29)
+
+        expect(isChoreOverdue(mockChore, completion, now)).to.be.false
+
+        // verify due just after time
+        now = new Date(timeDue.getTime())
+        now.setHours(12)
+        now.setMinutes(31)
+
+        expect(isChoreOverdue(mockChore, completion, now)).to.be.true
+
+        // verify not due just before time with DST
+        completion = new Date(mock.beforeDST.getTime())
+
+        now = new Date(mock.afterDST.getTime())
+        now.setHours(12)
+        now.setMinutes(29)
+
+        expect(isChoreOverdue(mockChore, completion, now)).to.be.false
+
+        // verify due just after time with DST
+
+        now = new Date(mock.afterDST.getTime())
+        now.setHours(12)
+        now.setMinutes(31)
+
+        expect(isChoreOverdue(mockChore, completion, now)).to.be.true
+    })
 })

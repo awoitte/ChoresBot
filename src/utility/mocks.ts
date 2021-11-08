@@ -1,7 +1,15 @@
 import { mockDB } from '../external/db'
 import { User } from '../models/chat'
 import { Chore } from '../models/chores'
-import { Frequency, hourInMilliseconds } from '../models/time'
+import { Frequency, Months, hourInMilliseconds } from '../models/time'
+
+export const beforeDST: Date = new Date()
+beforeDST.setFullYear(2021)
+beforeDST.setMonth(Months.indexOf('November'))
+beforeDST.setDate(6)
+
+export const afterDST: Date = new Date(beforeDST.getTime())
+afterDST.setDate(7)
 
 export const user1: User = {
     name: 'mockName',
