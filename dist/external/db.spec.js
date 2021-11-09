@@ -34,7 +34,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mocha_1 = require("mocha");
 const chai_1 = require("chai");
 const chai_as_promised_1 = __importDefault(require("chai-as-promised"));
+const main_1 = require("../logic/main");
 const db_1 = require("./db");
+const chat_1 = require("./chat");
 const mock = __importStar(require("../utility/mocks"));
 (0, chai_1.use)(chai_as_promised_1.default);
 const connectionString = process.env.CHORES_BOT_TEST_DB;
@@ -316,6 +318,45 @@ function runDBTestSuite(connectionString) {
                     (0, chai_1.expect)(users[1].id).to.equal(mock.user3.id);
                 }));
             });
+            it('should not count prior completions if a chore is re-added', () => __awaiter(this, void 0, void 0, function* () {
+                yield db.addChore(mock.genericChore);
+                yield db.addUser(mock.user1);
+                let actions = yield (0, main_1.loop)(db);
+                (0, chai_1.expect)(actions).to.have.lengthOf(2);
+                let action = actions[0];
+                if (action.kind !== 'ModifyChore') {
+                    throw 'Received Action of the wrong type';
+                }
+                (0, chai_1.expect)(action.chore.assigned).to.deep.equal(mock.user1);
+                action = actions[1];
+                if (action.kind !== 'SendMessage') {
+                    throw 'Received Action of the wrong type';
+                }
+                (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
+                const mockChoreAssigned = Object.assign({}, mock.genericChore, {
+                    // id is the same
+                    assigned: mock.user1
+                });
+                yield db.modifyChore(mockChoreAssigned);
+                (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                yield db.addChoreCompletion(mock.genericChore.name, mock.user1);
+                (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                yield db.deleteChore(mock.genericChore.name);
+                (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                yield db.addChore(mock.genericChore);
+                actions = yield (0, main_1.loop)(db);
+                (0, chai_1.expect)(actions).to.have.lengthOf(2);
+                action = actions[0];
+                if (action.kind !== 'ModifyChore') {
+                    throw 'Received Action of the wrong type';
+                }
+                (0, chai_1.expect)(action.chore.assigned).to.deep.equal(mock.user1);
+                action = actions[1];
+                if (action.kind !== 'SendMessage') {
+                    throw 'Received Action of the wrong type';
+                }
+                (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
+            }));
             afterEach(db.destroyEntireDB.bind(db));
             after(db.release.bind(db));
             // In order to run the test suite asynchronously we must use 'mocha --delay' and call run() here

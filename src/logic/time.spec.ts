@@ -3,7 +3,6 @@ import { expect } from 'chai'
 
 import { parseFrequency, frequencyToString } from './time'
 import { Frequency, Months } from '../models/time'
-import * as mock from '../utility/mocks'
 
 describe('Frequency parsing algorithm', () => {
     it('should parse weekly', () => {

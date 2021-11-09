@@ -7,6 +7,7 @@ INSERT INTO chores(name, assigned, frequency_kind, frequency_date, frequency_wee
 -- possibly the chore was deleted previously
 ON CONFLICT (name) DO UPDATE SET
     deleted = NULL,
+    created = CURRENT_TIMESTAMP,
     assigned = EXCLUDED.assigned,
     frequency_kind = EXCLUDED.frequency_kind,
     frequency_date = EXCLUDED.frequency_date,
@@ -17,6 +18,8 @@ UPDATE chores SET deleted = NOW() WHERE name = $1
 `;
 const mostRecentCompletions = `
 SELECT MAX(at) AS at, chore FROM chore_completions
+INNER JOIN chores ON chores.name = chore
+WHERE chores.created < at -- if a chore is re-added then ignore prior completions
 GROUP BY chore 
 `;
 exports.addSkip = `

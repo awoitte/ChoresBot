@@ -1,4 +1,4 @@
-import { mockDB } from '../external/db'
+import { mockDB, PostgresDB, pgDB } from '../external/db'
 import { User } from '../models/chat'
 import { Chore } from '../models/chores'
 import { Frequency, Months, hourInMilliseconds } from '../models/time'
@@ -143,3 +143,21 @@ export const DBWithOutstandingChores = Object.assign({}, mockDB, {
 export const DBWithChoreByName = Object.assign({}, mockDB, {
     getChoreByName
 })
+
+export async function withTestDB(
+    callback: (db: PostgresDB) => Promise<void>
+): Promise<void> {
+    const connectionString = process.env.CHORES_BOT_TEST_DB
+
+    if (connectionString === undefined) {
+        console.log(
+            'No environment variable set for CHORES_BOT_TEST_DB. Please set this to the postgresql connection string to use for database testing.'
+        )
+    } else {
+        const db: PostgresDB = await pgDB(connectionString)
+
+        await db.destroyEntireDB() // if prior tests crashed there might be bad data to clean up
+
+        await callback(db)
+    }
+}

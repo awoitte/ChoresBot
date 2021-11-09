@@ -1,6 +1,15 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = void 0;
+exports.withTestDB = exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = void 0;
 const db_1 = require("../external/db");
 const time_1 = require("../models/time");
 exports.beforeDST = new Date();
@@ -112,4 +121,18 @@ exports.DBWithOutstandingChores = Object.assign({}, db_1.mockDB, {
 exports.DBWithChoreByName = Object.assign({}, db_1.mockDB, {
     getChoreByName
 });
+function withTestDB(callback) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const connectionString = process.env.CHORES_BOT_TEST_DB;
+        if (connectionString === undefined) {
+            console.log('No environment variable set for CHORES_BOT_TEST_DB. Please set this to the postgresql connection string to use for database testing.');
+        }
+        else {
+            const db = yield (0, db_1.pgDB)(connectionString);
+            yield db.destroyEntireDB(); // if prior tests crashed there might be bad data to clean up
+            yield callback(db);
+        }
+    });
+}
+exports.withTestDB = withTestDB;
 //# sourceMappingURL=mocks.js.map
