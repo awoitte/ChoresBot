@@ -75,7 +75,7 @@ const main_1 = require("./logic/main");
             (0, log_1.default)(`Error performing actions!: ${e}`);
         });
         return true; // keep looping
-    }), frequency * 1000);
+    }), frequency * 1000, false, true);
 }))();
 function performActions(actions, chat, db) {
     return __awaiter(this, void 0, void 0, function* () {

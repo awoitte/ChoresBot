@@ -64,19 +64,24 @@ import { loop, messageHandler } from './logic/main'
     })
     await chat.login(token)
 
-    asyncLoop(async () => {
-        const actions = await loop(db).catch((e) => {
-            log(`Error in main loop!: ${e}`)
-            return []
-        })
+    asyncLoop(
+        async () => {
+            const actions = await loop(db).catch((e) => {
+                log(`Error in main loop!: ${e}`)
+                return []
+            })
 
-        log(`loop actions: ${JSON.stringify(actions)}`)
-        await performActions(actions, chat, db).catch((e) => {
-            log(`Error performing actions!: ${e}`)
-        })
+            log(`loop actions: ${JSON.stringify(actions)}`)
+            await performActions(actions, chat, db).catch((e) => {
+                log(`Error performing actions!: ${e}`)
+            })
 
-        return true // keep looping
-    }, frequency * 1000)
+            return true // keep looping
+        },
+        frequency * 1000,
+        false,
+        true
+    )
 })()
 
 async function performActions(

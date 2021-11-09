@@ -10,14 +10,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wait = exports.asyncLoop = void 0;
-function asyncLoop(asyncCallback, milliseconds, immediateFirstCall = false) {
+function asyncLoop(asyncCallback, milliseconds, immediateFirstCall = false, handleSIGINT = false) {
     return __awaiter(this, void 0, void 0, function* () {
         let keepLooping = true;
+        let cancel;
         if (immediateFirstCall) {
             keepLooping = yield asyncCallback();
         }
+        if (handleSIGINT) {
+            process.on('SIGINT', () => {
+                if (cancel !== undefined) {
+                    cancel();
+                }
+            });
+        }
         while (keepLooping) {
-            yield wait(milliseconds).then(() => __awaiter(this, void 0, void 0, function* () {
+            const [loop, cancelWait] = wait(milliseconds);
+            cancel = cancelWait;
+            yield loop.then(() => __awaiter(this, void 0, void 0, function* () {
                 keepLooping = yield asyncCallback();
             }));
         }
@@ -25,10 +35,17 @@ function asyncLoop(asyncCallback, milliseconds, immediateFirstCall = false) {
 }
 exports.asyncLoop = asyncLoop;
 function wait(milliseconds) {
+    let timeout;
     const promise = new Promise((resolve) => {
-        setTimeout(resolve, milliseconds);
+        timeout = setTimeout(resolve, milliseconds);
     });
-    return promise;
+    return [
+        promise,
+        () => {
+            if (timeout !== undefined)
+                clearTimeout(timeout);
+        }
+    ];
 }
 exports.wait = wait;
 //# sourceMappingURL=async.js.map
