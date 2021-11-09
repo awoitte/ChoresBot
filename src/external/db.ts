@@ -131,7 +131,7 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
         },
         getAssignableUsersInOrderOfRecentCompletion: async () => {
             const userRes = await client.query(
-                userQueries.getUsersSortedByCompletions
+                userQueries.getUnassignedUsersSortedByCompletions
             )
 
             return userRes.rows.map(rowToUser)

@@ -402,6 +402,39 @@ async function runDBTestSuite(connectionString: string) {
                 expect(users[1].id).to.equal(mock.user2.id)
                 expect(users[2].id).to.equal(mock.user1.id)
             })
+
+            it('should not return a user as assignable if they already have a chore assigned', async () => {
+                await db.addUser(mock.user1)
+                await db.addUser(mock.user2)
+                await db.addUser(mock.user3)
+                await db.addChore(mock.genericChore)
+
+                await db.addChoreCompletion(mock.genericChore.name, mock.user1)
+                await db.addChoreCompletion(mock.genericChore.name, mock.user2)
+
+                let users =
+                    await db.getAssignableUsersInOrderOfRecentCompletion()
+
+                expect(users).to.have.length(3)
+
+                expect(users[0].id).to.equal(mock.user2.id)
+                expect(users[1].id).to.equal(mock.user1.id)
+                expect(users[2].id).to.equal(mock.user3.id)
+
+                const choreNowAssigned = Object.assign({}, mock.genericChore, {
+                    // id will be the same
+                    assigned: mock.user2
+                })
+
+                await db.modifyChore(choreNowAssigned)
+
+                users = await db.getAssignableUsersInOrderOfRecentCompletion()
+
+                expect(users).to.have.length(2)
+
+                expect(users[0].id).to.equal(mock.user1.id)
+                expect(users[1].id).to.equal(mock.user3.id)
+            })
         })
 
         afterEach(db.destroyEntireDB.bind(db))

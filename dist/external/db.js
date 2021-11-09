@@ -120,7 +120,7 @@ function pgDB(connectionString) {
                 return rowToUser(userRes.rows[0]);
             }),
             getAssignableUsersInOrderOfRecentCompletion: () => __awaiter(this, void 0, void 0, function* () {
-                const userRes = yield client.query(userQueries.getUsersSortedByCompletions);
+                const userRes = yield client.query(userQueries.getUnassignedUsersSortedByCompletions);
                 return userRes.rows.map(rowToUser);
             }),
             getOutstandingUnassignedChores: () => __awaiter(this, void 0, void 0, function* () {
