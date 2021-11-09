@@ -16,6 +16,7 @@ exports.AllCommandsByCallsign = exports.AllCommands = exports.OptOutCommand = ex
 const chat_1 = require("../models/chat");
 const chat_2 = require("../external/chat");
 const log_1 = __importDefault(require("../logging/log"));
+const strings_1 = require("../utility/strings");
 const time_1 = require("./time");
 const actions_1 = require("./actions");
 const chores_1 = require("./chores");
@@ -220,13 +221,7 @@ chore-name
         }
         if (chore === undefined) {
             return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `${(0, chat_2.tagUser)(message.author)} Unable to find chore "${choreName}". Try using the ${(0, chat_2.inlineCode)(exports.InfoCommand.callsign)} command to verify the spelling.`,
-                        author: chat_1.ChoresBotUser
-                    }
-                }
+                (0, actions_1.didYouMeanMessage)(choreName, yield getClosestChoreName(choreName, db), exports.DeleteCommand, message.author)
             ];
         }
         return [
@@ -248,48 +243,37 @@ exports.InfoCommand = {
     callsign: '!info',
     handler: (message, db) => __awaiter(void 0, void 0, void 0, function* () {
         const choreName = getArgumentsString(message.text, exports.InfoCommand);
+        let chore;
         if (choreName === '') {
-            // no chore name supplied, list all chores
-            let allChores;
+            // no chore name supplied, use assigned chore
+            const userAssignedChores = yield db.getChoresAssignedToUser(message.author);
+            if (userAssignedChores.length === 0) {
+                return [
+                    {
+                        kind: 'SendMessage',
+                        message: {
+                            text: `${(0, chat_2.tagUser)(message.author)} you have no chores assigned`,
+                            author: chat_1.ChoresBotUser
+                        }
+                    }
+                ];
+            }
+            chore = userAssignedChores[0];
+        }
+        else {
+            // check if chore exists, maybe it was misspelled
             try {
-                allChores = yield db.getAllChoreNames();
+                chore = yield db.getChoreByName(choreName);
             }
             catch (e) {
-                (0, log_1.default)(`error retrieving all chore names`);
-                throw e;
+                (0, log_1.default)(`error retrieving chore "${choreName}": ${e}`);
+                // don't re-throw so user gets more specific message
             }
-            const allChoresList = allChores
-                .map((chore) => `"${chore}"`)
-                .join('\n');
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `All Chores:\n${allChoresList}`,
-                        author: chat_1.ChoresBotUser
-                    }
-                }
-            ];
-        }
-        // check if chore exists, maybe it was misspelled
-        let chore;
-        try {
-            chore = yield db.getChoreByName(choreName);
-        }
-        catch (e) {
-            (0, log_1.default)(`error retrieving chore "${choreName}": ${e}`);
-            // don't re-throw so user gets more specific message
-        }
-        if (chore === undefined) {
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `${(0, chat_2.tagUser)(message.author)} Unable to find chore "${choreName}". Try using the ${(0, chat_2.inlineCode)(exports.InfoCommand.callsign)} command without a chore name to verify the spelling.`,
-                        author: chat_1.ChoresBotUser
-                    }
-                }
-            ];
+            if (chore === undefined) {
+                return [
+                    (0, actions_1.didYouMeanMessage)(choreName, yield getClosestChoreName(choreName, db), exports.InfoCommand, message.author)
+                ];
+            }
         }
         const completions = yield db.getAllChoreCompletions(chore.name);
         const mostRecentCompletion = completions.shift();
@@ -390,13 +374,7 @@ function completeChoreByName(choreName, completedBy, db) {
         }
         if (chore === undefined) {
             return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `${(0, chat_2.tagUser)(completedBy)} Unable to find chore "${choreName}". Try using the ${(0, chat_2.inlineCode)(exports.InfoCommand.callsign)} command to verify the spelling.`,
-                        author: chat_1.ChoresBotUser
-                    }
-                }
+                (0, actions_1.didYouMeanMessage)(choreName, yield getClosestChoreName(choreName, db), exports.CompleteCommand, completedBy)
             ];
         }
         const completedChore = (0, chores_1.completeChore)(chore);
@@ -406,5 +384,11 @@ function completeChoreByName(choreName, completedBy, db) {
 // --- Utility ---
 function getArgumentsString(messageText, command) {
     return messageText.slice(command.callsign.length).trim();
+}
+function getClosestChoreName(requestedName, db) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const chores = yield db.getAllChoreNames();
+        return (0, strings_1.bestMatch)(requestedName, chores);
+    });
 }
 //# sourceMappingURL=commands.js.map

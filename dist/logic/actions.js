@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assignChoreActions = exports.completeChoreActions = void 0;
+exports.didYouMeanMessage = exports.assignChoreActions = exports.completeChoreActions = void 0;
 const chat_1 = require("../models/chat");
 const chores_1 = require("./chores");
 const chat_2 = require("../external/chat");
@@ -37,4 +37,23 @@ function assignChoreActions(chore, user) {
     ];
 }
 exports.assignChoreActions = assignChoreActions;
+function didYouMeanMessage(choreName, closestMatch, command, taggedUser) {
+    if (closestMatch === undefined) {
+        return {
+            kind: 'SendMessage',
+            message: {
+                text: `${(0, chat_2.tagUser)(taggedUser)} Unable to find chore "${choreName}".`,
+                author: chat_1.ChoresBotUser
+            }
+        };
+    }
+    return {
+        kind: 'SendMessage',
+        message: {
+            text: `${(0, chat_2.tagUser)(taggedUser)} Unable to find chore "${choreName}". Did you mean ${(0, chat_2.inlineCode)(`${command.callsign} ${closestMatch}`)}?`,
+            author: chat_1.ChoresBotUser
+        }
+    };
+}
+exports.didYouMeanMessage = didYouMeanMessage;
 //# sourceMappingURL=actions.js.map

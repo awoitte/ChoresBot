@@ -5,8 +5,13 @@ import { Command } from '../models/commands'
 import { ReadOnlyDB } from '../external/db'
 import { tagUser, inlineCode } from '../external/chat'
 import log from '../logging/log'
+import { bestMatch } from '../utility/strings'
 import { frequencyToString, parseFrequency } from './time'
-import { assignChoreActions, completeChoreActions } from './actions'
+import {
+    assignChoreActions,
+    completeChoreActions,
+    didYouMeanMessage
+} from './actions'
 import {
     skipChore,
     completeChore,
@@ -268,17 +273,12 @@ chore-name
 
         if (chore === undefined) {
             return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `${tagUser(
-                            message.author
-                        )} Unable to find chore "${choreName}". Try using the ${inlineCode(
-                            InfoCommand.callsign
-                        )} command to verify the spelling.`,
-                        author: ChoresBotUser
-                    }
-                }
+                didYouMeanMessage(
+                    choreName,
+                    await getClosestChoreName(choreName, db),
+                    DeleteCommand,
+                    message.author
+                )
             ]
         }
 
@@ -304,56 +304,48 @@ export const InfoCommand: Command = {
     callsign: '!info',
     handler: async (message, db) => {
         const choreName = getArgumentsString(message.text, InfoCommand)
+        let chore
 
         if (choreName === '') {
-            // no chore name supplied, list all chores
+            // no chore name supplied, use assigned chore
+            const userAssignedChores = await db.getChoresAssignedToUser(
+                message.author
+            )
 
-            let allChores
-            try {
-                allChores = await db.getAllChoreNames()
-            } catch (e) {
-                log(`error retrieving all chore names`)
-                throw e
+            if (userAssignedChores.length === 0) {
+                return [
+                    {
+                        kind: 'SendMessage',
+                        message: {
+                            text: `${tagUser(
+                                message.author
+                            )} you have no chores assigned`,
+                            author: ChoresBotUser
+                        }
+                    }
+                ]
             }
 
-            const allChoresList = allChores
-                .map((chore) => `"${chore}"`)
-                .join('\n')
+            chore = userAssignedChores[0]
+        } else {
+            // check if chore exists, maybe it was misspelled
+            try {
+                chore = await db.getChoreByName(choreName)
+            } catch (e) {
+                log(`error retrieving chore "${choreName}": ${e}`)
+                // don't re-throw so user gets more specific message
+            }
 
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `All Chores:\n${allChoresList}`,
-                        author: ChoresBotUser
-                    }
-                }
-            ]
-        }
-
-        // check if chore exists, maybe it was misspelled
-        let chore
-        try {
-            chore = await db.getChoreByName(choreName)
-        } catch (e) {
-            log(`error retrieving chore "${choreName}": ${e}`)
-            // don't re-throw so user gets more specific message
-        }
-
-        if (chore === undefined) {
-            return [
-                {
-                    kind: 'SendMessage',
-                    message: {
-                        text: `${tagUser(
-                            message.author
-                        )} Unable to find chore "${choreName}". Try using the ${inlineCode(
-                            InfoCommand.callsign
-                        )} command without a chore name to verify the spelling.`,
-                        author: ChoresBotUser
-                    }
-                }
-            ]
+            if (chore === undefined) {
+                return [
+                    didYouMeanMessage(
+                        choreName,
+                        await getClosestChoreName(choreName, db),
+                        InfoCommand,
+                        message.author
+                    )
+                ]
+            }
         }
 
         const completions = await db.getAllChoreCompletions(chore.name)
@@ -489,17 +481,12 @@ async function completeChoreByName(
 
     if (chore === undefined) {
         return [
-            {
-                kind: 'SendMessage',
-                message: {
-                    text: `${tagUser(
-                        completedBy
-                    )} Unable to find chore "${choreName}". Try using the ${inlineCode(
-                        InfoCommand.callsign
-                    )} command to verify the spelling.`,
-                    author: ChoresBotUser
-                }
-            }
+            didYouMeanMessage(
+                choreName,
+                await getClosestChoreName(choreName, db),
+                CompleteCommand,
+                completedBy
+            )
         ]
     }
 
@@ -511,4 +498,13 @@ async function completeChoreByName(
 // --- Utility ---
 function getArgumentsString(messageText: string, command: Command): string {
     return messageText.slice(command.callsign.length).trim()
+}
+
+async function getClosestChoreName(
+    requestedName: string,
+    db: ReadOnlyDB
+): Promise<string | undefined> {
+    const chores = await db.getAllChoreNames()
+
+    return bestMatch(requestedName, chores)
 }

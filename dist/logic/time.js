@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
 const time_1 = require("../models/time");
-const titleCase_1 = __importDefault(require("../utility/titleCase"));
+const strings_1 = require("../utility/strings");
 const log_1 = __importDefault(require("../logging/log"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const locale = process.env.LOCALE || 'en-US';
@@ -158,7 +158,7 @@ function frequencyToString(frequency) {
             })}`;
         }
         case 'Weekly': {
-            return `${frequency.kind} @ ${(0, titleCase_1.default)(frequency.weekday)}`;
+            return `${frequency.kind} @ ${(0, strings_1.toTitleCase)(frequency.weekday)}`;
         }
         case 'Yearly': {
             return `${frequency.kind} @ ${formatDateTime(frequency.date, {

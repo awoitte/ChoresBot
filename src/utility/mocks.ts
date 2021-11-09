@@ -126,6 +126,10 @@ function getChoreByName() {
     return genericChore
 }
 
+function getAllChoreNames() {
+    return [genericChore.name]
+}
+
 export const DBWithUpcoming = Object.assign({}, mockDB, {
     getUpcomingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
@@ -142,6 +146,10 @@ export const DBWithOutstandingChores = Object.assign({}, mockDB, {
 
 export const DBWithChoreByName = Object.assign({}, mockDB, {
     getChoreByName
+})
+
+export const DBWithAllChoreNames = Object.assign({}, mockDB, {
+    getAllChoreNames
 })
 
 export async function withTestDB(

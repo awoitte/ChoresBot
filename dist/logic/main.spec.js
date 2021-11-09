@@ -35,6 +35,7 @@ const commands_1 = require("./commands");
 const db_1 = require("../external/db");
 const chat_1 = require("../external/chat");
 const mock = __importStar(require("../utility/mocks"));
+const actions_1 = require("./actions");
 // --- Tests ---
 (0, mocha_1.describe)('Message handling logic', () => __awaiter(void 0, void 0, void 0, function* () {
     it('should parse messages and determine actions', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -235,7 +236,7 @@ const mock = __importStar(require("../utility/mocks"));
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} Unable to find chore "${missingChoreName}". Try using the ${(0, chat_1.inlineCode)(commands_1.InfoCommand.callsign)} command to verify the spelling.`);
+            (0, chai_1.expect)(action).to.deep.equal((0, actions_1.didYouMeanMessage)(missingChoreName, undefined, commands_1.CompleteCommand, mock.user1));
         }));
         it('should clear the skipped data for a chore on completion', () => __awaiter(void 0, void 0, void 0, function* () {
             let actions = yield (0, main_1.messageHandler)({
@@ -359,7 +360,7 @@ const mock = __importStar(require("../utility/mocks"));
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} Unable to find chore "${missingChoreName}". Try using the ${(0, chat_1.inlineCode)(commands_1.InfoCommand.callsign)} command to verify the spelling.`);
+            (0, chai_1.expect)(action).to.deep.equal((0, actions_1.didYouMeanMessage)(missingChoreName, undefined, commands_1.DeleteCommand, mock.user1));
         }));
         it('should delete a chore', () => __awaiter(void 0, void 0, void 0, function* () {
             const actions = yield (0, main_1.messageHandler)({
@@ -380,23 +381,28 @@ const mock = __importStar(require("../utility/mocks"));
         }));
     });
     (0, mocha_1.describe)('!info command', () => {
-        it('should show all chore names if given no arguments', () => __awaiter(void 0, void 0, void 0, function* () {
-            const mockChoreName = 'clean the dirt';
-            const mockDBWithChoreName = Object.assign({}, db_1.mockDB, {
-                getAllChoreNames: () => {
-                    return [mockChoreName];
-                }
-            });
-            const actions = yield (0, main_1.messageHandler)({
-                text: '!info',
+        it('should show assigned chore if given no arguments', () => __awaiter(void 0, void 0, void 0, function* () {
+            let actions = yield (0, main_1.messageHandler)({
+                text: `!info`,
                 author: mock.user1
-            }, mockDBWithChoreName);
+            }, db_1.mockDB // mockDB will respond with undefined when asked to get assigned chores
+            );
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
-            const action = actions[0];
+            let action = actions[0];
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal('All Chores:\n' + `"${mockChoreName}"`);
+            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} you have no chores assigned`);
+            actions = yield (0, main_1.messageHandler)({
+                text: `!info`,
+                author: mock.user1
+            }, mock.DBWithChoreAssigned);
+            (0, chai_1.expect)(actions).to.have.lengthOf(1);
+            action = actions[0];
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type';
+            }
+            (0, chai_1.expect)(action.message.text).to.contain(mock.assignedChore.name);
         }));
         it('should respond if unable to find chore', () => __awaiter(void 0, void 0, void 0, function* () {
             const missingChoreName = 'missing chore name';
@@ -410,8 +416,20 @@ const mock = __importStar(require("../utility/mocks"));
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} Unable to find chore "${missingChoreName}". ` +
-                `Try using the ${(0, chat_1.inlineCode)(commands_1.InfoCommand.callsign)} command without a chore name to verify the spelling.`);
+            (0, chai_1.expect)(action).to.deep.equal((0, actions_1.didYouMeanMessage)(missingChoreName, undefined, commands_1.InfoCommand, mock.user1));
+        }));
+        it('should respond with suggestion if unable to find chore', () => __awaiter(void 0, void 0, void 0, function* () {
+            const misspelledChoreName = mock.genericChore.name + 'a';
+            const actions = yield (0, main_1.messageHandler)({
+                text: `!info ${misspelledChoreName}`,
+                author: mock.user1
+            }, mock.DBWithAllChoreNames);
+            (0, chai_1.expect)(actions).to.have.lengthOf(1);
+            const action = actions[0];
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type';
+            }
+            (0, chai_1.expect)(action).to.deep.equal((0, actions_1.didYouMeanMessage)(misspelledChoreName, mock.genericChore.name, commands_1.InfoCommand, mock.user1));
         }));
         it('should describe a chore', () => __awaiter(void 0, void 0, void 0, function* () {
             const actions = yield (0, main_1.messageHandler)({

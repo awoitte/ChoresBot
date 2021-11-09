@@ -1,6 +1,6 @@
 import { Frequency, Weekdays } from '../models/time'
 import { MaybeError } from '../models/utility'
-import toTitleCase from '../utility/titleCase'
+import { toTitleCase } from '../utility/strings'
 import log from '../logging/log'
 import moment from 'moment-timezone'
 

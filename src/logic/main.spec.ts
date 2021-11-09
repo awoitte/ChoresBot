@@ -6,6 +6,7 @@ import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
 import {
     AddCommand,
+    CompleteCommand,
     DeleteCommand,
     InfoCommand,
     RequestCommand,
@@ -15,6 +16,7 @@ import {
 import { mockDB } from '../external/db'
 import { tagUser, inlineCode } from '../external/chat'
 import * as mock from '../utility/mocks'
+import { didYouMeanMessage } from './actions'
 
 // --- Tests ---
 describe('Message handling logic', async () => {
@@ -357,12 +359,13 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.message.text).to.equal(
-                `${tagUser(
+            expect(action).to.deep.equal(
+                didYouMeanMessage(
+                    missingChoreName,
+                    undefined,
+                    CompleteCommand,
                     mock.user1
-                )} Unable to find chore "${missingChoreName}". Try using the ${inlineCode(
-                    InfoCommand.callsign
-                )} command to verify the spelling.`
+                )
             )
         })
 
@@ -564,12 +567,13 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.message.text).to.equal(
-                `${tagUser(
+            expect(action).to.deep.equal(
+                didYouMeanMessage(
+                    missingChoreName,
+                    undefined,
+                    DeleteCommand,
                     mock.user1
-                )} Unable to find chore "${missingChoreName}". Try using the ${inlineCode(
-                    InfoCommand.callsign
-                )} command to verify the spelling.`
+                )
             )
         })
 
@@ -607,34 +611,44 @@ describe('Message handling logic', async () => {
     })
 
     describe('!info command', () => {
-        it('should show all chore names if given no arguments', async () => {
-            const mockChoreName = 'clean the dirt'
-
-            const mockDBWithChoreName = Object.assign({}, mockDB, {
-                getAllChoreNames: () => {
-                    return [mockChoreName]
-                }
-            })
-
-            const actions = await messageHandler(
+        it('should show assigned chore if given no arguments', async () => {
+            let actions = await messageHandler(
                 {
-                    text: '!info',
+                    text: `!info`,
                     author: mock.user1
                 },
-                mockDBWithChoreName
+                mockDB // mockDB will respond with undefined when asked to get assigned chores
             )
 
             expect(actions).to.have.lengthOf(1)
 
-            const action: Action = actions[0]
+            let action: Action = actions[0]
 
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type'
             }
 
             expect(action.message.text).to.equal(
-                'All Chores:\n' + `"${mockChoreName}"`
+                `${tagUser(mock.user1)} you have no chores assigned`
             )
+
+            actions = await messageHandler(
+                {
+                    text: `!info`,
+                    author: mock.user1
+                },
+                mock.DBWithChoreAssigned
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.contain(mock.assignedChore.name)
         })
 
         it('should respond if unable to find chore', async () => {
@@ -655,13 +669,41 @@ describe('Message handling logic', async () => {
                 throw 'Received Action of the wrong type'
             }
 
-            expect(action.message.text).to.equal(
-                `${tagUser(
+            expect(action).to.deep.equal(
+                didYouMeanMessage(
+                    missingChoreName,
+                    undefined,
+                    InfoCommand,
                     mock.user1
-                )} Unable to find chore "${missingChoreName}". ` +
-                    `Try using the ${inlineCode(
-                        InfoCommand.callsign
-                    )} command without a chore name to verify the spelling.`
+                )
+            )
+        })
+
+        it('should respond with suggestion if unable to find chore', async () => {
+            const misspelledChoreName = mock.genericChore.name + 'a'
+            const actions = await messageHandler(
+                {
+                    text: `!info ${misspelledChoreName}`,
+                    author: mock.user1
+                },
+                mock.DBWithAllChoreNames
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action).to.deep.equal(
+                didYouMeanMessage(
+                    misspelledChoreName,
+                    mock.genericChore.name,
+                    InfoCommand,
+                    mock.user1
+                )
             )
         })
 

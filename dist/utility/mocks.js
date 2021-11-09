@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.withTestDB = exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = void 0;
+exports.withTestDB = exports.DBWithAllChoreNames = exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = void 0;
 const db_1 = require("../external/db");
 const time_1 = require("../models/time");
 exports.beforeDST = new Date();
@@ -107,6 +107,9 @@ function getOutstandingUnassignedChores() {
 function getChoreByName() {
     return exports.genericChore;
 }
+function getAllChoreNames() {
+    return [exports.genericChore.name];
+}
 exports.DBWithUpcoming = Object.assign({}, db_1.mockDB, {
     getUpcomingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
@@ -120,6 +123,9 @@ exports.DBWithOutstandingChores = Object.assign({}, db_1.mockDB, {
 });
 exports.DBWithChoreByName = Object.assign({}, db_1.mockDB, {
     getChoreByName
+});
+exports.DBWithAllChoreNames = Object.assign({}, db_1.mockDB, {
+    getAllChoreNames
 });
 function withTestDB(callback) {
     return __awaiter(this, void 0, void 0, function* () {
