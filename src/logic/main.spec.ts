@@ -6,8 +6,10 @@ import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
 import {
     AddCommand,
+    AllCommands,
     CompleteCommand,
     DeleteCommand,
+    HelpCommand,
     InfoCommand,
     RequestCommand,
     SkipCommand
@@ -832,6 +834,76 @@ describe('Message handling logic', async () => {
                     mock.user1
                 )} successfully opted-out, you should no longer be assigned any chores`
             )
+        })
+    })
+
+    describe('!help command', () => {
+        it('should provide a summary of all commands if given no command name', async () => {
+            const actions = await messageHandler(
+                {
+                    text: `!help`,
+                    author: mock.user1
+                },
+                mockDB
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            for (const command of AllCommands) {
+                expect(action.message.text).to.contain(command.summary)
+            }
+        })
+
+        it('should provide help text for a specific command', async () => {
+            for (const command of AllCommands) {
+                const actions = await messageHandler(
+                    {
+                        text: `!help ${command.callsign}`,
+                        author: mock.user1
+                    },
+                    mockDB
+                )
+
+                expect(actions).to.have.lengthOf(1)
+
+                const action: Action = actions[0]
+
+                if (action.kind !== 'SendMessage') {
+                    throw 'Received Action of the wrong type'
+                }
+
+                if (command.helpText === undefined) {
+                    expect(action.message.text).to.contain(command.summary)
+                } else {
+                    expect(action.message.text).to.contain(command.helpText)
+                }
+            }
+        })
+
+        it('should provide help text for closest matching command', async () => {
+            const actions = await messageHandler(
+                {
+                    text: `!help hep`,
+                    author: mock.user1
+                },
+                mockDB
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.contain(HelpCommand.helpText)
         })
     })
 })

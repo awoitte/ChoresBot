@@ -22,6 +22,8 @@ import {
 
 export const PingCommand: Command = {
     callsign: 'ping',
+    summary:
+        'Bot responds with "pong", useful diagnostic to check if ChoresBot is running.',
     handler: async () => {
         return [
             {
@@ -37,6 +39,7 @@ export const PingCommand: Command = {
 
 export const RequestCommand: Command = {
     callsign: '!request',
+    summary: 'Request a new chore early',
     handler: async (message, db) => {
         const userAssignedChores = await db.getChoresAssignedToUser(
             message.author
@@ -107,6 +110,15 @@ export const RequestCommand: Command = {
 
 export const SkipCommand: Command = {
     callsign: '!skip',
+    summary:
+        'Skip a chore, you will not be assigned to it again until another user completes it',
+    helpText: `!skip chore-name
+
+chore-name:
+    Optional.
+    The name of the chore you wish to skip. If no name is provided then your currently assigned chore is used.
+
+Note: you do not need to be assigned to a chore to skip it`,
     handler: async (message, db) => {
         const userAssignedChores = await db.getChoresAssignedToUser(
             message.author
@@ -152,6 +164,14 @@ export const SkipCommand: Command = {
 
 export const CompleteCommand: Command = {
     callsign: '!complete',
+    summary: 'Mark a chore as completed',
+    helpText: `!complete chore-name
+
+chore-name:
+    Optional.
+    The name of the chore you wish to complete. If no name is provided then your currently assigned chore is used.
+
+Note: you do not need to be assigned to a chore to complete it`,
     handler: async (message, db) => {
         const commandArgs = getArgumentsString(message.text, CompleteCommand)
 
@@ -165,20 +185,23 @@ export const CompleteCommand: Command = {
 
 export const AddCommand: Command = {
     callsign: '!add',
+    summary: 'Add a new chore',
     helpText: `!add chore-name frequency
 
-chore-name
-    The name of the chore. Shown when being assigned, completed, etc.
-    Should be something that clearly describes the chore.
+chore-name:
+    The name of the chore. Shown when being assigned, completed, etc. Should be something that clearly describes the chore.
     Note: don't use the @ symbol in the name
 
-frequency
-    How frequently the chore should be completed/assigned.
-    Must be one of the following formats:
+frequency:
+    How frequently the chore should be completed/assigned. Must be one of the following formats:
         Daily @ <time>
         Weekly @ <day>
         Yearly @ <date>
         Once @ <date/time>
+
+Notes:
+- Adding a chore that already exists will override its frequency.
+- Adding a chore that was deleted will make it available again. Previous completions will still be shown.
 
 e.g.
 !add walk the cat Daily @ 9:00 AM
@@ -254,11 +277,13 @@ e.g.
 export const DeleteCommand: Command = {
     callsign: '!delete',
     minArgumentCount: 1,
+    summary: 'Delete an existing chore',
     helpText: `!delete chore-name
 
-chore-name
+chore-name:
     The name of the chore. Shown when being assigned, completed, etc.
-    Note: make sure spelling and capitalization matches exactly`,
+
+Note: although the chore will no longer be accesible or assignable the database will still have records of it and its completions.`,
     handler: async (message, db) => {
         const choreName = getArgumentsString(message.text, DeleteCommand)
 
@@ -302,6 +327,14 @@ chore-name
 
 export const InfoCommand: Command = {
     callsign: '!info',
+    summary: 'Get information on a chore',
+    helpText: `!info chore-name
+
+chore-name:
+    Optional.
+    The name of the chore you want info on. If no name is provided then your currently assigned chore is used.
+
+Note: If a chore matching the name you supplied can't be found then the closest match will be shown instead. This can be helpful to check the spelling of a chore's name.`,
     handler: async (message, db) => {
         const choreName = getArgumentsString(message.text, InfoCommand)
         let chore
@@ -365,6 +398,8 @@ export const InfoCommand: Command = {
 
 export const OptInCommand: Command = {
     callsign: '!opt-in',
+    summary:
+        'Add yourself as a user of ChoresBot allowing chores to be assigned to you.',
     handler: async (message) => {
         return [
             {
@@ -386,6 +421,8 @@ export const OptInCommand: Command = {
 
 export const OptOutCommand: Command = {
     callsign: '!opt-out',
+    summary:
+        'Remove yourself as a user of ChoresBot. You will no longer be assigned chores.',
     handler: async (message, db) => {
         const actions: Action[] = []
 
@@ -419,6 +456,58 @@ export const OptOutCommand: Command = {
         return actions
     }
 }
+
+export const HelpCommand: Command = {
+    callsign: '!help',
+    summary: 'Get information on how to use a command',
+    helpText: `!help command
+
+command:
+    Optional.
+    The name of the command you would like help with. If none is provided then a summary of all commands will be given.
+    Note: If the command name isn't found then the closest match will be used`,
+    handler: async (message) => {
+        const commandName = getArgumentsString(message.text, HelpCommand)
+
+        if (commandName.length === 0) {
+            const helpSummary = AllCommands.map(
+                (command) => `${command.callsign} - ${command.summary}`
+            ).join('\n')
+            return [
+                {
+                    kind: 'SendMessage',
+                    message: {
+                        text: helpSummary,
+                        author: ChoresBotUser
+                    }
+                }
+            ]
+        } else {
+            const commandNames = AllCommands.map((command) => command.callsign)
+            const closestCommand = bestMatch(commandName, commandNames)
+            const command = AllCommands.find(
+                (command) => command.callsign === closestCommand
+            )
+
+            if (command === undefined) {
+                const errorText = `Cannot find closest matching command "${closestCommand}"`
+                log(errorText)
+                throw new Error(errorText)
+            }
+
+            return [
+                {
+                    kind: 'SendMessage',
+                    message: {
+                        text: command.helpText || command.summary,
+                        author: ChoresBotUser
+                    }
+                }
+            ]
+        }
+    }
+}
+
 export const AllCommands: Command[] = [
     PingCommand,
     RequestCommand,
@@ -428,7 +517,8 @@ export const AllCommands: Command[] = [
     DeleteCommand,
     InfoCommand,
     OptInCommand,
-    OptOutCommand
+    OptOutCommand,
+    HelpCommand
 ]
 
 export const AllCommandsByCallsign: Record<string, Command> =

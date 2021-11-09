@@ -504,6 +504,53 @@ const actions_1 = require("./actions");
             (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} successfully opted-out, you should no longer be assigned any chores`);
         }));
     });
+    (0, mocha_1.describe)('!help command', () => {
+        it('should provide a summary of all commands if given no command name', () => __awaiter(void 0, void 0, void 0, function* () {
+            const actions = yield (0, main_1.messageHandler)({
+                text: `!help`,
+                author: mock.user1
+            }, db_1.mockDB);
+            (0, chai_1.expect)(actions).to.have.lengthOf(1);
+            const action = actions[0];
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type';
+            }
+            for (const command of commands_1.AllCommands) {
+                (0, chai_1.expect)(action.message.text).to.contain(command.summary);
+            }
+        }));
+        it('should provide help text for a specific command', () => __awaiter(void 0, void 0, void 0, function* () {
+            for (const command of commands_1.AllCommands) {
+                const actions = yield (0, main_1.messageHandler)({
+                    text: `!help ${command.callsign}`,
+                    author: mock.user1
+                }, db_1.mockDB);
+                (0, chai_1.expect)(actions).to.have.lengthOf(1);
+                const action = actions[0];
+                if (action.kind !== 'SendMessage') {
+                    throw 'Received Action of the wrong type';
+                }
+                if (command.helpText === undefined) {
+                    (0, chai_1.expect)(action.message.text).to.contain(command.summary);
+                }
+                else {
+                    (0, chai_1.expect)(action.message.text).to.contain(command.helpText);
+                }
+            }
+        }));
+        it('should provide help text for closest matching command', () => __awaiter(void 0, void 0, void 0, function* () {
+            const actions = yield (0, main_1.messageHandler)({
+                text: `!help hep`,
+                author: mock.user1
+            }, db_1.mockDB);
+            (0, chai_1.expect)(actions).to.have.lengthOf(1);
+            const action = actions[0];
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type';
+            }
+            (0, chai_1.expect)(action.message.text).to.contain(commands_1.HelpCommand.helpText);
+        }));
+    });
 }));
 (0, mocha_1.describe)('Actions performed at an interval', () => {
     it('should prompt users to complete chores', () => __awaiter(void 0, void 0, void 0, function* () {
