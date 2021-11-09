@@ -1,13 +1,16 @@
+// NOTE: Query will be performed every time app is restarted
+// it must gracefully handle existing schema and preserve existing data
+
 export default `
 SET timezone = 'America/New_York';
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     name VARCHAR NOT NULL,
     id VARCHAR PRIMARY KEY,
     deleted timestamptz
 );
 
-CREATE TABLE chores (
+CREATE TABLE IF NOT EXISTS chores (
     name VARCHAR PRIMARY KEY,
     assigned VARCHAR,
     frequency_kind VARCHAR NOT NULL,
@@ -20,7 +23,7 @@ CREATE TABLE chores (
         ON DELETE SET NULL
 );
 
-CREATE TABLE chore_completions (
+CREATE TABLE IF NOT EXISTS chore_completions (
     at timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
     by VARCHAR,
     chore VARCHAR,
@@ -32,7 +35,7 @@ CREATE TABLE chore_completions (
         ON DELETE SET NULL
 );
 
-CREATE TABLE chore_skips (
+CREATE TABLE IF NOT EXISTS chore_skips (
     at timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
     by VARCHAR,
     chore VARCHAR,
@@ -42,5 +45,10 @@ CREATE TABLE chore_skips (
     CONSTRAINT fk_chores
         FOREIGN KEY (chore) REFERENCES chores(name)
         ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS migrations (
+    index INT PRIMARY KEY,
+    at timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 `

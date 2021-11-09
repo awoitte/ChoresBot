@@ -1,1 +1,1 @@
-{"version":3,"file":"init-db.js","sourceRoot":"","sources":["../../src/queries/init-db.ts"],"names":[],"mappings":";;AAAA,kBAAe;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CA6Cd,CAAA"}
+{"version":3,"file":"init-db.js","sourceRoot":"","sources":["../../src/queries/init-db.ts"],"names":[],"mappings":";AAAA,4DAA4D;AAC5D,uEAAuE;;AAEvE,kBAAe;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CAkDd,CAAA"}

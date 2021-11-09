@@ -9,6 +9,7 @@ import initDBQuery from '../queries/init-db'
 import destroyDBQuery from '../queries/destroy-db'
 import * as userQueries from '../queries/users'
 import * as choresQueries from '../queries/chores'
+import * as migrationQueries from '../queries/migrations'
 
 export interface ReadOnlyDB {
     getAssignableUsersInOrderOfRecentCompletion: () => Promise<User[]>
@@ -105,6 +106,7 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
         },
         initDB: async () => {
             await client.query(initDBQuery)
+            await performMigrations(client)
         },
         destroyEntireDB: async () => {
             await client.query(destroyDBQuery)
@@ -371,4 +373,43 @@ async function getUnassignedOutstandingChoresAsOfDate(
     )
 
     return upcomingChores.map((tuple) => tuple[0])
+}
+
+async function performMigrations(client: PoolClient): Promise<void> {
+    const migrationIndexRes = await client.query(
+        migrationQueries.getMigrationIndex
+    )
+
+    if (
+        migrationIndexRes === undefined ||
+        migrationIndexRes.rows.length !== 1 ||
+        migrationIndexRes.rows[0] === undefined ||
+        migrationIndexRes.rows[0].index === undefined
+    ) {
+        throw new Error('unable to parse db migrations')
+    }
+
+    let migrationIndex = migrationIndexRes.rows[0].index
+    if (migrationIndex === null) {
+        // no migrations performed yet
+        migrationIndex = -1
+    }
+
+    try {
+        await client.query('BEGIN')
+
+        for (
+            let i = migrationIndex + 1; // only perform migrations that are past the existing index
+            i < migrationQueries.Migrations.length;
+            i++
+        ) {
+            await client.query(migrationQueries.Migrations[i])
+            await client.query(migrationQueries.addMigrationIndex, [i])
+        }
+
+        await client.query('COMMIT')
+    } catch (e) {
+        await client.query('ROLLBACK')
+        throw e
+    }
 }

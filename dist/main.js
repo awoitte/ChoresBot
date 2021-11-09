@@ -44,14 +44,7 @@ const main_1 = require("./logic/main");
     else {
         const pgdb = yield (0, db_1.pgDB)(dbConnectionString);
         db = pgdb;
-        // attempt a read to see if db is initialized yet
-        pgdb.getAllUsers().catch((e) => {
-            // an error occurred, attempt to initialize
-            pgdb.initDB().catch(() => {
-                // if this fails then the issue is something else, re-throw the original error
-                throw e;
-            });
-        });
+        yield pgdb.initDB();
     }
     // --- Chat Bot ---
     const chat = yield (0, chat_1.initChat)(channel, (msg) => __awaiter(void 0, void 0, void 0, function* () {

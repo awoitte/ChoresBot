@@ -39,6 +39,7 @@ const init_db_1 = __importDefault(require("../queries/init-db"));
 const destroy_db_1 = __importDefault(require("../queries/destroy-db"));
 const userQueries = __importStar(require("../queries/users"));
 const choresQueries = __importStar(require("../queries/chores"));
+const migrationQueries = __importStar(require("../queries/migrations"));
 exports.mockDB = {
     getAllUsers: () => __awaiter(void 0, void 0, void 0, function* () {
         return [];
@@ -98,6 +99,7 @@ function pgDB(connectionString) {
             }),
             initDB: () => __awaiter(this, void 0, void 0, function* () {
                 yield client.query(init_db_1.default);
+                yield performMigrations(client);
             }),
             destroyEntireDB: () => __awaiter(this, void 0, void 0, function* () {
                 yield client.query(destroy_db_1.default);
@@ -305,6 +307,35 @@ function getUnassignedOutstandingChoresAsOfDate(client, db, date) {
         }
         upcomingChores.sort((tupleA, tupleB) => tupleA[1].getTime() - tupleB[1].getTime());
         return upcomingChores.map((tuple) => tuple[0]);
+    });
+}
+function performMigrations(client) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const migrationIndexRes = yield client.query(migrationQueries.getMigrationIndex);
+        if (migrationIndexRes === undefined ||
+            migrationIndexRes.rows.length !== 1 ||
+            migrationIndexRes.rows[0] === undefined ||
+            migrationIndexRes.rows[0].index === undefined) {
+            throw new Error('unable to parse db migrations');
+        }
+        let migrationIndex = migrationIndexRes.rows[0].index;
+        if (migrationIndex === null) {
+            // no migrations performed yet
+            migrationIndex = -1;
+        }
+        try {
+            yield client.query('BEGIN');
+            for (let i = migrationIndex + 1; // only perform migrations that are past the existing index
+             i < migrationQueries.Migrations.length; i++) {
+                yield client.query(migrationQueries.Migrations[i]);
+                yield client.query(migrationQueries.addMigrationIndex, [i]);
+            }
+            yield client.query('COMMIT');
+        }
+        catch (e) {
+            yield client.query('ROLLBACK');
+            throw e;
+        }
     });
 }
 //# sourceMappingURL=db.js.map

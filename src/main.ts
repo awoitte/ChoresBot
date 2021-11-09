@@ -39,15 +39,7 @@ import { loop, messageHandler } from './logic/main'
     } else {
         const pgdb = await pgDB(dbConnectionString)
         db = pgdb
-
-        // attempt a read to see if db is initialized yet
-        pgdb.getAllUsers().catch((e) => {
-            // an error occurred, attempt to initialize
-            pgdb.initDB().catch(() => {
-                // if this fails then the issue is something else, re-throw the original error
-                throw e
-            })
-        })
+        await pgdb.initDB()
     }
 
     // --- Chat Bot ---
