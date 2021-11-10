@@ -593,6 +593,42 @@ const actions_1 = require("./actions");
         actions = yield (0, main_1.loop)(mock.DBWithOutstandingChores, afterNow, furtherAfterNow);
         (0, chai_1.expect)(actions).to.have.lengthOf(0);
     }));
+    it('should send a reminder, once, at the start of "night time"', () => __awaiter(void 0, void 0, void 0, function* () {
+        const now = new Date();
+        const beforeNow = new Date(now.getTime() - time_1.hourInMilliseconds);
+        const afterNow = new Date(now.getTime() + time_1.hourInMilliseconds);
+        // this mock DB needs to store a config value used to remember the last reminder time
+        let configValue = null;
+        const mockDBWithAssignedAndDynamicConfig = Object.assign({}, mock.DBWithChoreAssigned, {
+            getConfigValue: () => {
+                return configValue;
+            },
+            setConfigValue: (key, value) => {
+                configValue = value;
+            }
+        });
+        let actions = yield (0, main_1.loop)(mockDBWithAssignedAndDynamicConfig, beforeNow, afterNow);
+        (0, chai_1.expect)(actions).to.have.lengthOf(0);
+        const furtherBeforeNow = new Date(beforeNow.getTime() - time_1.hourInMilliseconds);
+        // now that it's been sent, check that it won't send again
+        actions = yield (0, main_1.loop)(mockDBWithAssignedAndDynamicConfig, furtherBeforeNow, beforeNow);
+        (0, chai_1.expect)(actions).to.have.lengthOf(1);
+        const action = actions[0];
+        if (action.kind !== 'SendMessage') {
+            throw 'Received Action of the wrong type';
+        }
+        (0, chai_1.expect)(action.message.text).to.contain((0, chat_1.tagUser)(mock.user1));
+        actions = yield (0, main_1.loop)(mockDBWithAssignedAndDynamicConfig, furtherBeforeNow, beforeNow);
+        (0, chai_1.expect)(actions).to.have.lengthOf(0);
+    }));
+    it('should not send a reminder if there are no assigned chores', () => __awaiter(void 0, void 0, void 0, function* () {
+        const now = new Date();
+        const beforeNow = new Date(now.getTime() - time_1.hourInMilliseconds);
+        const furtherBeforeNow = new Date(beforeNow.getTime() - time_1.hourInMilliseconds);
+        const actions = yield (0, main_1.loop)(db_1.mockDB, // mockDB will always report that there are no assigned chores
+        furtherBeforeNow, beforeNow);
+        (0, chai_1.expect)(actions).to.have.lengthOf(0);
+    }));
     it('should not prompt users when there are no outstanding chores', () => __awaiter(void 0, void 0, void 0, function* () {
         const actions = yield (0, main_1.loop)(mock.DBWithUpcoming); // some upcoming, but no outstanding
         (0, chai_1.expect)(actions).to.have.lengthOf(0);

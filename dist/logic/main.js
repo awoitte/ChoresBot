@@ -19,6 +19,7 @@ const chores_1 = require("./chores");
 const commands_1 = require("./commands");
 const actions_1 = require("./actions");
 const time_1 = require("./time");
+const reminderTimeConfigKey = 'reminder_time';
 // messageHandler determines how to respond to chat messages
 function messageHandler(message, db) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -73,6 +74,13 @@ function loop(db, morningTime, nightTime) {
     return __awaiter(this, void 0, void 0, function* () {
         const actions = [];
         if (!(0, time_1.isNowBetweenTimes)(morningTime, nightTime)) {
+            const lastReminder = yield db.getConfigValue(reminderTimeConfigKey);
+            if (isReminderTime(db, lastReminder, nightTime)) {
+                const now = new Date();
+                const assignedChores = yield db.getAllAssignedChores();
+                yield db.setConfigValue(reminderTimeConfigKey, (0, time_1.toParseableDateString)(now));
+                actions.push(...(0, actions_1.reminderAction)(assignedChores));
+            }
             return actions;
         }
         let outstandingChores;
@@ -104,4 +112,19 @@ function loop(db, morningTime, nightTime) {
     });
 }
 exports.loop = loop;
+function isReminderTime(db, lastReminder, nightTime) {
+    const now = new Date();
+    if (nightTime !== undefined && (0, time_1.isTimeAfter)(now, nightTime)) {
+        if (lastReminder === null) {
+            // a reminder has never been sent before
+            return true;
+        }
+        const lastReminderParsed = (0, time_1.parseDate)(lastReminder);
+        if (lastReminderParsed === undefined) {
+            throw new Error(`unable to parse last reminder time as a date: ${lastReminder}`);
+        }
+        return (0, time_1.isDateAfter)(now, lastReminderParsed);
+    }
+    return false;
+}
 //# sourceMappingURL=main.js.map

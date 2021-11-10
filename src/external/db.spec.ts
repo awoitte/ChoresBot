@@ -195,6 +195,16 @@ async function runDBTestSuite(connectionString: string) {
                 expect(assignedChores).to.have.length(0)
             })
 
+            it('should get all assigned chores', async () => {
+                await db.addUser(mock.user1)
+                await db.addChore(mock.assignedChore)
+
+                const assignedChores = await db.getAllAssignedChores()
+
+                expect(assignedChores).to.have.length(1)
+                expect(assignedChores[0].name).to.equal(mock.assignedChore.name)
+            })
+
             it('should get all outstanding unassigned chores', async () => {
                 await db.addUser(mock.user1)
                 await db.addChore(mock.overdueChore)

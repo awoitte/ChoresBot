@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMostRecentCompletionForChore = exports.getAllUnassignedChores = exports.getChoresAssignedToUser = exports.getChoreCompletions = exports.completeChore = exports.getChoreByName = exports.getAllChoreNames = exports.modifyChore = exports.addSkip = exports.deleteChore = exports.addChores = void 0;
+exports.getMostRecentCompletionForChore = exports.getAllAssignedChores = exports.getAllUnassignedChores = exports.getChoresAssignedToUser = exports.getChoreCompletions = exports.completeChore = exports.getChoreByName = exports.getAllChoreNames = exports.modifyChore = exports.addSkip = exports.deleteChore = exports.addChores = void 0;
 exports.addChores = `
 INSERT INTO chores(name, assigned, frequency_kind, frequency_date, frequency_weekday) VALUES ($1, $2, $3, $4, $5)
 
@@ -80,6 +80,9 @@ WHERE assigned = $1 AND deleted IS NULL
 `);
 exports.getAllUnassignedChores = getChoresWhere(`
 WHERE assigned IS NULL
+`);
+exports.getAllAssignedChores = getChoresWhere(`
+WHERE assigned IS NOT NULL
 `);
 exports.getMostRecentCompletionForChore = `
 SELECT at FROM (${mostRecentCompletions}) AS completions

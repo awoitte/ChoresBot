@@ -981,6 +981,80 @@ describe('Actions performed at an interval', () => {
         expect(actions).to.have.lengthOf(0)
     })
 
+    it('should send a reminder, once, at the start of "night time"', async () => {
+        const now = new Date()
+        const beforeNow = new Date(now.getTime() - hourInMilliseconds)
+        const afterNow = new Date(now.getTime() + hourInMilliseconds)
+
+        // this mock DB needs to store a config value used to remember the last reminder time
+        let configValue: string | null = null
+        const mockDBWithAssignedAndDynamicConfig = Object.assign(
+            {},
+            mock.DBWithChoreAssigned,
+            {
+                getConfigValue: () => {
+                    return configValue
+                },
+                setConfigValue: (key: string, value: string) => {
+                    configValue = value
+                }
+            }
+        )
+
+        let actions = await loop(
+            mockDBWithAssignedAndDynamicConfig,
+            beforeNow,
+            afterNow
+        )
+
+        expect(actions).to.have.lengthOf(0)
+
+        const furtherBeforeNow = new Date(
+            beforeNow.getTime() - hourInMilliseconds
+        )
+
+        // now that it's been sent, check that it won't send again
+        actions = await loop(
+            mockDBWithAssignedAndDynamicConfig,
+            furtherBeforeNow,
+            beforeNow
+        )
+
+        expect(actions).to.have.lengthOf(1)
+
+        const action = actions[0]
+
+        if (action.kind !== 'SendMessage') {
+            throw 'Received Action of the wrong type'
+        }
+
+        expect(action.message.text).to.contain(tagUser(mock.user1))
+
+        actions = await loop(
+            mockDBWithAssignedAndDynamicConfig,
+            furtherBeforeNow,
+            beforeNow
+        )
+
+        expect(actions).to.have.lengthOf(0)
+    })
+
+    it('should not send a reminder if there are no assigned chores', async () => {
+        const now = new Date()
+        const beforeNow = new Date(now.getTime() - hourInMilliseconds)
+        const furtherBeforeNow = new Date(
+            beforeNow.getTime() - hourInMilliseconds
+        )
+
+        const actions = await loop(
+            mockDB, // mockDB will always report that there are no assigned chores
+            furtherBeforeNow,
+            beforeNow
+        )
+
+        expect(actions).to.have.lengthOf(0)
+    })
+
     it('should not prompt users when there are no outstanding chores', async () => {
         const actions = await loop(mock.DBWithUpcoming) // some upcoming, but no outstanding
 

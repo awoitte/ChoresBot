@@ -4,8 +4,16 @@ import { DB } from '../external/db'
 import log from '../logging/log'
 import { findUserForChore } from './chores'
 import { AllCommandsByCallsign } from './commands'
-import { assignChoreActions } from './actions'
-import { isNowBetweenTimes } from './time'
+import { assignChoreActions, reminderAction } from './actions'
+import {
+    isDateAfter,
+    isNowBetweenTimes,
+    isTimeAfter,
+    parseDate,
+    toParseableDateString
+} from './time'
+
+const reminderTimeConfigKey = 'reminder_time'
 
 // messageHandler determines how to respond to chat messages
 export async function messageHandler(
@@ -79,6 +87,19 @@ export async function loop(
     const actions: Action[] = []
 
     if (!isNowBetweenTimes(morningTime, nightTime)) {
+        const lastReminder = await db.getConfigValue(reminderTimeConfigKey)
+
+        if (isReminderTime(db, lastReminder, nightTime)) {
+            const now = new Date()
+            const assignedChores = await db.getAllAssignedChores()
+
+            await db.setConfigValue(
+                reminderTimeConfigKey,
+                toParseableDateString(now)
+            )
+            actions.push(...reminderAction(assignedChores))
+        }
+
         return actions
     }
 
@@ -114,4 +135,30 @@ export async function loop(
     }
 
     return actions
+}
+
+function isReminderTime(
+    db: DB,
+    lastReminder: string | null,
+    nightTime?: Date
+): boolean {
+    const now = new Date()
+
+    if (nightTime !== undefined && isTimeAfter(now, nightTime)) {
+        if (lastReminder === null) {
+            // a reminder has never been sent before
+            return true
+        }
+
+        const lastReminderParsed = parseDate(lastReminder)
+        if (lastReminderParsed === undefined) {
+            throw new Error(
+                `unable to parse last reminder time as a date: ${lastReminder}`
+            )
+        }
+
+        return isDateAfter(now, lastReminderParsed)
+    }
+
+    return false
 }

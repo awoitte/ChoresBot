@@ -162,6 +162,13 @@ function runDBTestSuite(connectionString) {
                     const assignedChores = yield db.getChoresAssignedToUser(mock.user1);
                     (0, chai_1.expect)(assignedChores).to.have.length(0);
                 }));
+                it('should get all assigned chores', () => __awaiter(this, void 0, void 0, function* () {
+                    yield db.addUser(mock.user1);
+                    yield db.addChore(mock.assignedChore);
+                    const assignedChores = yield db.getAllAssignedChores();
+                    (0, chai_1.expect)(assignedChores).to.have.length(1);
+                    (0, chai_1.expect)(assignedChores[0].name).to.equal(mock.assignedChore.name);
+                }));
                 it('should get all outstanding unassigned chores', () => __awaiter(this, void 0, void 0, function* () {
                     yield db.addUser(mock.user1);
                     yield db.addChore(mock.overdueChore);

@@ -27,6 +27,7 @@ export interface ReadOnlyDB {
     getChoreByName: (name: string) => Promise<Chore | void>
     getChoresAssignedToUser: (user: User) => Promise<Chore[]>
     getAllChoreNames: () => Promise<string[]>
+    getAllAssignedChores: () => Promise<Chore[]>
 
     getAllChoreCompletions: (choreName: string) => Promise<ChoreCompletion[]>
 
@@ -84,6 +85,9 @@ export const mockDB: DB = {
         return []
     },
     getAllChoreNames: async () => {
+        return []
+    },
+    getAllAssignedChores: async () => {
         return []
     },
     addChoreCompletion: async () => {
@@ -201,6 +205,13 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
             const choresRes = await client.query(choresQueries.getAllChoreNames)
 
             return choresRes.rows.map((row) => row.name)
+        },
+        getAllAssignedChores: async () => {
+            const choresRes = await client.query(
+                choresQueries.getAllAssignedChores
+            )
+
+            return await rowsToChores(choresRes.rows, db)
         },
         addChoreCompletion: async (choreName, user) => {
             await client.query(choresQueries.completeChore, [

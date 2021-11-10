@@ -81,6 +81,9 @@ exports.mockDB = {
     getAllChoreNames: () => __awaiter(void 0, void 0, void 0, function* () {
         return [];
     }),
+    getAllAssignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
     addChoreCompletion: () => __awaiter(void 0, void 0, void 0, function* () {
         return undefined;
     }),
@@ -168,6 +171,10 @@ function pgDB(connectionString) {
             getAllChoreNames: () => __awaiter(this, void 0, void 0, function* () {
                 const choresRes = yield client.query(choresQueries.getAllChoreNames);
                 return choresRes.rows.map((row) => row.name);
+            }),
+            getAllAssignedChores: () => __awaiter(this, void 0, void 0, function* () {
+                const choresRes = yield client.query(choresQueries.getAllAssignedChores);
+                return yield rowsToChores(choresRes.rows, db);
             }),
             addChoreCompletion: (choreName, user) => __awaiter(this, void 0, void 0, function* () {
                 yield client.query(choresQueries.completeChore, [

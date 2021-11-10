@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isNowBetweenTimes = exports.parseFullDateTime = exports.parseDate = exports.parseTime = exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
+exports.toParseableDateString = exports.isDateAfter = exports.isTimeAfter = exports.isNowBetweenTimes = exports.parseFullDateTime = exports.parseDate = exports.parseTime = exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
 const time_1 = require("../models/time");
 const strings_1 = require("../utility/strings");
 const log_1 = __importDefault(require("../logging/log"));
@@ -229,11 +229,35 @@ function isNowBetweenTimes(start, end) {
     else {
         endTime = moment_timezone_1.default.tz(end, timeZone);
     }
-    const isAfterStart = now.hour() > startTime.hour() ||
-        (now.hour() === startTime.hour() && now.minute() > startTime.minute());
-    const isBeforeEnd = now.hour() < endTime.hour() ||
-        (now.hour() === endTime.hour() && now.minute() < endTime.minute());
+    // would be nice to not convert these to/from Date
+    const isAfterStart = isTimeMomentAfter(now, startTime);
+    const isBeforeEnd = isTimeMomentAfter(endTime, now);
     return isAfterStart && isBeforeEnd;
 }
 exports.isNowBetweenTimes = isNowBetweenTimes;
+function isTimeAfter(time, afterTime) {
+    const timeMoment = moment_timezone_1.default.tz(time, timeZone);
+    const afterTimeMoment = moment_timezone_1.default.tz(afterTime, timeZone);
+    return isTimeMomentAfter(timeMoment, afterTimeMoment);
+}
+exports.isTimeAfter = isTimeAfter;
+function isTimeMomentAfter(timeMoment, afterTimeMoment) {
+    return (timeMoment.hour() > afterTimeMoment.hour() ||
+        (timeMoment.hour() === afterTimeMoment.hour() &&
+            timeMoment.minute() > afterTimeMoment.minute()));
+}
+function isDateAfter(date, afterDate) {
+    const dateMoment = moment_timezone_1.default.tz(date, timeZone);
+    const afterDateMoment = moment_timezone_1.default.tz(afterDate, timeZone);
+    return isDateMomentAfter(dateMoment, afterDateMoment);
+}
+exports.isDateAfter = isDateAfter;
+function isDateMomentAfter(date, afterDate) {
+    return date.isAfter(afterDate, 'date');
+}
+function toParseableDateString(date) {
+    const wrappedDate = moment_timezone_1.default.tz(date, timeZone);
+    return wrappedDate.format('MM/DD/YYYY'); // this format string should be included in `parseDate`
+}
+exports.toParseableDateString = toParseableDateString;
 //# sourceMappingURL=time.js.map

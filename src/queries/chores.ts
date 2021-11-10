@@ -92,6 +92,10 @@ export const getAllUnassignedChores = getChoresWhere(`
 WHERE assigned IS NULL
 `)
 
+export const getAllAssignedChores = getChoresWhere(`
+WHERE assigned IS NOT NULL
+`)
+
 export const getMostRecentCompletionForChore = `
 SELECT at FROM (${mostRecentCompletions}) AS completions
 WHERE chore = $1

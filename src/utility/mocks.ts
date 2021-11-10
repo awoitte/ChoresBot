@@ -118,6 +118,10 @@ function getChoresAssignedToUser() {
     return [assignedChore]
 }
 
+function getAllAssignedChores() {
+    return [assignedChore]
+}
+
 function getOutstandingUnassignedChores() {
     return [overdueChore]
 }
@@ -136,7 +140,8 @@ export const DBWithUpcoming = Object.assign({}, mockDB, {
 })
 
 export const DBWithChoreAssigned = Object.assign({}, mockDB, {
-    getChoresAssignedToUser
+    getChoresAssignedToUser,
+    getAllAssignedChores
 })
 
 export const DBWithOutstandingChores = Object.assign({}, mockDB, {

@@ -144,7 +144,7 @@ export function parseDate(date: string): Date | undefined {
         'MMM DD YYYY',
         'MM/DD',
         'MM-DD',
-        'MM/DD/YYYY',
+        'MM/DD/YYYY', // this format specifically needed for `toParseableDateString`
         'MM DD YYYY',
         'MM-DD-YYYY'
     ]
@@ -259,13 +259,45 @@ export function isNowBetweenTimes(start?: Date, end?: Date): boolean {
         endTime = moment.tz(end, timeZone)
     }
 
-    const isAfterStart =
-        now.hour() > startTime.hour() ||
-        (now.hour() === startTime.hour() && now.minute() > startTime.minute())
+    // would be nice to not convert these to/from Date
+    const isAfterStart = isTimeMomentAfter(now, startTime)
 
-    const isBeforeEnd =
-        now.hour() < endTime.hour() ||
-        (now.hour() === endTime.hour() && now.minute() < endTime.minute())
+    const isBeforeEnd = isTimeMomentAfter(endTime, now)
 
     return isAfterStart && isBeforeEnd
+}
+
+export function isTimeAfter(time: Date, afterTime: Date): boolean {
+    const timeMoment = moment.tz(time, timeZone)
+    const afterTimeMoment = moment.tz(afterTime, timeZone)
+    return isTimeMomentAfter(timeMoment, afterTimeMoment)
+}
+
+function isTimeMomentAfter(
+    timeMoment: moment.Moment,
+    afterTimeMoment: moment.Moment
+): boolean {
+    return (
+        timeMoment.hour() > afterTimeMoment.hour() ||
+        (timeMoment.hour() === afterTimeMoment.hour() &&
+            timeMoment.minute() > afterTimeMoment.minute())
+    )
+}
+
+export function isDateAfter(date: Date, afterDate: Date): boolean {
+    const dateMoment = moment.tz(date, timeZone)
+    const afterDateMoment = moment.tz(afterDate, timeZone)
+    return isDateMomentAfter(dateMoment, afterDateMoment)
+}
+
+function isDateMomentAfter(
+    date: moment.Moment,
+    afterDate: moment.Moment
+): boolean {
+    return date.isAfter(afterDate, 'date')
+}
+
+export function toParseableDateString(date: Date): string {
+    const wrappedDate = moment.tz(date, timeZone)
+    return wrappedDate.format('MM/DD/YYYY') // this format string should be included in `parseDate`
 }

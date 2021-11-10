@@ -101,6 +101,9 @@ function getAssignableUsersInOrderOfRecentCompletion() {
 function getChoresAssignedToUser() {
     return [exports.assignedChore];
 }
+function getAllAssignedChores() {
+    return [exports.assignedChore];
+}
 function getOutstandingUnassignedChores() {
     return [exports.overdueChore];
 }
@@ -115,7 +118,8 @@ exports.DBWithUpcoming = Object.assign({}, db_1.mockDB, {
     getAssignableUsersInOrderOfRecentCompletion
 });
 exports.DBWithChoreAssigned = Object.assign({}, db_1.mockDB, {
-    getChoresAssignedToUser
+    getChoresAssignedToUser,
+    getAllAssignedChores
 });
 exports.DBWithOutstandingChores = Object.assign({}, db_1.mockDB, {
     getOutstandingUnassignedChores,
