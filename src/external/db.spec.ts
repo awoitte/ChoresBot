@@ -440,78 +440,93 @@ async function runDBTestSuite(connectionString: string) {
                 expect(users[0].id).to.equal(mock.user1.id)
                 expect(users[1].id).to.equal(mock.user3.id)
             })
-        })
 
-        it('should not count prior completions if a chore is re-added', async () => {
-            await db.addChore(mock.genericChore)
-            await db.addUser(mock.user1)
+            it('should not count prior completions if a chore is re-added', async () => {
+                await db.addChore(mock.genericChore)
+                await db.addUser(mock.user1)
 
-            let actions = await loop(db)
+                let actions = await loop(db)
 
-            expect(actions).to.have.lengthOf(2)
+                expect(actions).to.have.lengthOf(2)
 
-            let action: Action = actions[0]
+                let action: Action = actions[0]
 
-            if (action.kind !== 'ModifyChore') {
-                throw 'Received Action of the wrong type'
-            }
+                if (action.kind !== 'ModifyChore') {
+                    throw 'Received Action of the wrong type'
+                }
 
-            expect(action.chore.assigned).to.deep.equal(mock.user1)
+                expect(action.chore.assigned).to.deep.equal(mock.user1)
 
-            action = actions[1]
+                action = actions[1]
 
-            if (action.kind !== 'SendMessage') {
-                throw 'Received Action of the wrong type'
-            }
+                if (action.kind !== 'SendMessage') {
+                    throw 'Received Action of the wrong type'
+                }
 
-            expect(action.message.text).to.equal(
-                `${tagUser(mock.user1)} please do the chore: "${
-                    mock.genericChore.name
-                }"`
-            )
+                expect(action.message.text).to.equal(
+                    `${tagUser(mock.user1)} please do the chore: "${
+                        mock.genericChore.name
+                    }"`
+                )
 
-            const mockChoreAssigned = Object.assign({}, mock.genericChore, {
-                // id is the same
-                assigned: mock.user1
+                const mockChoreAssigned = Object.assign({}, mock.genericChore, {
+                    // id is the same
+                    assigned: mock.user1
+                })
+                await db.modifyChore(mockChoreAssigned)
+
+                expect(await loop(db)).to.have.lengthOf(0)
+
+                await db.addChoreCompletion(mock.genericChore.name, mock.user1)
+
+                expect(await loop(db)).to.have.lengthOf(0)
+
+                await db.deleteChore(mock.genericChore.name)
+
+                expect(await loop(db)).to.have.lengthOf(0)
+
+                await db.addChore(mock.genericChore)
+
+                actions = await loop(db)
+
+                expect(actions).to.have.lengthOf(2)
+
+                action = actions[0]
+
+                if (action.kind !== 'ModifyChore') {
+                    throw 'Received Action of the wrong type'
+                }
+
+                expect(action.chore.assigned).to.deep.equal(mock.user1)
+
+                action = actions[1]
+
+                if (action.kind !== 'SendMessage') {
+                    throw 'Received Action of the wrong type'
+                }
+
+                expect(action.message.text).to.equal(
+                    `${tagUser(mock.user1)} please do the chore: "${
+                        mock.genericChore.name
+                    }"`
+                )
             })
-            await db.modifyChore(mockChoreAssigned)
-
-            expect(await loop(db)).to.have.lengthOf(0)
-
-            await db.addChoreCompletion(mock.genericChore.name, mock.user1)
-
-            expect(await loop(db)).to.have.lengthOf(0)
-
-            await db.deleteChore(mock.genericChore.name)
-
-            expect(await loop(db)).to.have.lengthOf(0)
-
-            await db.addChore(mock.genericChore)
-
-            actions = await loop(db)
-
-            expect(actions).to.have.lengthOf(2)
-
-            action = actions[0]
-
-            if (action.kind !== 'ModifyChore') {
-                throw 'Received Action of the wrong type'
-            }
-
-            expect(action.chore.assigned).to.deep.equal(mock.user1)
-
-            action = actions[1]
-
-            if (action.kind !== 'SendMessage') {
-                throw 'Received Action of the wrong type'
-            }
-
-            expect(action.message.text).to.equal(
-                `${tagUser(mock.user1)} please do the chore: "${
-                    mock.genericChore.name
-                }"`
-            )
         })
+
+        describe('Config', async () => {
+            it('should store and retrieve config values', async () => {
+                let value = await db.getConfigValue('test')
+
+                expect(value).to.be.null
+
+                await db.setConfigValue('test', 'a')
+
+                value = await db.getConfigValue('test')
+
+                expect(value).to.equal('a')
+            })
+        })
+
         afterEach(db.destroyEntireDB.bind(db))
 
         after(db.release.bind(db))

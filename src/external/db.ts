@@ -7,9 +7,11 @@ import { getChoreDueDate } from '../logic/chores'
 
 import initDBQuery from '../queries/init-db'
 import destroyDBQuery from '../queries/destroy-db'
+
 import * as userQueries from '../queries/users'
 import * as choresQueries from '../queries/chores'
 import * as migrationQueries from '../queries/migrations'
+import * as configQueries from '../queries/config'
 
 export interface ReadOnlyDB {
     getAssignableUsersInOrderOfRecentCompletion: () => Promise<User[]>
@@ -27,6 +29,8 @@ export interface ReadOnlyDB {
     getAllChoreNames: () => Promise<string[]>
 
     getAllChoreCompletions: (choreName: string) => Promise<ChoreCompletion[]>
+
+    getConfigValue: (key: string) => Promise<string | null>
 }
 
 export interface DB extends ReadOnlyDB {
@@ -38,6 +42,8 @@ export interface DB extends ReadOnlyDB {
     deleteChore: (name: string) => Promise<void>
 
     addChoreCompletion: (choreName: string, user: User) => Promise<void>
+
+    setConfigValue: (key: string, value: string) => Promise<void>
 }
 
 export const mockDB: DB = {
@@ -85,6 +91,12 @@ export const mockDB: DB = {
     },
     getAllChoreCompletions: async () => {
         return []
+    },
+    getConfigValue: async () => {
+        return null
+    },
+    setConfigValue: async () => {
+        return undefined
     }
 }
 
@@ -210,6 +222,18 @@ export async function pgDB(connectionString: string): Promise<PostgresDB> {
                 },
                 at: row.at
             }))
+        },
+        getConfigValue: async (key) => {
+            const response = await client.query(configQueries.getValue, [key])
+
+            if (response.rowCount === 0) {
+                return null
+            }
+
+            return response.rows[0].value
+        },
+        setConfigValue: async (key, value) => {
+            await client.query(configQueries.setValue, [key, value])
         }
     }
 

@@ -52,5 +52,11 @@ CREATE TABLE IF NOT EXISTS migrations (
     index INT PRIMARY KEY,
     at timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS config (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    comment TEXT
+);
 `;
 //# sourceMappingURL=init-db.js.map

@@ -317,45 +317,54 @@ function runDBTestSuite(connectionString) {
                     (0, chai_1.expect)(users[0].id).to.equal(mock.user1.id);
                     (0, chai_1.expect)(users[1].id).to.equal(mock.user3.id);
                 }));
+                it('should not count prior completions if a chore is re-added', () => __awaiter(this, void 0, void 0, function* () {
+                    yield db.addChore(mock.genericChore);
+                    yield db.addUser(mock.user1);
+                    let actions = yield (0, main_1.loop)(db);
+                    (0, chai_1.expect)(actions).to.have.lengthOf(2);
+                    let action = actions[0];
+                    if (action.kind !== 'ModifyChore') {
+                        throw 'Received Action of the wrong type';
+                    }
+                    (0, chai_1.expect)(action.chore.assigned).to.deep.equal(mock.user1);
+                    action = actions[1];
+                    if (action.kind !== 'SendMessage') {
+                        throw 'Received Action of the wrong type';
+                    }
+                    (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
+                    const mockChoreAssigned = Object.assign({}, mock.genericChore, {
+                        // id is the same
+                        assigned: mock.user1
+                    });
+                    yield db.modifyChore(mockChoreAssigned);
+                    (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                    yield db.addChoreCompletion(mock.genericChore.name, mock.user1);
+                    (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                    yield db.deleteChore(mock.genericChore.name);
+                    (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                    yield db.addChore(mock.genericChore);
+                    actions = yield (0, main_1.loop)(db);
+                    (0, chai_1.expect)(actions).to.have.lengthOf(2);
+                    action = actions[0];
+                    if (action.kind !== 'ModifyChore') {
+                        throw 'Received Action of the wrong type';
+                    }
+                    (0, chai_1.expect)(action.chore.assigned).to.deep.equal(mock.user1);
+                    action = actions[1];
+                    if (action.kind !== 'SendMessage') {
+                        throw 'Received Action of the wrong type';
+                    }
+                    (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
+                }));
             });
-            it('should not count prior completions if a chore is re-added', () => __awaiter(this, void 0, void 0, function* () {
-                yield db.addChore(mock.genericChore);
-                yield db.addUser(mock.user1);
-                let actions = yield (0, main_1.loop)(db);
-                (0, chai_1.expect)(actions).to.have.lengthOf(2);
-                let action = actions[0];
-                if (action.kind !== 'ModifyChore') {
-                    throw 'Received Action of the wrong type';
-                }
-                (0, chai_1.expect)(action.chore.assigned).to.deep.equal(mock.user1);
-                action = actions[1];
-                if (action.kind !== 'SendMessage') {
-                    throw 'Received Action of the wrong type';
-                }
-                (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
-                const mockChoreAssigned = Object.assign({}, mock.genericChore, {
-                    // id is the same
-                    assigned: mock.user1
-                });
-                yield db.modifyChore(mockChoreAssigned);
-                (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
-                yield db.addChoreCompletion(mock.genericChore.name, mock.user1);
-                (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
-                yield db.deleteChore(mock.genericChore.name);
-                (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
-                yield db.addChore(mock.genericChore);
-                actions = yield (0, main_1.loop)(db);
-                (0, chai_1.expect)(actions).to.have.lengthOf(2);
-                action = actions[0];
-                if (action.kind !== 'ModifyChore') {
-                    throw 'Received Action of the wrong type';
-                }
-                (0, chai_1.expect)(action.chore.assigned).to.deep.equal(mock.user1);
-                action = actions[1];
-                if (action.kind !== 'SendMessage') {
-                    throw 'Received Action of the wrong type';
-                }
-                (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
+            (0, mocha_1.describe)('Config', () => __awaiter(this, void 0, void 0, function* () {
+                it('should store and retrieve config values', () => __awaiter(this, void 0, void 0, function* () {
+                    let value = yield db.getConfigValue('test');
+                    (0, chai_1.expect)(value).to.be.null;
+                    yield db.setConfigValue('test', 'a');
+                    value = yield db.getConfigValue('test');
+                    (0, chai_1.expect)(value).to.equal('a');
+                }));
             }));
             afterEach(db.destroyEntireDB.bind(db));
             after(db.release.bind(db));

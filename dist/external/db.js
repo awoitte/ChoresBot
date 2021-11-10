@@ -40,6 +40,7 @@ const destroy_db_1 = __importDefault(require("../queries/destroy-db"));
 const userQueries = __importStar(require("../queries/users"));
 const choresQueries = __importStar(require("../queries/chores"));
 const migrationQueries = __importStar(require("../queries/migrations"));
+const configQueries = __importStar(require("../queries/config"));
 exports.mockDB = {
     getAllUsers: () => __awaiter(void 0, void 0, void 0, function* () {
         return [];
@@ -85,6 +86,12 @@ exports.mockDB = {
     }),
     getAllChoreCompletions: () => __awaiter(void 0, void 0, void 0, function* () {
         return [];
+    }),
+    getConfigValue: () => __awaiter(void 0, void 0, void 0, function* () {
+        return null;
+    }),
+    setConfigValue: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
     })
 };
 function pgDB(connectionString) {
@@ -178,6 +185,16 @@ function pgDB(connectionString) {
                     },
                     at: row.at
                 }));
+            }),
+            getConfigValue: (key) => __awaiter(this, void 0, void 0, function* () {
+                const response = yield client.query(configQueries.getValue, [key]);
+                if (response.rowCount === 0) {
+                    return null;
+                }
+                return response.rows[0].value;
+            }),
+            setConfigValue: (key, value) => __awaiter(this, void 0, void 0, function* () {
+                yield client.query(configQueries.setValue, [key, value]);
             })
         };
         return db;
