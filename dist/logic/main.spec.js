@@ -31,6 +31,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mocha_1 = require("mocha");
 const chai_1 = require("chai");
 const main_1 = require("./main");
+const time_1 = require("../models/time");
 const commands_1 = require("./commands");
 const db_1 = require("../external/db");
 const chat_1 = require("../external/chat");
@@ -567,6 +568,30 @@ const actions_1 = require("./actions");
             throw 'Received Action of the wrong type';
         }
         (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.overdueChore.name}"`);
+    }));
+    it('should only prompt users to complete chores between "morning" and "night" times', () => __awaiter(void 0, void 0, void 0, function* () {
+        let actions = yield (0, main_1.loop)(mock.DBWithOutstandingChores);
+        (0, chai_1.expect)(actions).to.have.lengthOf(2);
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecessarily
+        let action = actions[0];
+        if (action.kind !== 'ModifyChore') {
+            throw 'Received Action of the wrong type';
+        }
+        (0, chai_1.expect)(action.chore.assigned).to.equal(mock.user1);
+        const now = new Date();
+        const beforeNow = new Date(now.getTime() - time_1.hourInMilliseconds);
+        const afterNow = new Date(now.getTime() + time_1.hourInMilliseconds);
+        actions = yield (0, main_1.loop)(mock.DBWithOutstandingChores, beforeNow, afterNow);
+        (0, chai_1.expect)(actions).to.have.lengthOf(2);
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecessarily
+        action = actions[0];
+        if (action.kind !== 'ModifyChore') {
+            throw 'Received Action of the wrong type';
+        }
+        (0, chai_1.expect)(action.chore.assigned).to.equal(mock.user1);
+        const furtherAfterNow = new Date(afterNow.getTime() + time_1.hourInMilliseconds);
+        actions = yield (0, main_1.loop)(mock.DBWithOutstandingChores, afterNow, furtherAfterNow);
+        (0, chai_1.expect)(actions).to.have.lengthOf(0);
     }));
     it('should not prompt users when there are no outstanding chores', () => __awaiter(void 0, void 0, void 0, function* () {
         const actions = yield (0, main_1.loop)(mock.DBWithUpcoming); // some upcoming, but no outstanding

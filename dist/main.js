@@ -19,6 +19,7 @@ const log_1 = __importDefault(require("./logging/log"));
 const debug_1 = require("./utility/debug");
 const async_1 = require("./utility/async");
 const main_1 = require("./logic/main");
+const time_1 = require("./logic/time");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     // --- Config ---
     const serverPort = process.env.PORT || '80';
@@ -30,6 +31,22 @@ const main_1 = require("./logic/main");
     }
     const channel = process.env.DISCORD_CHANNEL || 'chores';
     const token = process.env.DISCORD_TOKEN || '';
+    let morningTime;
+    if (process.env.MORNING_TIME !== undefined) {
+        morningTime = (0, time_1.parseTime)(process.env.MORNING_TIME);
+    }
+    if (morningTime === undefined) {
+        morningTime = new Date();
+        morningTime.setHours(7, 0, 0);
+    }
+    let nightTime;
+    if (process.env.NIGHT_TIME !== undefined) {
+        nightTime = (0, time_1.parseTime)(process.env.NIGHT_TIME);
+    }
+    if (nightTime === undefined) {
+        nightTime = new Date();
+        nightTime.setHours(23, 0, 0);
+    }
     // --- Server ---
     const app = (0, express_1.default)();
     app.use(express_1.default.static('./client/dist'));
@@ -59,7 +76,7 @@ const main_1 = require("./logic/main");
     }));
     yield chat.login(token);
     (0, async_1.asyncLoop)(() => __awaiter(void 0, void 0, void 0, function* () {
-        const actions = yield (0, main_1.loop)(db).catch((e) => {
+        const actions = yield (0, main_1.loop)(db, morningTime, nightTime).catch((e) => {
             (0, log_1.default)(`Error in main loop!: ${e}`);
             return [];
         });

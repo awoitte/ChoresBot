@@ -5,6 +5,7 @@ import log from '../logging/log'
 import { findUserForChore } from './chores'
 import { AllCommandsByCallsign } from './commands'
 import { assignChoreActions } from './actions'
+import { isNowBetweenTimes } from './time'
 
 // messageHandler determines how to respond to chat messages
 export async function messageHandler(
@@ -70,8 +71,16 @@ export async function messageHandler(
 }
 
 // loop is called at a set interval and handles logic that isn't prompted by a chat message
-export async function loop(db: DB): Promise<Action[]> {
+export async function loop(
+    db: DB,
+    morningTime?: Date,
+    nightTime?: Date
+): Promise<Action[]> {
     const actions: Action[] = []
+
+    if (!isNowBetweenTimes(morningTime, nightTime)) {
+        return actions
+    }
 
     let outstandingChores
     try {

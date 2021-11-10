@@ -11,6 +11,7 @@ import { asyncLoop } from './utility/async'
 import { Action } from './models/actions'
 
 import { loop, messageHandler } from './logic/main'
+import { parseTime } from './logic/time'
 ;(async () => {
     // --- Config ---
     const serverPort: string = process.env.PORT || '80'
@@ -22,6 +23,24 @@ import { loop, messageHandler } from './logic/main'
     }
     const channel = process.env.DISCORD_CHANNEL || 'chores'
     const token = process.env.DISCORD_TOKEN || ''
+
+    let morningTime: Date | undefined
+    if (process.env.MORNING_TIME !== undefined) {
+        morningTime = parseTime(process.env.MORNING_TIME)
+    }
+    if (morningTime === undefined) {
+        morningTime = new Date()
+        morningTime.setHours(7, 0, 0)
+    }
+
+    let nightTime: Date | undefined
+    if (process.env.NIGHT_TIME !== undefined) {
+        nightTime = parseTime(process.env.NIGHT_TIME)
+    }
+    if (nightTime === undefined) {
+        nightTime = new Date()
+        nightTime.setHours(23, 0, 0)
+    }
 
     // --- Server ---
     const app = express()
@@ -58,10 +77,12 @@ import { loop, messageHandler } from './logic/main'
 
     asyncLoop(
         async () => {
-            const actions = await loop(db).catch((e) => {
-                log(`Error in main loop!: ${e}`)
-                return []
-            })
+            const actions = await loop(db, morningTime, nightTime).catch(
+                (e) => {
+                    log(`Error in main loop!: ${e}`)
+                    return []
+                }
+            )
 
             log(`loop actions: ${JSON.stringify(actions)}`)
             await performActions(actions, chat, db).catch((e) => {

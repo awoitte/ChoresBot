@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
+exports.isNowBetweenTimes = exports.parseFullDateTime = exports.parseDate = exports.parseTime = exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
 const time_1 = require("../models/time");
 const strings_1 = require("../utility/strings");
 const log_1 = __importDefault(require("../logging/log"));
@@ -19,23 +19,13 @@ function parseFrequency(value) {
     const time = value.slice(atSignIndex + 1).trim();
     switch (kind) {
         case 'daily': {
-            const validFormats = [
-                'HH',
-                'hh a',
-                'HH:mm',
-                'hh:mm a',
-                'HH mm',
-                'hh mm a',
-                'HHmm',
-                'hhmm a'
-            ];
-            const parsedTime = moment_timezone_1.default.tz(time, validFormats, timeZone);
-            if (!parsedTime.isValid()) {
-                return new Error(`unrecognized time of day, please use one of the following formats: ${JSON.stringify(validFormats)}`);
+            const parsedTime = parseTime(time);
+            if (parsedTime === undefined) {
+                return new Error(`unrecognized time of day`);
             }
             return {
                 kind: 'Daily',
-                time: parsedTime.toDate()
+                time: parsedTime
             };
         }
         case 'weekly': {
@@ -49,94 +39,23 @@ function parseFrequency(value) {
             };
         }
         case 'yearly': {
-            const validFormats = [
-                'MMM Do',
-                'MMM DD',
-                'MMM Do YYYY',
-                'MMM DD YYYY',
-                'MM/DD',
-                'MM-DD',
-                'MM/DD/YYYY',
-                'MM DD YYYY',
-                'MM-DD-YYYY'
-            ];
-            const parsedTime = moment_timezone_1.default.tz(time, validFormats, timeZone);
-            if (!parsedTime.isValid()) {
-                return new Error(`unrecognized date, please use one of the following formats: ${JSON.stringify(validFormats)}`);
+            const parsedTime = parseDate(time);
+            if (parsedTime === undefined) {
+                return new Error(`unrecognized date`);
             }
             return {
                 kind: 'Yearly',
-                date: parsedTime.toDate()
+                date: parsedTime
             };
         }
         case 'once': {
-            // TODO: there's gotta be a better way
-            const validFormats = [
-                'MMM Do YYYY hh:mm a',
-                'MMM DD YYYY hh:mm a',
-                'MMM Do YYYY hh:mm a',
-                'MMM DD YYYY hh:mm a',
-                'MMM Do YYYY HH:mm',
-                'MMM DD YYYY HH:mm',
-                'MMM Do YYYY HH:mm',
-                'MMM DD YYYY HH:mm',
-                'MMM Do YYYY hh a',
-                'MMM DD YYYY hh a',
-                'MMM Do YYYY hhmm a',
-                'MMM DD YYYY hhmm a',
-                'MMM Do hh:mm a',
-                'MMM DD hh:mm a',
-                'MMM Do hh:mm a',
-                'MMM DD hh:mm a',
-                'MMM Do HH:mm',
-                'MMM DD HH:mm',
-                'MMM Do HH:mm',
-                'MMM DD HH:mm',
-                'MMM Do hh a',
-                'MMM DD hh a',
-                'MMM Do hhmm a',
-                'MMM DD hhmm a',
-                'HH',
-                'hh a',
-                'HH:mm',
-                'hh:mm a',
-                'HH mm',
-                'hh mm a',
-                'HHmm',
-                'hhmm a',
-                'MMM Do',
-                'MMM DD',
-                'MMM Do YYYY',
-                'MMM DD YYYY',
-                'MM/DD',
-                'MM/DD hh:mm a',
-                'MM/DD HH:mm',
-                'MM/DD HHmm',
-                'MM/DD HHmm a',
-                'MM-DD',
-                'MM-DD hh:mm a',
-                'MM-DD HH:mm',
-                'MM-DD HHmm',
-                'MM-DD HHmm a',
-                'MM/DD/YYYY',
-                'MM/DD/YYYY hh:mm a',
-                'MM/DD/YYYY HH:mm',
-                'MM/DD/YYYY HHmm',
-                'MM/DD/YYYY HHmm a',
-                'MM DD YYYY',
-                'MM-DD-YYYY',
-                'MM-DD-YYYY hh:mm a',
-                'MM-DD-YYYY HH:mm',
-                'MM-DD-YYYY HHmm',
-                'MM-DD-YYYY HHmm a'
-            ];
-            const parsedTime = moment_timezone_1.default.tz(time, validFormats, timeZone);
-            if (!parsedTime.isValid()) {
+            const parsedTime = parseFullDateTime(time);
+            if (parsedTime === undefined) {
                 return new Error(`unrecognized date`);
             }
             return {
                 kind: 'Once',
-                date: parsedTime.toDate()
+                date: parsedTime
             };
         }
         default: {
@@ -185,4 +104,136 @@ function formatDateTime(date, options) {
     return Intl.DateTimeFormat(locale, fullOptions).format(date);
 }
 exports.formatDateTime = formatDateTime;
+function parseTime(time) {
+    const validFormats = [
+        'HH',
+        'hh a',
+        'HH:mm',
+        'hh:mm a',
+        'HH mm',
+        'hh mm a',
+        'HHmm',
+        'hhmm a'
+    ];
+    const parsedTime = moment_timezone_1.default.tz(time, validFormats, timeZone);
+    if (!parsedTime.isValid()) {
+        return undefined;
+    }
+    return parsedTime.toDate();
+}
+exports.parseTime = parseTime;
+function parseDate(date) {
+    const validFormats = [
+        'MMM Do',
+        'MMM DD',
+        'MMM Do YYYY',
+        'MMM DD YYYY',
+        'MM/DD',
+        'MM-DD',
+        'MM/DD/YYYY',
+        'MM DD YYYY',
+        'MM-DD-YYYY'
+    ];
+    const parsedDate = moment_timezone_1.default.tz(date, validFormats, timeZone);
+    if (!parsedDate.isValid()) {
+        return undefined;
+    }
+    return parsedDate.toDate();
+}
+exports.parseDate = parseDate;
+function parseFullDateTime(dateTime) {
+    // TODO: there's gotta be a better way
+    const validFormats = [
+        'MMM Do YYYY hh:mm a',
+        'MMM DD YYYY hh:mm a',
+        'MMM Do YYYY hh:mm a',
+        'MMM DD YYYY hh:mm a',
+        'MMM Do YYYY HH:mm',
+        'MMM DD YYYY HH:mm',
+        'MMM Do YYYY HH:mm',
+        'MMM DD YYYY HH:mm',
+        'MMM Do YYYY hh a',
+        'MMM DD YYYY hh a',
+        'MMM Do YYYY hhmm a',
+        'MMM DD YYYY hhmm a',
+        'MMM Do hh:mm a',
+        'MMM DD hh:mm a',
+        'MMM Do hh:mm a',
+        'MMM DD hh:mm a',
+        'MMM Do HH:mm',
+        'MMM DD HH:mm',
+        'MMM Do HH:mm',
+        'MMM DD HH:mm',
+        'MMM Do hh a',
+        'MMM DD hh a',
+        'MMM Do hhmm a',
+        'MMM DD hhmm a',
+        'HH',
+        'hh a',
+        'HH:mm',
+        'hh:mm a',
+        'HH mm',
+        'hh mm a',
+        'HHmm',
+        'hhmm a',
+        'MMM Do',
+        'MMM DD',
+        'MMM Do YYYY',
+        'MMM DD YYYY',
+        'MM/DD',
+        'MM/DD hh:mm a',
+        'MM/DD HH:mm',
+        'MM/DD HHmm',
+        'MM/DD HHmm a',
+        'MM-DD',
+        'MM-DD hh:mm a',
+        'MM-DD HH:mm',
+        'MM-DD HHmm',
+        'MM-DD HHmm a',
+        'MM/DD/YYYY',
+        'MM/DD/YYYY hh:mm a',
+        'MM/DD/YYYY HH:mm',
+        'MM/DD/YYYY HHmm',
+        'MM/DD/YYYY HHmm a',
+        'MM DD YYYY',
+        'MM-DD-YYYY',
+        'MM-DD-YYYY hh:mm a',
+        'MM-DD-YYYY HH:mm',
+        'MM-DD-YYYY HHmm',
+        'MM-DD-YYYY HHmm a'
+    ];
+    const parsedDateTime = moment_timezone_1.default.tz(dateTime, validFormats, timeZone);
+    if (!parsedDateTime.isValid()) {
+        return undefined;
+    }
+    return parsedDateTime.toDate();
+}
+exports.parseFullDateTime = parseFullDateTime;
+function isNowBetweenTimes(start, end) {
+    const now = moment_timezone_1.default.tz(timeZone);
+    let startTime;
+    if (start === undefined) {
+        startTime = moment_timezone_1.default.tz(timeZone);
+        startTime = startTime.hour(0);
+        startTime = startTime.minute(0);
+    }
+    else {
+        startTime = moment_timezone_1.default.tz(start, timeZone);
+    }
+    let endTime;
+    if (end === undefined) {
+        endTime = moment_timezone_1.default.tz(timeZone);
+        endTime = endTime.hour(23);
+        endTime = endTime.minute(59);
+    }
+    else {
+        endTime = moment_timezone_1.default.tz(end, timeZone);
+    }
+    const isAfterStart = now.hour() > startTime.hour() ||
+        (now.hour() === startTime.hour() && now.minute() > startTime.minute());
+    const isBeforeEnd = now.hour() < endTime.hour() ||
+        (now.hour() === endTime.hour() && now.minute() < endTime.minute());
+    return isAfterStart && isBeforeEnd;
+}
+exports.isNowBetweenTimes = isNowBetweenTimes;
 //# sourceMappingURL=time.js.map

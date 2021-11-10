@@ -4,6 +4,7 @@ import { expect } from 'chai'
 import { loop, messageHandler } from './main'
 import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
+import { hourInMilliseconds } from '../models/time'
 import {
     AddCommand,
     AllCommands,
@@ -934,6 +935,50 @@ describe('Actions performed at an interval', () => {
                 mock.overdueChore.name
             }"`
         )
+    })
+
+    it('should only prompt users to complete chores between "morning" and "night" times', async () => {
+        let actions = await loop(mock.DBWithOutstandingChores)
+
+        expect(actions).to.have.lengthOf(2)
+
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecessarily
+        let action: Action = actions[0]
+
+        if (action.kind !== 'ModifyChore') {
+            throw 'Received Action of the wrong type'
+        }
+
+        expect(action.chore.assigned).to.equal(mock.user1)
+
+        const now = new Date()
+        const beforeNow = new Date(now.getTime() - hourInMilliseconds)
+        const afterNow = new Date(now.getTime() + hourInMilliseconds)
+
+        actions = await loop(mock.DBWithOutstandingChores, beforeNow, afterNow)
+
+        expect(actions).to.have.lengthOf(2)
+
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecessarily
+        action = actions[0]
+
+        if (action.kind !== 'ModifyChore') {
+            throw 'Received Action of the wrong type'
+        }
+
+        expect(action.chore.assigned).to.equal(mock.user1)
+
+        const furtherAfterNow = new Date(
+            afterNow.getTime() + hourInMilliseconds
+        )
+
+        actions = await loop(
+            mock.DBWithOutstandingChores,
+            afterNow,
+            furtherAfterNow
+        )
+
+        expect(actions).to.have.lengthOf(0)
     })
 
     it('should not prompt users when there are no outstanding chores', async () => {

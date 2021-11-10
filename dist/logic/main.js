@@ -18,6 +18,7 @@ const log_1 = __importDefault(require("../logging/log"));
 const chores_1 = require("./chores");
 const commands_1 = require("./commands");
 const actions_1 = require("./actions");
+const time_1 = require("./time");
 // messageHandler determines how to respond to chat messages
 function messageHandler(message, db) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -68,9 +69,12 @@ function messageHandler(message, db) {
 }
 exports.messageHandler = messageHandler;
 // loop is called at a set interval and handles logic that isn't prompted by a chat message
-function loop(db) {
+function loop(db, morningTime, nightTime) {
     return __awaiter(this, void 0, void 0, function* () {
         const actions = [];
+        if (!(0, time_1.isNowBetweenTimes)(morningTime, nightTime)) {
+            return actions;
+        }
         let outstandingChores;
         try {
             outstandingChores = yield db.getOutstandingUnassignedChores();
