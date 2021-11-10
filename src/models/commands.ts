@@ -1,6 +1,6 @@
 import { Message } from './chat'
 import { Action } from './actions'
-import { ReadOnlyDB } from '../external/db'
+import { ReadOnlyDB } from './db'
 
 export type Command = {
     callsign: string

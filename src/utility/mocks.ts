@@ -1,4 +1,5 @@
-import { mockDB, PostgresDB, pgDB } from '../external/db'
+import { DB } from '../models/db'
+import { PostgresDB, pgDB } from '../external/db'
 import { User } from '../models/chat'
 import { Chore } from '../models/chores'
 import { Frequency, Months, hourInMilliseconds } from '../models/time'
@@ -134,26 +135,83 @@ function getAllChoreNames() {
     return [genericChore.name]
 }
 
-export const DBWithUpcoming = Object.assign({}, mockDB, {
+export const emptyDB: DB = {
+    getAllUsers: async () => {
+        return []
+    },
+    getUserByID: async () => {
+        return undefined
+    },
+    addUser: async () => {
+        return undefined
+    },
+    deleteUser: async () => {
+        return undefined
+    },
+    getAssignableUsersInOrderOfRecentCompletion: async () => {
+        return []
+    },
+    getOutstandingUnassignedChores: async () => {
+        return []
+    },
+    getUpcomingUnassignedChores: async () => {
+        return []
+    },
+    addChore: async () => {
+        return undefined
+    },
+    modifyChore: async () => {
+        return undefined
+    },
+    deleteChore: async () => {
+        return undefined
+    },
+    getChoreByName: async () => {
+        return undefined
+    },
+    getChoresAssignedToUser: async () => {
+        return []
+    },
+    getAllChoreNames: async () => {
+        return []
+    },
+    getAllAssignedChores: async () => {
+        return []
+    },
+    addChoreCompletion: async () => {
+        return undefined
+    },
+    getAllChoreCompletions: async () => {
+        return []
+    },
+    getConfigValue: async () => {
+        return null
+    },
+    setConfigValue: async () => {
+        return undefined
+    }
+}
+
+export const DBWithUpcoming = Object.assign({}, emptyDB, {
     getUpcomingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
 })
 
-export const DBWithChoreAssigned = Object.assign({}, mockDB, {
+export const DBWithChoreAssigned = Object.assign({}, emptyDB, {
     getChoresAssignedToUser,
     getAllAssignedChores
 })
 
-export const DBWithOutstandingChores = Object.assign({}, mockDB, {
+export const DBWithOutstandingChores = Object.assign({}, emptyDB, {
     getOutstandingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
 })
 
-export const DBWithChoreByName = Object.assign({}, mockDB, {
+export const DBWithChoreByName = Object.assign({}, emptyDB, {
     getChoreByName
 })
 
-export const DBWithAllChoreNames = Object.assign({}, mockDB, {
+export const DBWithAllChoreNames = Object.assign({}, emptyDB, {
     getAllChoreNames
 })
 

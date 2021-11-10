@@ -15,9 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const chat_1 = require("./external/chat");
 const db_1 = require("./external/db");
-const log_1 = __importDefault(require("./logging/log"));
+const log_1 = __importDefault(require("./utility/log"));
 const debug_1 = require("./utility/debug");
 const async_1 = require("./utility/async");
+const mocks_1 = require("./utility/mocks");
 const main_1 = require("./logic/main");
 const time_1 = require("./logic/time");
 (() => __awaiter(void 0, void 0, void 0, function* () {
@@ -56,7 +57,7 @@ const time_1 = require("./logic/time");
     // --- DB ---
     let db;
     if ((0, debug_1.isDebugFlagSet)()) {
-        db = db_1.mockDB;
+        db = mocks_1.emptyDB;
     }
     else {
         const pgdb = yield (0, db_1.pgDB)(dbConnectionString);

@@ -1,14 +1,17 @@
 import express from 'express'
 
 import { initChat, Chat } from './external/chat'
-import { DB, mockDB, pgDB } from './external/db'
+import { DB } from './models/db'
+import { pgDB } from './external/db'
 
-import log from './logging/log'
+import log from './utility/log'
 
 import { isDebugFlagSet } from './utility/debug'
 import { asyncLoop } from './utility/async'
 
 import { Action } from './models/actions'
+
+import { emptyDB as mockDB } from './utility/mocks'
 
 import { loop, messageHandler } from './logic/main'
 import { parseTime } from './logic/time'

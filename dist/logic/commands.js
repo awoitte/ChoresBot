@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AllCommandsByCallsign = exports.AllCommands = exports.HelpCommand = exports.OptOutCommand = exports.OptInCommand = exports.InfoCommand = exports.DeleteCommand = exports.AddCommand = exports.CompleteCommand = exports.SkipCommand = exports.RequestCommand = exports.PingCommand = void 0;
 const chat_1 = require("../models/chat");
 const chat_2 = require("../external/chat");
-const log_1 = __importDefault(require("../logging/log"));
+const log_1 = __importDefault(require("../utility/log"));
 const strings_1 = require("../utility/strings");
 const time_1 = require("./time");
 const actions_1 = require("./actions");

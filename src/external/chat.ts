@@ -1,7 +1,7 @@
 import { Message, User } from '../models/chat'
 import { Client, Intents, TextChannel } from 'discord.js'
 import { userMention } from '@discordjs/builders'
-import log from '../logging/log'
+import log from '../utility/log'
 import { isDebugFlagSet } from '../utility/debug'
 
 export interface Chat {

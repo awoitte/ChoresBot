@@ -33,7 +33,6 @@ const chai_1 = require("chai");
 const main_1 = require("./main");
 const time_1 = require("../models/time");
 const commands_1 = require("./commands");
-const db_1 = require("../external/db");
 const chat_1 = require("../external/chat");
 const mock = __importStar(require("../utility/mocks"));
 const actions_1 = require("./actions");
@@ -46,7 +45,7 @@ const actions_1 = require("./actions");
                 name: '',
                 id: ''
             }
-        }, db_1.mockDB);
+        }, mock.emptyDB);
         (0, chai_1.expect)(actions).is.not.undefined;
         (0, chai_1.expect)(actions).to.have.lengthOf(0);
     }));
@@ -58,7 +57,7 @@ const actions_1 = require("./actions");
                     name: '',
                     id: ''
                 }
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
             if (action.kind !== 'SendMessage') {
@@ -103,7 +102,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: '!request',
                 author: mock.user1
-            }, db_1.mockDB // mockDB will always respond with empty lists by default
+            }, mock.emptyDB // mock.emptyDB will always respond with empty lists by default
             );
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
@@ -113,7 +112,7 @@ const actions_1 = require("./actions");
             (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} there are no upcoming chores`);
         }));
         it('should respond when all upcoming chores have been skipped when requested', () => __awaiter(void 0, void 0, void 0, function* () {
-            const mockDBUpcomingChoreAlreadySkipped = Object.assign({}, db_1.mockDB, {
+            const mockDBUpcomingChoreAlreadySkipped = Object.assign({}, mock.emptyDB, {
                 getAssignableUsersInOrderOfRecentCompletion: () => {
                     return [mock.user1];
                 },
@@ -158,7 +157,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: '!skip',
                 author: mock.user1
-            }, db_1.mockDB // mockDB will always respond with empty lists by default
+            }, mock.emptyDB // mock.emptyDB will always respond with empty lists by default
             );
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
@@ -194,7 +193,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: '!complete',
                 author: mock.user1
-            }, db_1.mockDB // mockDB will always respond with empty lists by default
+            }, mock.emptyDB // mock.emptyDB will always respond with empty lists by default
             );
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
@@ -230,7 +229,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: `!complete ${missingChoreName}`,
                 author: mock.user1
-            }, db_1.mockDB // mockDB will always be unable to find a chore
+            }, mock.emptyDB // mock.emptyDB will always be unable to find a chore
             );
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
@@ -252,7 +251,7 @@ const actions_1 = require("./actions");
             (0, chai_1.expect)(action.chore.name).to.equal(mock.assignedChore.name);
             (0, chai_1.expect)(action.chore.assigned).to.equal(false);
             const modifiedChore = action.chore;
-            const mockDBWithModifiedChore = Object.assign({}, db_1.mockDB, {
+            const mockDBWithModifiedChore = Object.assign({}, mock.emptyDB, {
                 getChoreByName: (choreName) => {
                     (0, chai_1.expect)(choreName).to.equal(modifiedChore.name);
                     return modifiedChore;
@@ -279,7 +278,7 @@ const actions_1 = require("./actions");
             let actions = yield (0, main_1.messageHandler)({
                 text: '!add',
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             let action = actions[0];
             if (action.kind !== 'SendMessage') {
@@ -290,7 +289,7 @@ const actions_1 = require("./actions");
             actions = yield (0, main_1.messageHandler)({
                 text: '!add test',
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             action = actions[0];
             if (action.kind !== 'SendMessage') {
@@ -302,7 +301,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: '!add many "args" but no frequency',
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
             if (action.kind !== 'SendMessage') {
@@ -316,7 +315,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: `!add ${mockChoreName} ${mockChoreFrequency}`,
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(2);
             let action = actions[0];
             if (action.kind !== 'AddChore') {
@@ -341,7 +340,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: '!delete',
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
             if (action.kind !== 'SendMessage') {
@@ -354,7 +353,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: `!delete ${missingChoreName}`,
                 author: mock.user1
-            }, db_1.mockDB // mockDB will always be unable to find a chore
+            }, mock.emptyDB // mock.emptyDB will always be unable to find a chore
             );
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
@@ -386,7 +385,7 @@ const actions_1 = require("./actions");
             let actions = yield (0, main_1.messageHandler)({
                 text: `!info`,
                 author: mock.user1
-            }, db_1.mockDB // mockDB will respond with undefined when asked to get assigned chores
+            }, mock.emptyDB // mock.emptyDB will respond with undefined when asked to get assigned chores
             );
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             let action = actions[0];
@@ -410,7 +409,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: `!info ${missingChoreName}`,
                 author: mock.user1
-            }, db_1.mockDB // mockDB will respond with undefined when asked to getChoreByName
+            }, mock.emptyDB // mock.emptyDB will respond with undefined when asked to getChoreByName
             );
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
@@ -449,7 +448,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: `!opt-in`,
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(2);
             let action = actions[0];
             if (action.kind !== 'AddUser') {
@@ -468,7 +467,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: `!opt-out`,
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(2);
             let action = actions[0];
             if (action.kind !== 'DeleteUser') {
@@ -510,7 +509,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: `!help`,
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
             if (action.kind !== 'SendMessage') {
@@ -525,7 +524,7 @@ const actions_1 = require("./actions");
                 const actions = yield (0, main_1.messageHandler)({
                     text: `!help ${command.callsign}`,
                     author: mock.user1
-                }, db_1.mockDB);
+                }, mock.emptyDB);
                 (0, chai_1.expect)(actions).to.have.lengthOf(1);
                 const action = actions[0];
                 if (action.kind !== 'SendMessage') {
@@ -543,7 +542,7 @@ const actions_1 = require("./actions");
             const actions = yield (0, main_1.messageHandler)({
                 text: `!help hep`,
                 author: mock.user1
-            }, db_1.mockDB);
+            }, mock.emptyDB);
             (0, chai_1.expect)(actions).to.have.lengthOf(1);
             const action = actions[0];
             if (action.kind !== 'SendMessage') {
@@ -625,7 +624,7 @@ const actions_1 = require("./actions");
         const now = new Date();
         const beforeNow = new Date(now.getTime() - time_1.hourInMilliseconds);
         const furtherBeforeNow = new Date(beforeNow.getTime() - time_1.hourInMilliseconds);
-        const actions = yield (0, main_1.loop)(db_1.mockDB, // mockDB will always report that there are no assigned chores
+        const actions = yield (0, main_1.loop)(mock.emptyDB, // mock.emptyDB will always report that there are no assigned chores
         furtherBeforeNow, beforeNow);
         (0, chai_1.expect)(actions).to.have.lengthOf(0);
     }));
@@ -639,7 +638,7 @@ const actions_1 = require("./actions");
             assigned: mock.user1,
             frequency: mock.once
         };
-        const mockDBSameChoreAssignedAndOutstanding = Object.assign({}, db_1.mockDB, {
+        const mockDBSameChoreAssignedAndOutstanding = Object.assign({}, mock.emptyDB, {
             getAssignableUsersInOrderOfRecentCompletion: () => {
                 return [mock.user1];
             },
@@ -662,7 +661,7 @@ const actions_1 = require("./actions");
         }
         (0, chai_1.expect)(action.chore.name).to.equal(mockChore.name);
         (0, chai_1.expect)(action.chore.assigned).to.equal(false);
-        mockChore = action.chore; // re-assign so our mockDB "saves" any modifications
+        mockChore = action.chore; // re-assign so our mock.emptyDB "saves" any modifications
         action = actions[1];
         if (action.kind !== 'SendMessage') {
             throw 'Received Action of the wrong type';
@@ -682,7 +681,7 @@ const actions_1 = require("./actions");
             assigned: false,
             frequency: mock.once
         };
-        const mockDBMultipleChoresAndMultipleUsers = Object.assign({}, db_1.mockDB, {
+        const mockDBMultipleChoresAndMultipleUsers = Object.assign({}, mock.emptyDB, {
             getAssignableUsersInOrderOfRecentCompletion: () => {
                 return [mock.user1, mock.user2];
             },

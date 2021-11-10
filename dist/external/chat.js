@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.inlineCode = exports.italic = exports.underscore = exports.bold = exports.tagUser = exports.initChat = void 0;
 const discord_js_1 = require("discord.js");
 const builders_1 = require("@discordjs/builders");
-const log_1 = __importDefault(require("../logging/log"));
+const log_1 = __importDefault(require("../utility/log"));
 const debug_1 = require("../utility/debug");
 function initChat(channelName, callback) {
     return __awaiter(this, void 0, void 0, function* () {

@@ -1,7 +1,7 @@
 import { Frequency, Weekdays } from '../models/time'
 import { MaybeError } from '../models/utility'
 import { toTitleCase } from '../utility/strings'
-import log from '../logging/log'
+import log from '../utility/log'
 import moment from 'moment-timezone'
 
 const locale = process.env.LOCALE || 'en-US'

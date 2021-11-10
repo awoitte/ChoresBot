@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loop = exports.messageHandler = void 0;
 const chat_1 = require("../models/chat");
-const log_1 = __importDefault(require("../logging/log"));
+const log_1 = __importDefault(require("../utility/log"));
 const chores_1 = require("./chores");
 const commands_1 = require("./commands");
 const actions_1 = require("./actions");

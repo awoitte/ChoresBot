@@ -16,19 +16,19 @@ To run:
 
 # Environment Variables
 
-| Env Variable Name    | Description                                                                                                                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| DISCORD_TOKEN        | your discord bot token ([How to get your token](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot))                                                             |
-| DISCORD_CHANNEL      | text channel on discord to listen and respond in (Default: chores)                                                                                                                                     |
-| FREQUENCY            | how often to check for and assign chores in seconds (Default: 120)                                                                                                                                     |
-| POSTGRESQL_ADDON_URI | postgres URI of database (e.g. `postgresql://dbuser:secretpassword@database.server.com:3211/mydb`)                                                                                                     |
-| PORT                 | port for web server to listen on (Default: 80)                                                                                                                                                         |
-| VERBOSE              | set to "TRUE" to show logs                                                                                                                                                                             |
-| DEBUG                | set to "TRUE" to use alternate testing DB (see below), also enables logs                                                                                                                               |
-| LOCALE               | locale used for date/time formatting ([Formatting info](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#locale_identification_and_negotiation)) (Default: en-US) |
-| TIMEZONE             | timezone to display times in (Default: America/New_York)                                                                                                                                               |
-| MORNING_TIME         | Time of day to start assigning chores (Default: 7:00 AM)                                                                                                                                               |
-| NIGHT_TIME           | Time of day to stop assigning chores (Default: 11:00 PM)                                                                                                                                               |
+| Env Variable Name    | Description                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------------------- |
+| DISCORD_TOKEN        | your discord bot token ([How to get your token][1])                                                |
+| DISCORD_CHANNEL      | text channel on discord to listen and respond in (Default: chores)                                 |
+| FREQUENCY            | how often to check for and assign chores in seconds (Default: 120)                                 |
+| POSTGRESQL_ADDON_URI | postgres URI of database (e.g. `postgresql://dbuser:secretpassword@database.server.com:3211/mydb`) |
+| PORT                 | port for web server to listen on (Default: 80)                                                     |
+| VERBOSE              | set to "TRUE" to show logs                                                                         |
+| DEBUG                | set to "TRUE" to use alternate testing DB (see below), also enables logs                           |
+| LOCALE               | locale used for date/time formatting ([Formatting info][2]) (Default: en-US)                       |
+| TIMEZONE             | timezone to display times in (Default: America/New_York)                                           |
+| MORNING_TIME         | Time of day to start assigning chores (Default: 7:00 AM)                                           |
+| NIGHT_TIME           | Time of day to stop assigning chores (Default: 11:00 PM)                                           |
 
 # Dev Environment
 
@@ -65,3 +65,6 @@ When a `*.ts` file changes the tests will automatically be re-run.
 In order to run database query unit tests you must have a postgreSQL database running somewhere accessible. Then set the environment variable `CHORES_BOT_TEST_DB` to a postgreSQL connection string (e.g. `postgresql://dbuser:secretpassword@database.server.com:3211/mydb`).
 
 **NOTE**: this database should be empty, the tests will frequently destroy and re-initialize all relevant tables and data.
+
+[1]: https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot "Bot Token Instructions"
+[2]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#locale_identification_and_negotiation "Time Formatting Info"

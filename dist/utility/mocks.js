@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.withTestDB = exports.DBWithAllChoreNames = exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = void 0;
+exports.withTestDB = exports.DBWithAllChoreNames = exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.emptyDB = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = void 0;
 const db_1 = require("../external/db");
 const time_1 = require("../models/time");
 exports.beforeDST = new Date();
@@ -113,22 +113,78 @@ function getChoreByName() {
 function getAllChoreNames() {
     return [exports.genericChore.name];
 }
-exports.DBWithUpcoming = Object.assign({}, db_1.mockDB, {
+exports.emptyDB = {
+    getAllUsers: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
+    getUserByID: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    }),
+    addUser: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    }),
+    deleteUser: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    }),
+    getAssignableUsersInOrderOfRecentCompletion: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
+    getOutstandingUnassignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
+    getUpcomingUnassignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
+    addChore: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    }),
+    modifyChore: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    }),
+    deleteChore: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    }),
+    getChoreByName: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    }),
+    getChoresAssignedToUser: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
+    getAllChoreNames: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
+    getAllAssignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
+    addChoreCompletion: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    }),
+    getAllChoreCompletions: () => __awaiter(void 0, void 0, void 0, function* () {
+        return [];
+    }),
+    getConfigValue: () => __awaiter(void 0, void 0, void 0, function* () {
+        return null;
+    }),
+    setConfigValue: () => __awaiter(void 0, void 0, void 0, function* () {
+        return undefined;
+    })
+};
+exports.DBWithUpcoming = Object.assign({}, exports.emptyDB, {
     getUpcomingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
 });
-exports.DBWithChoreAssigned = Object.assign({}, db_1.mockDB, {
+exports.DBWithChoreAssigned = Object.assign({}, exports.emptyDB, {
     getChoresAssignedToUser,
     getAllAssignedChores
 });
-exports.DBWithOutstandingChores = Object.assign({}, db_1.mockDB, {
+exports.DBWithOutstandingChores = Object.assign({}, exports.emptyDB, {
     getOutstandingUnassignedChores,
     getAssignableUsersInOrderOfRecentCompletion
 });
-exports.DBWithChoreByName = Object.assign({}, db_1.mockDB, {
+exports.DBWithChoreByName = Object.assign({}, exports.emptyDB, {
     getChoreByName
 });
-exports.DBWithAllChoreNames = Object.assign({}, db_1.mockDB, {
+exports.DBWithAllChoreNames = Object.assign({}, exports.emptyDB, {
     getAllChoreNames
 });
 function withTestDB(callback) {

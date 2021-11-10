@@ -1,7 +1,9 @@
 import { Pool, PoolClient } from 'pg'
 
+import { DB, ReadOnlyDB } from '../models/db'
+
 import { User } from '../models/chat'
-import { Chore, ChoreCompletion } from '../models/chores'
+import { Chore } from '../models/chores'
 import { dayInMilliseconds, Frequency } from '../models/time'
 import { getChoreDueDate } from '../logic/chores'
 
@@ -12,97 +14,6 @@ import * as userQueries from '../queries/users'
 import * as choresQueries from '../queries/chores'
 import * as migrationQueries from '../queries/migrations'
 import * as configQueries from '../queries/config'
-
-export interface ReadOnlyDB {
-    getAssignableUsersInOrderOfRecentCompletion: () => Promise<User[]>
-    getAllUsers: () => Promise<User[]>
-    getUserByID: (id: string) => Promise<User | void>
-
-    // outstanding meaning past their scheduled time
-    getOutstandingUnassignedChores: () => Promise<Chore[]>
-
-    // upcoming meaning before their scheduled time
-    getUpcomingUnassignedChores: () => Promise<Chore[]>
-
-    getChoreByName: (name: string) => Promise<Chore | void>
-    getChoresAssignedToUser: (user: User) => Promise<Chore[]>
-    getAllChoreNames: () => Promise<string[]>
-    getAllAssignedChores: () => Promise<Chore[]>
-
-    getAllChoreCompletions: (choreName: string) => Promise<ChoreCompletion[]>
-
-    getConfigValue: (key: string) => Promise<string | null>
-}
-
-export interface DB extends ReadOnlyDB {
-    addUser: (user: User) => Promise<void>
-    deleteUser: (user: User) => Promise<void>
-
-    addChore: (chore: Chore) => Promise<void>
-    modifyChore: (chore: Chore) => Promise<void>
-    deleteChore: (name: string) => Promise<void>
-
-    addChoreCompletion: (choreName: string, user: User) => Promise<void>
-
-    setConfigValue: (key: string, value: string) => Promise<void>
-}
-
-export const mockDB: DB = {
-    getAllUsers: async () => {
-        return []
-    },
-    getUserByID: async () => {
-        return undefined
-    },
-    addUser: async () => {
-        return undefined
-    },
-    deleteUser: async () => {
-        return undefined
-    },
-    getAssignableUsersInOrderOfRecentCompletion: async () => {
-        return []
-    },
-    getOutstandingUnassignedChores: async () => {
-        return []
-    },
-    getUpcomingUnassignedChores: async () => {
-        return []
-    },
-    addChore: async () => {
-        return undefined
-    },
-    modifyChore: async () => {
-        return undefined
-    },
-    deleteChore: async () => {
-        return undefined
-    },
-    getChoreByName: async () => {
-        return undefined
-    },
-    getChoresAssignedToUser: async () => {
-        return []
-    },
-    getAllChoreNames: async () => {
-        return []
-    },
-    getAllAssignedChores: async () => {
-        return []
-    },
-    addChoreCompletion: async () => {
-        return undefined
-    },
-    getAllChoreCompletions: async () => {
-        return []
-    },
-    getConfigValue: async () => {
-        return null
-    },
-    setConfigValue: async () => {
-        return undefined
-    }
-}
 
 export interface PostgresDB extends DB {
     initDB: () => Promise<void>

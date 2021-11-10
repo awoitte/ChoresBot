@@ -31,7 +31,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.pgDB = exports.mockDB = void 0;
+exports.pgDB = void 0;
 const pg_1 = require("pg");
 const time_1 = require("../models/time");
 const chores_1 = require("../logic/chores");
@@ -41,62 +41,6 @@ const userQueries = __importStar(require("../queries/users"));
 const choresQueries = __importStar(require("../queries/chores"));
 const migrationQueries = __importStar(require("../queries/migrations"));
 const configQueries = __importStar(require("../queries/config"));
-exports.mockDB = {
-    getAllUsers: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
-    }),
-    getUserByID: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    }),
-    addUser: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    }),
-    deleteUser: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    }),
-    getAssignableUsersInOrderOfRecentCompletion: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
-    }),
-    getOutstandingUnassignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
-    }),
-    getUpcomingUnassignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
-    }),
-    addChore: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    }),
-    modifyChore: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    }),
-    deleteChore: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    }),
-    getChoreByName: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    }),
-    getChoresAssignedToUser: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
-    }),
-    getAllChoreNames: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
-    }),
-    getAllAssignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
-    }),
-    addChoreCompletion: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    }),
-    getAllChoreCompletions: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
-    }),
-    getConfigValue: () => __awaiter(void 0, void 0, void 0, function* () {
-        return null;
-    }),
-    setConfigValue: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
-    })
-};
 function pgDB(connectionString) {
     return __awaiter(this, void 0, void 0, function* () {
         const pool = new pg_1.Pool({
