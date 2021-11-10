@@ -1,8 +1,9 @@
 import { DB } from '../models/db'
 import { PostgresDB, pgDB } from '../external/db'
-import { User } from '../models/chat'
+import { Chat, User } from '../models/chat'
 import { Chore } from '../models/chores'
 import { Frequency, Months, hourInMilliseconds } from '../models/time'
+import log from './log'
 
 export const beforeDST: Date = new Date()
 beforeDST.setFullYear(2021)
@@ -230,5 +231,14 @@ export async function withTestDB(
         await db.destroyEntireDB() // if prior tests crashed there might be bad data to clean up
 
         await callback(db)
+    }
+}
+
+export const chat: Chat = {
+    login: async () => {
+        return
+    },
+    sendChatMessage: async (message) => {
+        log(message.text)
     }
 }

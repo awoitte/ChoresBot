@@ -292,33 +292,35 @@ async function getUnassignedOutstandingChoresAsOfDate(
 
     const unassignedChores = await rowsToChores(unassignedRes.rows, db)
 
-    const upcomingChores: [Chore, Date][] = []
+    // store as a tuple so we can conveniently sort by the Date
+    const choresWithDueDate: [Chore, Date][] = []
     for (const chore of unassignedChores) {
-        const recentCompletionRes = await client.query(
+        const mostRecentCompletionRes = await client.query(
             choresQueries.getMostRecentCompletionForChore,
             [chore.name]
         )
-        let recentCompletion
 
-        if (recentCompletionRes.rowCount >= 1) {
-            recentCompletion = recentCompletionRes.rows[0].at
+        let mostRecentCompletion
+
+        if (mostRecentCompletionRes.rowCount >= 1) {
+            mostRecentCompletion = mostRecentCompletionRes.rows[0].at
         }
 
-        const dueDate = getChoreDueDate(chore, recentCompletion)
+        const dueDate = getChoreDueDate(chore, mostRecentCompletion)
         if (dueDate === undefined) {
             continue
         }
 
         if (dueDate < date) {
-            upcomingChores.push([chore, dueDate])
+            choresWithDueDate.push([chore, dueDate])
         }
     }
 
-    upcomingChores.sort(
+    choresWithDueDate.sort(
         (tupleA, tupleB) => tupleA[1].getTime() - tupleB[1].getTime()
     )
 
-    return upcomingChores.map((tuple) => tuple[0])
+    return choresWithDueDate.map((tuple) => tuple[0])
 }
 
 async function performMigrations(client: PoolClient): Promise<void> {
@@ -335,17 +337,22 @@ async function performMigrations(client: PoolClient): Promise<void> {
         throw new Error('unable to parse db migrations')
     }
 
-    let migrationIndex = migrationIndexRes.rows[0].index
-    if (migrationIndex === null) {
+    const appliedMigrationsIndex = migrationIndexRes.rows[0].index
+
+    let unappliedMigrationsIndex
+    if (appliedMigrationsIndex === null) {
         // no migrations performed yet
-        migrationIndex = -1
+        unappliedMigrationsIndex = 0
+    } else {
+        unappliedMigrationsIndex = appliedMigrationsIndex + 1
     }
 
     try {
         await client.query('BEGIN')
 
+        // Note: this for loop skips itself if we already applied the last migration
         for (
-            let i = migrationIndex + 1; // only perform migrations that are past the existing index
+            let i = unappliedMigrationsIndex;
             i < migrationQueries.Migrations.length;
             i++
         ) {

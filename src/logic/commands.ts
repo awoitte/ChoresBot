@@ -20,6 +20,8 @@ import {
     unassignChore
 } from './chores'
 
+// NOTE: If you add a new command, be sure to add it to the `AllCommands` array
+
 export const PingCommand: Command = {
     callsign: 'ping',
     summary:
@@ -74,9 +76,9 @@ export const RequestCommand: Command = {
                 {
                     kind: 'SendMessage',
                     message: {
-                        text: `${tagUser(
+                        text: `✨ ${tagUser(
                             message.author
-                        )} there are no upcoming chores`,
+                        )} there are no upcoming chores ✨`,
                         author: ChoresBotUser
                     }
                 }
@@ -112,13 +114,9 @@ export const SkipCommand: Command = {
     callsign: '!skip',
     summary:
         'Skip a chore, you will not be assigned to it again until another user completes it',
-    helpText: `!skip chore-name
+    helpText: `!skip
 
-chore-name:
-    Optional.
-    The name of the chore you wish to skip. If no name is provided then your currently assigned chore is used.
-
-Note: you do not need to be assigned to a chore to skip it`,
+Skips your currently assigned chore. You will not be re-assigned this chore again until it has been completed.`,
     handler: async (message, db) => {
         const userAssignedChores = await db.getChoresAssignedToUser(
             message.author
@@ -262,11 +260,11 @@ e.g.
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `${tagUser(
+                    text: `➕ ${tagUser(
                         message.author
                     )} new chore '${choreName}' successfully added with frequency '${frequencyToString(
                         frequency
-                    )}'`,
+                    )}' ➕`,
                     author: ChoresBotUser
                 }
             }
@@ -315,9 +313,9 @@ Note: although the chore will no longer be accesible or assignable the database 
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `${tagUser(
+                    text: `➖ ${tagUser(
                         message.author
-                    )} chore '${choreName}' successfully deleted`,
+                    )} chore '${choreName}' successfully deleted ➖`,
                     author: ChoresBotUser
                 }
             }
@@ -447,7 +445,7 @@ export const OptOutCommand: Command = {
                 message: {
                     text: `${tagUser(
                         message.author
-                    )} successfully opted-out, you should no longer be assigned any chores`,
+                    )} successfully opted-out, you should no longer be assigned any chores 👋`,
                     author: ChoresBotUser
                 }
             }
@@ -520,12 +518,6 @@ export const AllCommands: Command[] = [
     OptOutCommand,
     HelpCommand
 ]
-
-export const AllCommandsByCallsign: Record<string, Command> =
-    AllCommands.reduce<Record<string, Command>>((accumulator, command) => {
-        accumulator[command.callsign] = command
-        return accumulator
-    }, {})
 
 // --- Chore Completion ---
 async function completeAssignedChore(

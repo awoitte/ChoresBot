@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AllCommandsByCallsign = exports.AllCommands = exports.HelpCommand = exports.OptOutCommand = exports.OptInCommand = exports.InfoCommand = exports.DeleteCommand = exports.AddCommand = exports.CompleteCommand = exports.SkipCommand = exports.RequestCommand = exports.PingCommand = void 0;
+exports.AllCommands = exports.HelpCommand = exports.OptOutCommand = exports.OptInCommand = exports.InfoCommand = exports.DeleteCommand = exports.AddCommand = exports.CompleteCommand = exports.SkipCommand = exports.RequestCommand = exports.PingCommand = void 0;
 const chat_1 = require("../models/chat");
 const chat_2 = require("../external/chat");
 const log_1 = __importDefault(require("../utility/log"));
@@ -20,6 +20,7 @@ const strings_1 = require("../utility/strings");
 const time_1 = require("./time");
 const actions_1 = require("./actions");
 const chores_1 = require("./chores");
+// NOTE: If you add a new command, be sure to add it to the `AllCommands` array
 exports.PingCommand = {
     callsign: 'ping',
     summary: 'Bot responds with "pong", useful diagnostic to check if ChoresBot is running.',
@@ -59,7 +60,7 @@ exports.RequestCommand = {
                 {
                     kind: 'SendMessage',
                     message: {
-                        text: `${(0, chat_2.tagUser)(message.author)} there are no upcoming chores`,
+                        text: `✨ ${(0, chat_2.tagUser)(message.author)} there are no upcoming chores ✨`,
                         author: chat_1.ChoresBotUser
                     }
                 }
@@ -84,13 +85,9 @@ exports.RequestCommand = {
 exports.SkipCommand = {
     callsign: '!skip',
     summary: 'Skip a chore, you will not be assigned to it again until another user completes it',
-    helpText: `!skip chore-name
+    helpText: `!skip
 
-chore-name:
-    Optional.
-    The name of the chore you wish to skip. If no name is provided then your currently assigned chore is used.
-
-Note: you do not need to be assigned to a chore to skip it`,
+Skips your currently assigned chore. You will not be re-assigned this chore again until it has been completed.`,
     handler: (message, db) => __awaiter(void 0, void 0, void 0, function* () {
         const userAssignedChores = yield db.getChoresAssignedToUser(message.author);
         // check if the user is able to skip
@@ -214,7 +211,7 @@ e.g.
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `${(0, chat_2.tagUser)(message.author)} new chore '${choreName}' successfully added with frequency '${(0, time_1.frequencyToString)(frequency)}'`,
+                    text: `➕ ${(0, chat_2.tagUser)(message.author)} new chore '${choreName}' successfully added with frequency '${(0, time_1.frequencyToString)(frequency)}' ➕`,
                     author: chat_1.ChoresBotUser
                 }
             }
@@ -255,7 +252,7 @@ Note: although the chore will no longer be accesible or assignable the database 
             {
                 kind: 'SendMessage',
                 message: {
-                    text: `${(0, chat_2.tagUser)(message.author)} chore '${choreName}' successfully deleted`,
+                    text: `➖ ${(0, chat_2.tagUser)(message.author)} chore '${choreName}' successfully deleted ➖`,
                     author: chat_1.ChoresBotUser
                 }
             }
@@ -356,7 +353,7 @@ exports.OptOutCommand = {
         }, {
             kind: 'SendMessage',
             message: {
-                text: `${(0, chat_2.tagUser)(message.author)} successfully opted-out, you should no longer be assigned any chores`,
+                text: `${(0, chat_2.tagUser)(message.author)} successfully opted-out, you should no longer be assigned any chores 👋`,
                 author: chat_1.ChoresBotUser
             }
         });
@@ -419,10 +416,6 @@ exports.AllCommands = [
     exports.OptOutCommand,
     exports.HelpCommand
 ];
-exports.AllCommandsByCallsign = exports.AllCommands.reduce((accumulator, command) => {
-    accumulator[command.callsign] = command;
-    return accumulator;
-}, {});
 // --- Chore Completion ---
 function completeAssignedChore(user, db) {
     return __awaiter(this, void 0, void 0, function* () {

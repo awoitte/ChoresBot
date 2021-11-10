@@ -83,7 +83,7 @@ const actions_1 = require("./actions");
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.upcomingChore.name}"`);
+            (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.upcomingChore.name}"`);
         }));
         it('should respond when a chore is requested but the user is already assigned to a chore', () => __awaiter(void 0, void 0, void 0, function* () {
             const actions = yield (0, main_1.messageHandler)({
@@ -109,7 +109,7 @@ const actions_1 = require("./actions");
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} there are no upcoming chores`);
+            (0, chai_1.expect)(action.message.text).to.equal(`✨ ${(0, chat_1.tagUser)(mock.user1)} there are no upcoming chores ✨`);
         }));
         it('should respond when all upcoming chores have been skipped when requested', () => __awaiter(void 0, void 0, void 0, function* () {
             const mockDBUpcomingChoreAlreadySkipped = Object.assign({}, mock.emptyDB, {
@@ -332,7 +332,7 @@ const actions_1 = require("./actions");
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} new chore '${mockChoreName}' successfully added with frequency 'Weekly @ Wednesday'`);
+            (0, chai_1.expect)(action.message.text).to.equal(`➕ ${(0, chat_1.tagUser)(mock.user1)} new chore '${mockChoreName}' successfully added with frequency 'Weekly @ Wednesday' ➕`);
         }));
     });
     (0, mocha_1.describe)('!delete command', () => {
@@ -377,7 +377,7 @@ const actions_1 = require("./actions");
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} chore '${mock.genericChore}' successfully deleted`);
+            (0, chai_1.expect)(action.message.text).to.equal(`➖ ${(0, chat_1.tagUser)(mock.user1)} chore '${mock.genericChore}' successfully deleted ➖`);
         }));
     });
     (0, mocha_1.describe)('!info command', () => {
@@ -478,7 +478,7 @@ const actions_1 = require("./actions");
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} successfully opted-out, you should no longer be assigned any chores`);
+            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} successfully opted-out, you should no longer be assigned any chores 👋`);
         }));
         it('should unassign a user from any chores when they opt-out', () => __awaiter(void 0, void 0, void 0, function* () {
             const actions = yield (0, main_1.messageHandler)({
@@ -501,7 +501,7 @@ const actions_1 = require("./actions");
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} successfully opted-out, you should no longer be assigned any chores`);
+            (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} successfully opted-out, you should no longer be assigned any chores 👋`);
         }));
     });
     (0, mocha_1.describe)('!help command', () => {
@@ -566,7 +566,7 @@ const actions_1 = require("./actions");
         if (action.kind !== 'SendMessage') {
             throw 'Received Action of the wrong type';
         }
-        (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.overdueChore.name}"`);
+        (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.overdueChore.name}"`);
     }));
     it('should only prompt users to complete chores between "morning" and "night" times', () => __awaiter(void 0, void 0, void 0, function* () {
         let actions = yield (0, main_1.loop)(mock.DBWithOutstandingChores);
@@ -701,7 +701,7 @@ const actions_1 = require("./actions");
         if (action.kind !== 'SendMessage') {
             throw 'Received Action of the wrong type';
         }
-        (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mockChore1.name}"`);
+        (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mockChore1.name}"`);
         action = actions[2];
         if (action.kind !== 'ModifyChore') {
             throw 'Received Action of the wrong type';
@@ -711,7 +711,7 @@ const actions_1 = require("./actions");
         if (action.kind !== 'SendMessage') {
             throw 'Received Action of the wrong type';
         }
-        (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user2)} please do the chore: "${mockChore2.name}"`);
+        (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user2)} please do the chore: "${mockChore2.name}"`);
     }));
 });
 //# sourceMappingURL=main.spec.js.map

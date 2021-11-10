@@ -91,7 +91,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `${tagUser(mock.user1)} please do the chore: "${
+                `📋 ${tagUser(mock.user1)} please do the chore: "${
                     mock.upcomingChore.name
                 }"`
             )
@@ -142,7 +142,7 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `${tagUser(mock.user1)} there are no upcoming chores`
+                `✨ ${tagUser(mock.user1)} there are no upcoming chores ✨`
             )
         })
 
@@ -523,9 +523,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `${tagUser(
+                `➕ ${tagUser(
                     mock.user1
-                )} new chore '${mockChoreName}' successfully added with frequency 'Weekly @ Wednesday'`
+                )} new chore '${mockChoreName}' successfully added with frequency 'Weekly @ Wednesday' ➕`
             )
         })
     })
@@ -605,9 +605,9 @@ describe('Message handling logic', async () => {
             }
 
             expect(action.message.text).to.equal(
-                `${tagUser(mock.user1)} chore '${
+                `➖ ${tagUser(mock.user1)} chore '${
                     mock.genericChore
-                }' successfully deleted`
+                }' successfully deleted ➖`
             )
         })
     })
@@ -791,7 +791,7 @@ describe('Message handling logic', async () => {
             expect(action.message.text).to.equal(
                 `${tagUser(
                     mock.user1
-                )} successfully opted-out, you should no longer be assigned any chores`
+                )} successfully opted-out, you should no longer be assigned any chores 👋`
             )
         })
 
@@ -832,7 +832,7 @@ describe('Message handling logic', async () => {
             expect(action.message.text).to.equal(
                 `${tagUser(
                     mock.user1
-                )} successfully opted-out, you should no longer be assigned any chores`
+                )} successfully opted-out, you should no longer be assigned any chores 👋`
             )
         })
     })
@@ -930,7 +930,7 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `${tagUser(mock.user1)} please do the chore: "${
+            `📋 ${tagUser(mock.user1)} please do the chore: "${
                 mock.overdueChore.name
             }"`
         )
@@ -1169,7 +1169,9 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `${tagUser(mock.user1)} please do the chore: "${mockChore1.name}"`
+            `📋 ${tagUser(mock.user1)} please do the chore: "${
+                mockChore1.name
+            }"`
         )
 
         action = actions[2]
@@ -1187,7 +1189,9 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `${tagUser(mock.user2)} please do the chore: "${mockChore2.name}"`
+            `📋 ${tagUser(mock.user2)} please do the chore: "${
+                mockChore2.name
+            }"`
         )
     })
 })

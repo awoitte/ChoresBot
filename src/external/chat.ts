@@ -2,12 +2,7 @@ import { Message, User } from '../models/chat'
 import { Client, Intents, TextChannel } from 'discord.js'
 import { userMention } from '@discordjs/builders'
 import log from '../utility/log'
-import { isDebugFlagSet } from '../utility/debug'
-
-export interface Chat {
-    login(token: string): Promise<void>
-    sendChatMessage(message: Message): Promise<void>
-}
+import { Chat } from '../models/chat'
 
 export async function initChat(
     channelName: string,
@@ -48,29 +43,13 @@ export async function initChat(
         }
     })
 
-    client.on('messageUpdate', (oldMessage, newMessage) => {
-        log(
-            `messageUpdate: [${newMessage.author?.username}] from "${oldMessage.content}" to "${newMessage.content}"`
-        )
-    })
-
-    client.on('messageReactionAdd', (reaction, user) => {
-        log(`messageReactionAdd: [${user.username}] ${reaction.emoji}`)
-    })
-
-    client.on('messageReactionRemove', (reaction, user) => {
-        log(`messageReactionRemove: [${user.username}] ${reaction.emoji}`)
-    })
-
     return {
         login: async (token) => {
             client.on('ready', () => {
                 log(`Logged in as "${client?.user?.tag}"!`)
             })
 
-            if (!isDebugFlagSet()) {
-                client.login(token)
-            }
+            client.login(token)
         },
         sendChatMessage: async (message) => {
             const guilds = await client.guilds.fetch()

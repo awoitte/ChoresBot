@@ -54,28 +54,30 @@ const time_1 = require("./logic/time");
     app.listen(serverPort, () => {
         (0, log_1.default)(`Listening at http://localhost:${serverPort}`);
     });
-    // --- DB ---
+    // --- External Services ---
     let db;
+    let chat;
     if ((0, debug_1.isDebugFlagSet)()) {
         db = mocks_1.emptyDB;
+        chat = mocks_1.chat;
     }
     else {
         const pgdb = yield (0, db_1.pgDB)(dbConnectionString);
         db = pgdb;
         yield pgdb.initDB();
+        chat = yield (0, chat_1.initChat)(channel, (msg) => __awaiter(void 0, void 0, void 0, function* () {
+            const actions = yield (0, main_1.messageHandler)(msg, db).catch((e) => {
+                (0, log_1.default)(`Error in message handler!: ${e}`);
+                return [];
+            });
+            (0, log_1.default)(`message actions: ${JSON.stringify(actions)}`);
+            yield performActions(actions, chat, db).catch((e) => {
+                (0, log_1.default)(`Error performing actions!: ${e}`);
+            });
+        }));
+        yield chat.login(token);
     }
     // --- Chat Bot ---
-    const chat = yield (0, chat_1.initChat)(channel, (msg) => __awaiter(void 0, void 0, void 0, function* () {
-        const actions = yield (0, main_1.messageHandler)(msg, db).catch((e) => {
-            (0, log_1.default)(`Error in message handler!: ${e}`);
-            return [];
-        });
-        (0, log_1.default)(`message actions: ${JSON.stringify(actions)}`);
-        yield performActions(actions, chat, db).catch((e) => {
-            (0, log_1.default)(`Error performing actions!: ${e}`);
-        });
-    }));
-    yield chat.login(token);
     (0, async_1.asyncLoop)(() => __awaiter(void 0, void 0, void 0, function* () {
         const actions = yield (0, main_1.loop)(db, morningTime, nightTime).catch((e) => {
             (0, log_1.default)(`Error in main loop!: ${e}`);

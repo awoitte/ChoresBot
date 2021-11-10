@@ -16,7 +16,6 @@ exports.inlineCode = exports.italic = exports.underscore = exports.bold = export
 const discord_js_1 = require("discord.js");
 const builders_1 = require("@discordjs/builders");
 const log_1 = __importDefault(require("../utility/log"));
-const debug_1 = require("../utility/debug");
 function initChat(channelName, callback) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = new discord_js_1.Client({
@@ -48,25 +47,13 @@ function initChat(channelName, callback) {
                 });
             }
         }));
-        client.on('messageUpdate', (oldMessage, newMessage) => {
-            var _a;
-            (0, log_1.default)(`messageUpdate: [${(_a = newMessage.author) === null || _a === void 0 ? void 0 : _a.username}] from "${oldMessage.content}" to "${newMessage.content}"`);
-        });
-        client.on('messageReactionAdd', (reaction, user) => {
-            (0, log_1.default)(`messageReactionAdd: [${user.username}] ${reaction.emoji}`);
-        });
-        client.on('messageReactionRemove', (reaction, user) => {
-            (0, log_1.default)(`messageReactionRemove: [${user.username}] ${reaction.emoji}`);
-        });
         return {
             login: (token) => __awaiter(this, void 0, void 0, function* () {
                 client.on('ready', () => {
                     var _a;
                     (0, log_1.default)(`Logged in as "${(_a = client === null || client === void 0 ? void 0 : client.user) === null || _a === void 0 ? void 0 : _a.tag}"!`);
                 });
-                if (!(0, debug_1.isDebugFlagSet)()) {
-                    client.login(token);
-                }
+                client.login(token);
             }),
             sendChatMessage: (message) => __awaiter(this, void 0, void 0, function* () {
                 const guilds = yield client.guilds.fetch();

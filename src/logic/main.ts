@@ -3,7 +3,7 @@ import { Action } from '../models/actions'
 import { DB } from '../models/db'
 import log from '../utility/log'
 import { findUserForChore } from './chores'
-import { AllCommandsByCallsign } from './commands'
+import { AllCommands } from './commands'
 import { assignChoreActions, reminderAction } from './actions'
 import {
     isDateAfter,
@@ -24,20 +24,8 @@ export async function messageHandler(
 
     const text = message.text.toLowerCase()
 
-    for (const commandText in AllCommandsByCallsign) {
-        if (
-            !Object.prototype.hasOwnProperty.call(
-                AllCommandsByCallsign,
-                commandText
-            )
-        ) {
-            // safegaurd to skip inherited properties
-            continue
-        }
-
-        const command = AllCommandsByCallsign[commandText]
-
-        if (!text.startsWith(commandText)) {
+    for (const command of AllCommands) {
+        if (!text.startsWith(command.callsign)) {
             continue
         }
 

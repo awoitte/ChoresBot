@@ -7,26 +7,16 @@ import { Action } from '../models/actions'
 
 import { loop } from '../logic/main'
 
-import { PostgresDB, pgDB } from './db'
+import { PostgresDB } from './db'
 import { tagUser } from './chat'
 
 import * as mock from '../utility/mocks'
 
 use(chaiAsPromised)
 
-const connectionString = process.env.CHORES_BOT_TEST_DB
+mock.withTestDB(runDBTestSuite)
 
-if (connectionString === undefined) {
-    console.log(
-        'No environment variable set for CHORES_BOT_TEST_DB. Please set this to the postgresql connection string to use for database testing.'
-    )
-} else {
-    runDBTestSuite(connectionString)
-}
-
-async function runDBTestSuite(connectionString: string) {
-    const db: PostgresDB = await pgDB(connectionString)
-
+async function runDBTestSuite(db: PostgresDB) {
     await db.destroyEntireDB() // if prior tests crashed there might be bad data to clean up
 
     describe('Database', () => {
@@ -474,7 +464,7 @@ async function runDBTestSuite(connectionString: string) {
                 }
 
                 expect(action.message.text).to.equal(
-                    `${tagUser(mock.user1)} please do the chore: "${
+                    `📋 ${tagUser(mock.user1)} please do the chore: "${
                         mock.genericChore.name
                     }"`
                 )
@@ -516,7 +506,7 @@ async function runDBTestSuite(connectionString: string) {
                 }
 
                 expect(action.message.text).to.equal(
-                    `${tagUser(mock.user1)} please do the chore: "${
+                    `📋 ${tagUser(mock.user1)} please do the chore: "${
                         mock.genericChore.name
                     }"`
                 )

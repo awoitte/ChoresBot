@@ -30,7 +30,7 @@ function assignChoreActions(chore, user) {
         {
             kind: 'SendMessage',
             message: {
-                text: `${(0, chat_2.tagUser)(user)} please do the chore: "${chore.name}"`,
+                text: `📋 ${(0, chat_2.tagUser)(user)} please do the chore: "${chore.name}"`,
                 author: chat_1.ChoresBotUser
             }
         }
@@ -42,7 +42,7 @@ function didYouMeanMessage(choreName, closestMatch, command, taggedUser) {
         return {
             kind: 'SendMessage',
             message: {
-                text: `${(0, chat_2.tagUser)(taggedUser)} Unable to find chore "${choreName}".`,
+                text: `❓ ${(0, chat_2.tagUser)(taggedUser)} Unable to find chore "${choreName}".`,
                 author: chat_1.ChoresBotUser
             }
         };
@@ -50,7 +50,7 @@ function didYouMeanMessage(choreName, closestMatch, command, taggedUser) {
     return {
         kind: 'SendMessage',
         message: {
-            text: `${(0, chat_2.tagUser)(taggedUser)} Unable to find chore "${choreName}". Did you mean ${(0, chat_2.inlineCode)(`${command.callsign} ${closestMatch}`)}?`,
+            text: `❓ ${(0, chat_2.tagUser)(taggedUser)} Unable to find chore "${choreName}". Did you mean ${(0, chat_2.inlineCode)(`${command.callsign} ${closestMatch}`)}?`,
             author: chat_1.ChoresBotUser
         }
     };
@@ -70,7 +70,7 @@ function reminderAction(assignedChores) {
         {
             kind: 'SendMessage',
             message: {
-                text: `${(0, chat_2.bold)('END OF DAY REMINDER')}
+                text: `⏳ ${(0, chat_2.bold)('END OF DAY REMINDER')} ⏳
 The following chores have been assigned but not completed:
 ${reminderList.join('\n')}`,
                 author: chat_1.ChoresBotUser

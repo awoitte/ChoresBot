@@ -36,7 +36,9 @@ export function assignChoreActions(chore: Chore, user: User): Action[] {
         {
             kind: 'SendMessage',
             message: {
-                text: `${tagUser(user)} please do the chore: "${chore.name}"`,
+                text: `📋 ${tagUser(user)} please do the chore: "${
+                    chore.name
+                }"`,
                 author: ChoresBotUser
             }
         }
@@ -53,7 +55,7 @@ export function didYouMeanMessage(
         return {
             kind: 'SendMessage',
             message: {
-                text: `${tagUser(
+                text: `❓ ${tagUser(
                     taggedUser
                 )} Unable to find chore "${choreName}".`,
                 author: ChoresBotUser
@@ -64,7 +66,7 @@ export function didYouMeanMessage(
     return {
         kind: 'SendMessage',
         message: {
-            text: `${tagUser(
+            text: `❓ ${tagUser(
                 taggedUser
             )} Unable to find chore "${choreName}". Did you mean ${inlineCode(
                 `${command.callsign} ${closestMatch}`
@@ -92,7 +94,7 @@ export function reminderAction(assignedChores: Chore[]): Action[] {
         {
             kind: 'SendMessage',
             message: {
-                text: `${bold('END OF DAY REMINDER')}
+                text: `⏳ ${bold('END OF DAY REMINDER')} ⏳
 The following chores have been assigned but not completed:
 ${reminderList.join('\n')}`,
                 author: ChoresBotUser

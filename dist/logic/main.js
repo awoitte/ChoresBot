@@ -25,13 +25,8 @@ function messageHandler(message, db) {
     return __awaiter(this, void 0, void 0, function* () {
         (0, log_1.default)(`New message: [${message.author.name}] "${message.text}"`);
         const text = message.text.toLowerCase();
-        for (const commandText in commands_1.AllCommandsByCallsign) {
-            if (!Object.prototype.hasOwnProperty.call(commands_1.AllCommandsByCallsign, commandText)) {
-                // safegaurd to skip inherited properties
-                continue;
-            }
-            const command = commands_1.AllCommandsByCallsign[commandText];
-            if (!text.startsWith(commandText)) {
+        for (const command of commands_1.AllCommands) {
+            if (!text.startsWith(command.callsign)) {
                 continue;
             }
             if (command.minArgumentCount !== undefined) {

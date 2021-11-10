@@ -35,20 +35,12 @@ const mocha_1 = require("mocha");
 const chai_1 = require("chai");
 const chai_as_promised_1 = __importDefault(require("chai-as-promised"));
 const main_1 = require("../logic/main");
-const db_1 = require("./db");
 const chat_1 = require("./chat");
 const mock = __importStar(require("../utility/mocks"));
 (0, chai_1.use)(chai_as_promised_1.default);
-const connectionString = process.env.CHORES_BOT_TEST_DB;
-if (connectionString === undefined) {
-    console.log('No environment variable set for CHORES_BOT_TEST_DB. Please set this to the postgresql connection string to use for database testing.');
-}
-else {
-    runDBTestSuite(connectionString);
-}
-function runDBTestSuite(connectionString) {
+mock.withTestDB(runDBTestSuite);
+function runDBTestSuite(db) {
     return __awaiter(this, void 0, void 0, function* () {
-        const db = yield (0, db_1.pgDB)(connectionString);
         yield db.destroyEntireDB(); // if prior tests crashed there might be bad data to clean up
         (0, mocha_1.describe)('Database', () => {
             beforeEach(db.initDB.bind(db));
@@ -338,7 +330,7 @@ function runDBTestSuite(connectionString) {
                     if (action.kind !== 'SendMessage') {
                         throw 'Received Action of the wrong type';
                     }
-                    (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
+                    (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
                     const mockChoreAssigned = Object.assign({}, mock.genericChore, {
                         // id is the same
                         assigned: mock.user1
@@ -361,7 +353,7 @@ function runDBTestSuite(connectionString) {
                     if (action.kind !== 'SendMessage') {
                         throw 'Received Action of the wrong type';
                     }
-                    (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
+                    (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.genericChore.name}"`);
                 }));
             });
             (0, mocha_1.describe)('Config', () => __awaiter(this, void 0, void 0, function* () {

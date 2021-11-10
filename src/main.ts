@@ -1,6 +1,8 @@
 import express from 'express'
 
-import { initChat, Chat } from './external/chat'
+import { Chat } from './models/chat'
+import { initChat } from './external/chat'
+
 import { DB } from './models/db'
 import { pgDB } from './external/db'
 
@@ -11,7 +13,7 @@ import { asyncLoop } from './utility/async'
 
 import { Action } from './models/actions'
 
-import { emptyDB as mockDB } from './utility/mocks'
+import { emptyDB as mockDB, chat as mockChat } from './utility/mocks'
 
 import { loop, messageHandler } from './logic/main'
 import { parseTime } from './logic/time'
@@ -54,30 +56,33 @@ import { parseTime } from './logic/time'
         log(`Listening at http://localhost:${serverPort}`)
     })
 
-    // --- DB ---
+    // --- External Services ---
     let db: DB
+    let chat: Chat
     if (isDebugFlagSet()) {
         db = mockDB
+        chat = mockChat
     } else {
         const pgdb = await pgDB(dbConnectionString)
         db = pgdb
         await pgdb.initDB()
+
+        chat = await initChat(channel, async (msg) => {
+            const actions = await messageHandler(msg, db).catch((e) => {
+                log(`Error in message handler!: ${e}`)
+                return []
+            })
+
+            log(`message actions: ${JSON.stringify(actions)}`)
+            await performActions(actions, chat, db).catch((e) => {
+                log(`Error performing actions!: ${e}`)
+            })
+        })
+
+        await chat.login(token)
     }
 
     // --- Chat Bot ---
-    const chat = await initChat(channel, async (msg) => {
-        const actions = await messageHandler(msg, db).catch((e) => {
-            log(`Error in message handler!: ${e}`)
-            return []
-        })
-
-        log(`message actions: ${JSON.stringify(actions)}`)
-        await performActions(actions, chat, db).catch((e) => {
-            log(`Error performing actions!: ${e}`)
-        })
-    })
-    await chat.login(token)
-
     asyncLoop(
         async () => {
             const actions = await loop(db, morningTime, nightTime).catch(
