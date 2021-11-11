@@ -7,6 +7,8 @@ import moment from 'moment-timezone'
 const locale = process.env.LOCALE || 'en-US'
 const timeZone = process.env.TIMEZONE || 'America/New_York'
 
+moment.tz.setDefault(timeZone)
+
 export function parseFrequency(value: string): MaybeError<Frequency> {
     const atSignIndex = value.indexOf('@')
 

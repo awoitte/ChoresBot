@@ -37,16 +37,17 @@ const time_1 = require("./logic/time");
         morningTime = (0, time_1.parseTime)(process.env.MORNING_TIME);
     }
     if (morningTime === undefined) {
-        morningTime = new Date();
-        morningTime.setHours(7, 0, 0);
+        // check `morningTime` is undefined instead of
+        // `process.env.MORNING_TIME` to handle the case that
+        // `MORNING_TIME` was set but was an invalid format
+        morningTime = (0, time_1.parseTime)('7:00 AM');
     }
     let nightTime;
     if (process.env.NIGHT_TIME !== undefined) {
         nightTime = (0, time_1.parseTime)(process.env.NIGHT_TIME);
     }
     if (nightTime === undefined) {
-        nightTime = new Date();
-        nightTime.setHours(23, 0, 0);
+        nightTime = (0, time_1.parseTime)('11:00 PM');
     }
     // --- Server ---
     const app = (0, express_1.default)();

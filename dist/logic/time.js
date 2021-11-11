@@ -10,6 +10,7 @@ const log_1 = __importDefault(require("../utility/log"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const locale = process.env.LOCALE || 'en-US';
 const timeZone = process.env.TIMEZONE || 'America/New_York';
+moment_timezone_1.default.tz.setDefault(timeZone);
 function parseFrequency(value) {
     const atSignIndex = value.indexOf('@');
     if (atSignIndex === -1) {

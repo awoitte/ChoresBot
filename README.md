@@ -32,11 +32,11 @@ To run:
 
 # Extra Notes
 
-ChoresBot is designed to be used on only _one_ guild (a.k.a. "servers"; Discord calls servers "guilds" internally). If the Discord Application bot has been invited to multiple guilds they will all be listened to and any responses will be posted to each matching channel (channel name is set by `DISCORD_CHANNEL`, see above). This means a user on Server A can send the `!help` command and ChoresBot will respond on Server A _AND_ Server B.
+ChoresBot is designed to be used on only _one_ guild (a.k.a. "servers"; Discord calls servers "guilds" internally). If the Discord Application bot has been invited to multiple guilds they will all be listened to and any responses will be posted to each matching channel (channel name is set by `DISCORD_CHANNEL`, see above). This means a user on "Server A" can send the `!help` command and ChoresBot will respond on "Server A" _AND_ "Server B".
 
 ---
 
-If you're unsure how to use ChoresBot a good place to start is with the `!help` command. It list all available commands with a summary. You can provide a command name to get more information, for example `!help add`.
+If you're unsure how to use ChoresBot a good place to start is with the `!help` command. It lists all available commands with a summary. You can provide a command name to get more information, for example `!help add`.
 
 # Dev Environment
 

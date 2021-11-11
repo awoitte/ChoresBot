@@ -34,8 +34,10 @@ import { parseTime } from './logic/time'
         morningTime = parseTime(process.env.MORNING_TIME)
     }
     if (morningTime === undefined) {
-        morningTime = new Date()
-        morningTime.setHours(7, 0, 0)
+        // check `morningTime` is undefined instead of
+        // `process.env.MORNING_TIME` to handle the case that
+        // `MORNING_TIME` was set but was an invalid format
+        morningTime = parseTime('7:00 AM')
     }
 
     let nightTime: Date | undefined
@@ -43,8 +45,7 @@ import { parseTime } from './logic/time'
         nightTime = parseTime(process.env.NIGHT_TIME)
     }
     if (nightTime === undefined) {
-        nightTime = new Date()
-        nightTime.setHours(23, 0, 0)
+        nightTime = parseTime('11:00 PM')
     }
 
     // --- Server ---
