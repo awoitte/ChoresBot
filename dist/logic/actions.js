@@ -4,6 +4,7 @@ exports.reminderAction = exports.didYouMeanMessage = exports.assignChoreActions 
 const chat_1 = require("../models/chat");
 const chores_1 = require("./chores");
 const chat_2 = require("../external/chat");
+const commands_1 = require("./commands");
 function completeChoreActions(completedChore, user) {
     return [
         {
@@ -50,7 +51,7 @@ function didYouMeanMessage(choreName, closestMatch, command, taggedUser) {
     return {
         kind: 'SendMessage',
         message: {
-            text: `❓ ${(0, chat_2.tagUser)(taggedUser)} Unable to find chore "${choreName}". Did you mean ${(0, chat_2.inlineCode)(`${command.callsign} ${closestMatch}`)}?`,
+            text: `❓ ${(0, chat_2.tagUser)(taggedUser)} Unable to find chore "${choreName}". Did you mean ${(0, chat_2.inlineCode)(`${(0, commands_1.defaultCallsign)(command)} ${closestMatch}`)}?`,
             author: chat_1.ChoresBotUser
         }
     };

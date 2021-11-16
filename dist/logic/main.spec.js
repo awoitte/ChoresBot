@@ -65,6 +65,21 @@ const actions_1 = require("./actions");
             }
             (0, chai_1.expect)(action.message.text).to.equal('pong');
         }));
+        it('should reply to the alias "!ping" with "pong"', () => __awaiter(void 0, void 0, void 0, function* () {
+            const actions = yield (0, main_1.messageHandler)({
+                text: '!ping',
+                author: {
+                    name: '',
+                    id: ''
+                }
+            }, mock.emptyDB);
+            (0, chai_1.expect)(actions).to.have.lengthOf(1);
+            const action = actions[0];
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type';
+            }
+            (0, chai_1.expect)(action.message.text).to.equal('pong');
+        }));
     });
     (0, mocha_1.describe)('!request command', () => {
         it('should provide the closest upcoming chore when requested', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -74,6 +89,7 @@ const actions_1 = require("./actions");
             }, mock.DBWithUpcoming);
             (0, chai_1.expect)(actions).to.have.lengthOf(2);
             let action = actions[0];
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             if (action.kind !== 'ModifyChore') {
                 throw 'Received Action of the wrong type';
             }
@@ -96,7 +112,7 @@ const actions_1 = require("./actions");
                 throw 'Received Action of the wrong type';
             }
             (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} you are already assigned the chore "${mock.assignedChore.name}". ` +
-                `If you would like to skip you can use the ${(0, chat_1.inlineCode)(commands_1.SkipCommand.callsign)} command`);
+                `If you would like to skip you can use the ${(0, chat_1.inlineCode)((0, commands_1.defaultCallsign)(commands_1.SkipCommand))} command`);
         }));
         it('should respond when there are no upcoming chores when requested', () => __awaiter(void 0, void 0, void 0, function* () {
             const actions = yield (0, main_1.messageHandler)({
@@ -165,13 +181,33 @@ const actions_1 = require("./actions");
                 throw 'Received Action of the wrong type';
             }
             (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} you have no chores currently assigned. ` +
-                `If you would like to request a new chore you can use the ${(0, chat_1.inlineCode)(commands_1.RequestCommand.callsign)} command`);
+                `If you would like to request a new chore you can use the ${(0, chat_1.inlineCode)((0, commands_1.defaultCallsign)(commands_1.RequestCommand))} command`);
         }));
     });
     (0, mocha_1.describe)('!complete command', () => {
         it('should respond when a chore has been completed', () => __awaiter(void 0, void 0, void 0, function* () {
             const actions = yield (0, main_1.messageHandler)({
                 text: '!complete',
+                author: mock.user1
+            }, mock.DBWithChoreAssigned);
+            (0, chai_1.expect)(actions).to.have.lengthOf(2);
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
+            let action = actions[0];
+            if (action.kind !== 'CompleteChore') {
+                throw 'Received Action of the wrong type';
+            }
+            (0, chai_1.expect)(action.chore.name).to.equal(mock.assignedChore.name);
+            (0, chai_1.expect)(action.chore.assigned).to.equal(false);
+            (0, chai_1.expect)(action.user.id).to.equal(mock.user1.id);
+            action = actions[1];
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type';
+            }
+            (0, chai_1.expect)(action.message.text).to.equal(`✅ the chore "${mock.assignedChore.name}" has been successfully completed`);
+        }));
+        it('should respond to alias "!completed"', () => __awaiter(void 0, void 0, void 0, function* () {
+            const actions = yield (0, main_1.messageHandler)({
+                text: '!completed',
                 author: mock.user1
             }, mock.DBWithChoreAssigned);
             (0, chai_1.expect)(actions).to.have.lengthOf(2);
@@ -201,7 +237,7 @@ const actions_1 = require("./actions");
                 throw 'Received Action of the wrong type';
             }
             (0, chai_1.expect)(action.message.text).to.equal(`${(0, chat_1.tagUser)(mock.user1)} you have no chores currently assigned. ` +
-                `If you would like to request a new chore you can use the ${(0, chat_1.inlineCode)(commands_1.RequestCommand.callsign)} command`);
+                `If you would like to request a new chore you can use the ${(0, chat_1.inlineCode)((0, commands_1.defaultCallsign)(commands_1.RequestCommand))} command`);
         }));
         it('should allow completing a chore by name', () => __awaiter(void 0, void 0, void 0, function* () {
             // Note: the chore isn't assigned to the user
@@ -245,6 +281,7 @@ const actions_1 = require("./actions");
             }, mock.DBWithChoreAssigned);
             (0, chai_1.expect)(actions).to.have.lengthOf(2);
             let action = actions[0];
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             if (action.kind !== 'ModifyChore') {
                 throw 'Received Action of the wrong type';
             }
@@ -364,7 +401,7 @@ const actions_1 = require("./actions");
         }));
         it('should delete a chore', () => __awaiter(void 0, void 0, void 0, function* () {
             const actions = yield (0, main_1.messageHandler)({
-                text: `!delete ${mock.genericChore}`,
+                text: `!delete ${mock.genericChore.name}`,
                 author: mock.user1
             }, mock.DBWithChoreByName);
             (0, chai_1.expect)(actions).to.have.lengthOf(2);
@@ -377,7 +414,7 @@ const actions_1 = require("./actions");
             if (action.kind !== 'SendMessage') {
                 throw 'Received Action of the wrong type';
             }
-            (0, chai_1.expect)(action.message.text).to.equal(`➖ ${(0, chat_1.tagUser)(mock.user1)} chore '${mock.genericChore}' successfully deleted ➖`);
+            (0, chai_1.expect)(action.message.text).to.equal(`➖ ${(0, chat_1.tagUser)(mock.user1)} chore '${mock.genericChore.name}' successfully deleted ➖`);
         }));
     });
     (0, mocha_1.describe)('!info command', () => {
@@ -487,6 +524,7 @@ const actions_1 = require("./actions");
             }, mock.DBWithChoreAssigned);
             (0, chai_1.expect)(actions).to.have.lengthOf(3);
             let action = actions[0];
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             if (action.kind !== 'ModifyChore') {
                 throw 'Received Action of the wrong type';
             }
@@ -522,7 +560,7 @@ const actions_1 = require("./actions");
         it('should provide help text for a specific command', () => __awaiter(void 0, void 0, void 0, function* () {
             for (const command of commands_1.AllCommands) {
                 const actions = yield (0, main_1.messageHandler)({
-                    text: `!help ${command.callsign}`,
+                    text: `!help ${(0, commands_1.defaultCallsign)(command)}`,
                     author: mock.user1
                 }, mock.emptyDB);
                 (0, chai_1.expect)(actions).to.have.lengthOf(1);
@@ -703,6 +741,7 @@ const actions_1 = require("./actions");
         }
         (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mockChore1.name}"`);
         action = actions[2];
+        // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
         if (action.kind !== 'ModifyChore') {
             throw 'Received Action of the wrong type';
         }

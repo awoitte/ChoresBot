@@ -26,12 +26,32 @@ function messageHandler(message, db) {
         (0, log_1.default)(`New message: [${message.author.name}] "${message.text}"`);
         const text = message.text.toLowerCase();
         for (const command of commands_1.AllCommands) {
-            if (!text.startsWith(command.callsign)) {
+            let args;
+            for (const callsign of command.callsigns) {
+                if (text.startsWith(callsign)) {
+                    const potentialArgs = text.slice(callsign.length).trim();
+                    // prefer callsigns that match more of the text and thus have shorter args
+                    // e.g. prefer "!completed" over "!complete" so the d isn't accidentally
+                    // parsed as an arg
+                    if (args === undefined || potentialArgs.length < args.length) {
+                        args = potentialArgs;
+                    }
+                }
+            }
+            if (args === undefined) {
+                // even if the command has no args it should still be set to an empty string
+                // thus we can use it as a flag to check if a command name match was found
                 continue;
             }
             if (command.minArgumentCount !== undefined) {
-                const words = message.text.trim().split(' ');
-                const numberOfArguments = words.length - 1;
+                let numberOfArguments;
+                if (args.trim() === '') {
+                    numberOfArguments = 0;
+                }
+                else {
+                    const words = args.trim().split(' ');
+                    numberOfArguments = words.length;
+                }
                 if (numberOfArguments < command.minArgumentCount) {
                     return [
                         {
@@ -46,14 +66,14 @@ function messageHandler(message, db) {
                 }
             }
             try {
-                return yield command.handler(message, db);
+                return yield command.handler(message, db, args);
             }
             catch (error) {
                 return [
                     {
                         kind: 'SendMessage',
                         message: {
-                            text: `Error running command "${command.callsign}" (see logs)`,
+                            text: `Error running command "${(0, commands_1.defaultCallsign)(command)}" (see logs)`,
                             author: chat_1.ChoresBotUser
                         }
                     }

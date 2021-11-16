@@ -4,6 +4,7 @@ import { Action } from '../models/actions'
 import { Chore } from '../models/chores'
 import { tagUser, inlineCode, bold } from '../external/chat'
 import { Command } from '../models/commands'
+import { defaultCallsign } from './commands'
 
 export function completeChoreActions(
     completedChore: Chore,
@@ -69,7 +70,7 @@ export function didYouMeanMessage(
             text: `❓ ${tagUser(
                 taggedUser
             )} Unable to find chore "${choreName}". Did you mean ${inlineCode(
-                `${command.callsign} ${closestMatch}`
+                `${defaultCallsign(command)} ${closestMatch}`
             )}?`,
             author: ChoresBotUser
         }

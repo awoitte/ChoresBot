@@ -13,7 +13,8 @@ import {
     HelpCommand,
     InfoCommand,
     RequestCommand,
-    SkipCommand
+    SkipCommand,
+    defaultCallsign
 } from './commands'
 
 import { tagUser, inlineCode } from '../external/chat'
@@ -61,6 +62,29 @@ describe('Message handling logic', async () => {
 
             expect(action.message.text).to.equal('pong')
         })
+
+        it('should reply to the alias "!ping" with "pong"', async () => {
+            const actions = await messageHandler(
+                {
+                    text: '!ping',
+                    author: {
+                        name: '',
+                        id: ''
+                    }
+                },
+                mock.emptyDB
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal('pong')
+        })
     })
 
     describe('!request command', () => {
@@ -77,6 +101,7 @@ describe('Message handling logic', async () => {
 
             let action: Action = actions[0]
 
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             if (action.kind !== 'ModifyChore') {
                 throw 'Received Action of the wrong type'
             }
@@ -119,7 +144,7 @@ describe('Message handling logic', async () => {
                     mock.assignedChore.name
                 }". ` +
                     `If you would like to skip you can use the ${inlineCode(
-                        SkipCommand.callsign
+                        defaultCallsign(SkipCommand)
                     )} command`
             )
         })
@@ -241,7 +266,7 @@ describe('Message handling logic', async () => {
                     mock.user1
                 )} you have no chores currently assigned. ` +
                     `If you would like to request a new chore you can use the ${inlineCode(
-                        RequestCommand.callsign
+                        defaultCallsign(RequestCommand)
                     )} command`
             )
         })
@@ -252,6 +277,39 @@ describe('Message handling logic', async () => {
             const actions = await messageHandler(
                 {
                     text: '!complete',
+                    author: mock.user1
+                },
+                mock.DBWithChoreAssigned
+            )
+
+            expect(actions).to.have.lengthOf(2)
+
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
+            let action: Action = actions[0]
+
+            if (action.kind !== 'CompleteChore') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.chore.name).to.equal(mock.assignedChore.name)
+            expect(action.chore.assigned).to.equal(false)
+            expect(action.user.id).to.equal(mock.user1.id)
+
+            action = actions[1]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.equal(
+                `✅ the chore "${mock.assignedChore.name}" has been successfully completed`
+            )
+        })
+
+        it('should respond to alias "!completed"', async () => {
+            const actions = await messageHandler(
+                {
+                    text: '!completed',
                     author: mock.user1
                 },
                 mock.DBWithChoreAssigned
@@ -303,7 +361,7 @@ describe('Message handling logic', async () => {
                     mock.user1
                 )} you have no chores currently assigned. ` +
                     `If you would like to request a new chore you can use the ${inlineCode(
-                        RequestCommand.callsign
+                        defaultCallsign(RequestCommand)
                     )} command`
             )
         })
@@ -384,6 +442,7 @@ describe('Message handling logic', async () => {
 
             let action: Action = actions[0]
 
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             if (action.kind !== 'ModifyChore') {
                 throw 'Received Action of the wrong type'
             }
@@ -582,7 +641,7 @@ describe('Message handling logic', async () => {
         it('should delete a chore', async () => {
             const actions = await messageHandler(
                 {
-                    text: `!delete ${mock.genericChore}`,
+                    text: `!delete ${mock.genericChore.name}`,
                     author: mock.user1
                 },
                 mock.DBWithChoreByName
@@ -606,7 +665,7 @@ describe('Message handling logic', async () => {
 
             expect(action.message.text).to.equal(
                 `➖ ${tagUser(mock.user1)} chore '${
-                    mock.genericChore
+                    mock.genericChore.name
                 }' successfully deleted ➖`
             )
         })
@@ -808,6 +867,7 @@ describe('Message handling logic', async () => {
 
             let action: Action = actions[0]
 
+            // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
             if (action.kind !== 'ModifyChore') {
                 throw 'Received Action of the wrong type'
             }
@@ -864,7 +924,7 @@ describe('Message handling logic', async () => {
             for (const command of AllCommands) {
                 const actions = await messageHandler(
                     {
-                        text: `!help ${command.callsign}`,
+                        text: `!help ${defaultCallsign(command)}`,
                         author: mock.user1
                     },
                     mock.emptyDB
@@ -1176,6 +1236,7 @@ describe('Actions performed at an interval', () => {
 
         action = actions[2]
 
+        // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
         if (action.kind !== 'ModifyChore') {
             throw 'Received Action of the wrong type'
         }

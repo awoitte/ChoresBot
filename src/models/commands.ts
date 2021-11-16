@@ -3,9 +3,13 @@ import { Action } from './actions'
 import { ReadOnlyDB } from './db'
 
 export type Command = {
-    callsign: string
+    callsigns: string[]
     minArgumentCount?: number
     summary: string
     helpText?: string
-    handler: (message: Message, db: ReadOnlyDB) => Promise<Action[]>
+    handler: (
+        message: Message,
+        db: ReadOnlyDB,
+        args: string
+    ) => Promise<Action[]>
 }

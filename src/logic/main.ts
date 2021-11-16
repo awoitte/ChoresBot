@@ -3,7 +3,7 @@ import { Action } from '../models/actions'
 import { DB } from '../models/db'
 import log from '../utility/log'
 import { findUserForChore } from './chores'
-import { AllCommands } from './commands'
+import { AllCommands, defaultCallsign } from './commands'
 import { assignChoreActions, reminderAction } from './actions'
 import {
     isDateAfter,
@@ -25,13 +25,36 @@ export async function messageHandler(
     const text = message.text.toLowerCase()
 
     for (const command of AllCommands) {
-        if (!text.startsWith(command.callsign)) {
+        let args: string | undefined
+
+        for (const callsign of command.callsigns) {
+            if (text.startsWith(callsign)) {
+                const potentialArgs = text.slice(callsign.length).trim()
+
+                // prefer callsigns that match more of the text and thus have shorter args
+                // e.g. prefer "!completed" over "!complete" so the d isn't accidentally
+                // parsed as an arg
+                if (args === undefined || potentialArgs.length < args.length) {
+                    args = potentialArgs
+                }
+            }
+        }
+
+        if (args === undefined) {
+            // even if the command has no args it should still be set to an empty string
+            // thus we can use it as a flag to check if a command name match was found
             continue
         }
 
         if (command.minArgumentCount !== undefined) {
-            const words = message.text.trim().split(' ')
-            const numberOfArguments = words.length - 1
+            let numberOfArguments
+
+            if (args.trim() === '') {
+                numberOfArguments = 0
+            } else {
+                const words = args.trim().split(' ')
+                numberOfArguments = words.length
+            }
 
             if (numberOfArguments < command.minArgumentCount) {
                 return [
@@ -49,13 +72,15 @@ export async function messageHandler(
         }
 
         try {
-            return await command.handler(message, db)
+            return await command.handler(message, db, args)
         } catch (error) {
             return [
                 {
                     kind: 'SendMessage',
                     message: {
-                        text: `Error running command "${command.callsign}" (see logs)`,
+                        text: `Error running command "${defaultCallsign(
+                            command
+                        )}" (see logs)`,
                         author: ChoresBotUser
                     }
                 }
