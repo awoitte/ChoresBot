@@ -109,6 +109,7 @@ function loop(db, morningTime, nightTime) {
         let assignableUsers;
         try {
             assignableUsers = yield db.getAssignableUsersInOrderOfRecentCompletion();
+            assignableUsers.reverse(); // we want least recent completion first
         }
         catch (e) {
             (0, log_1.default)('Unable to get assignable users');

@@ -996,6 +996,39 @@ describe('Actions performed at an interval', () => {
         )
     })
 
+    it('should prompt user with least recent completion first ("round-robin")', async () => {
+        const mockDB = Object.assign({}, mock.DBWithOutstandingChores, {
+            getAssignableUsersInOrderOfRecentCompletion: () => {
+                return [mock.user1, mock.user2]
+            }
+        })
+
+        const actions = await loop(mockDB)
+
+        expect(actions).to.have.lengthOf(2)
+
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecessarily
+        let action: Action = actions[0]
+
+        if (action.kind !== 'ModifyChore') {
+            throw 'Received Action of the wrong type'
+        }
+
+        expect(action.chore.assigned).to.equal(mock.user2)
+
+        action = actions[1]
+
+        if (action.kind !== 'SendMessage') {
+            throw 'Received Action of the wrong type'
+        }
+
+        expect(action.message.text).to.equal(
+            `📋 ${tagUser(mock.user2)} please do the chore: "${
+                mock.overdueChore.name
+            }"`
+        )
+    })
+
     it('should only prompt users to complete chores between "morning" and "night" times', async () => {
         let actions = await loop(mock.DBWithOutstandingChores)
 
@@ -1220,7 +1253,7 @@ describe('Actions performed at an interval', () => {
             throw 'Received Action of the wrong type'
         }
 
-        expect(action.chore.assigned).to.equal(mock.user1)
+        expect(action.chore.assigned).to.equal(mock.user2)
 
         action = actions[1]
 
@@ -1229,7 +1262,7 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `📋 ${tagUser(mock.user1)} please do the chore: "${
+            `📋 ${tagUser(mock.user2)} please do the chore: "${
                 mockChore1.name
             }"`
         )
@@ -1241,7 +1274,7 @@ describe('Actions performed at an interval', () => {
             throw 'Received Action of the wrong type'
         }
 
-        expect(action.chore.assigned).to.equal(mock.user2)
+        expect(action.chore.assigned).to.equal(mock.user1)
 
         action = actions[3]
 
@@ -1250,7 +1283,7 @@ describe('Actions performed at an interval', () => {
         }
 
         expect(action.message.text).to.equal(
-            `📋 ${tagUser(mock.user2)} please do the chore: "${
+            `📋 ${tagUser(mock.user1)} please do the chore: "${
                 mockChore2.name
             }"`
         )

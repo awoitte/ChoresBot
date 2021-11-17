@@ -161,6 +161,16 @@ function runDBTestSuite(db) {
                     (0, chai_1.expect)(assignedChores).to.have.length(1);
                     (0, chai_1.expect)(assignedChores[0].name).to.equal(mock.assignedChore.name);
                 }));
+                it('should not get deleted chores with assigned chores', () => __awaiter(this, void 0, void 0, function* () {
+                    yield db.addUser(mock.user1);
+                    yield db.addChore(mock.assignedChore);
+                    let assignedChores = yield db.getAllAssignedChores();
+                    (0, chai_1.expect)(assignedChores).to.have.length(1);
+                    (0, chai_1.expect)(assignedChores[0].name).to.equal(mock.assignedChore.name);
+                    yield db.deleteChore(mock.assignedChore.name);
+                    assignedChores = yield db.getAllAssignedChores();
+                    (0, chai_1.expect)(assignedChores).to.have.length(0);
+                }));
                 it('should get all outstanding unassigned chores', () => __awaiter(this, void 0, void 0, function* () {
                     yield db.addUser(mock.user1);
                     yield db.addChore(mock.overdueChore);
@@ -172,6 +182,21 @@ function runDBTestSuite(db) {
                     (0, chai_1.expect)(outstandingChores[0].name).to.equal(mock.moreOverdueChore.name);
                     (0, chai_1.expect)(outstandingChores[1].name).to.equal(mock.overdueChore.name);
                     yield db.addChoreCompletion(mock.overdueChore.name, mock.user1);
+                    outstandingChores = yield db.getOutstandingUnassignedChores();
+                    (0, chai_1.expect)(outstandingChores).to.have.length(1);
+                    (0, chai_1.expect)(outstandingChores[0].name).to.equal(mock.moreOverdueChore.name);
+                }));
+                it('should not get deleted chores as outstanding', () => __awaiter(this, void 0, void 0, function* () {
+                    yield db.addUser(mock.user1);
+                    yield db.addChore(mock.overdueChore);
+                    yield db.addChore(mock.moreOverdueChore);
+                    yield db.addChore(mock.upcomingChore);
+                    yield db.addChore(mock.assignedChore);
+                    let outstandingChores = yield db.getOutstandingUnassignedChores();
+                    (0, chai_1.expect)(outstandingChores).to.have.length(2);
+                    (0, chai_1.expect)(outstandingChores[0].name).to.equal(mock.moreOverdueChore.name);
+                    (0, chai_1.expect)(outstandingChores[1].name).to.equal(mock.overdueChore.name);
+                    yield db.deleteChore(mock.overdueChore.name);
                     outstandingChores = yield db.getOutstandingUnassignedChores();
                     (0, chai_1.expect)(outstandingChores).to.have.length(1);
                     (0, chai_1.expect)(outstandingChores[0].name).to.equal(mock.moreOverdueChore.name);

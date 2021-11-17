@@ -76,16 +76,21 @@ WHERE chore = $1
 ORDER BY at DESC
 `;
 exports.getChoresAssignedToUser = getChoresWhere(`
-WHERE assigned = $1 AND deleted IS NULL
+WHERE assigned = $1
+AND deleted IS NULL
 `);
 exports.getAllUnassignedChores = getChoresWhere(`
 WHERE assigned IS NULL
+AND deleted IS NULL
 `);
 exports.getAllAssignedChores = getChoresWhere(`
 WHERE assigned IS NOT NULL
+AND deleted IS NULL
 `);
 exports.getMostRecentCompletionForChore = `
 SELECT at FROM (${mostRecentCompletions}) AS completions
 WHERE chore = $1
 `;
+// NOTE: for all new chore queries, make sure not to expose deleted chores outside the db
+// (unless expressly noted)
 //# sourceMappingURL=chores.js.map

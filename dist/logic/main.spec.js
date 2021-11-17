@@ -606,6 +606,26 @@ const actions_1 = require("./actions");
         }
         (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mock.overdueChore.name}"`);
     }));
+    it('should prompt user with least recent completion first ("round-robin")', () => __awaiter(void 0, void 0, void 0, function* () {
+        const mockDB = Object.assign({}, mock.DBWithOutstandingChores, {
+            getAssignableUsersInOrderOfRecentCompletion: () => {
+                return [mock.user1, mock.user2];
+            }
+        });
+        const actions = yield (0, main_1.loop)(mockDB);
+        (0, chai_1.expect)(actions).to.have.lengthOf(2);
+        // make sure modify chore is first so that if it fails we're not alerting the user unnecessarily
+        let action = actions[0];
+        if (action.kind !== 'ModifyChore') {
+            throw 'Received Action of the wrong type';
+        }
+        (0, chai_1.expect)(action.chore.assigned).to.equal(mock.user2);
+        action = actions[1];
+        if (action.kind !== 'SendMessage') {
+            throw 'Received Action of the wrong type';
+        }
+        (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user2)} please do the chore: "${mock.overdueChore.name}"`);
+    }));
     it('should only prompt users to complete chores between "morning" and "night" times', () => __awaiter(void 0, void 0, void 0, function* () {
         let actions = yield (0, main_1.loop)(mock.DBWithOutstandingChores);
         (0, chai_1.expect)(actions).to.have.lengthOf(2);
@@ -734,23 +754,23 @@ const actions_1 = require("./actions");
         if (action.kind !== 'ModifyChore') {
             throw 'Received Action of the wrong type';
         }
-        (0, chai_1.expect)(action.chore.assigned).to.equal(mock.user1);
+        (0, chai_1.expect)(action.chore.assigned).to.equal(mock.user2);
         action = actions[1];
         if (action.kind !== 'SendMessage') {
             throw 'Received Action of the wrong type';
         }
-        (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mockChore1.name}"`);
+        (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user2)} please do the chore: "${mockChore1.name}"`);
         action = actions[2];
         // make sure modify/complete chores are first so that if they fail we're not alerting the user unnecessarily
         if (action.kind !== 'ModifyChore') {
             throw 'Received Action of the wrong type';
         }
-        (0, chai_1.expect)(action.chore.assigned).to.equal(mock.user2);
+        (0, chai_1.expect)(action.chore.assigned).to.equal(mock.user1);
         action = actions[3];
         if (action.kind !== 'SendMessage') {
             throw 'Received Action of the wrong type';
         }
-        (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user2)} please do the chore: "${mockChore2.name}"`);
+        (0, chai_1.expect)(action.message.text).to.equal(`📋 ${(0, chat_1.tagUser)(mock.user1)} please do the chore: "${mockChore2.name}"`);
     }));
 });
 //# sourceMappingURL=main.spec.js.map

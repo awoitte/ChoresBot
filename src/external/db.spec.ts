@@ -195,6 +195,22 @@ async function runDBTestSuite(db: PostgresDB) {
                 expect(assignedChores[0].name).to.equal(mock.assignedChore.name)
             })
 
+            it('should not get deleted chores with assigned chores', async () => {
+                await db.addUser(mock.user1)
+                await db.addChore(mock.assignedChore)
+
+                let assignedChores = await db.getAllAssignedChores()
+
+                expect(assignedChores).to.have.length(1)
+                expect(assignedChores[0].name).to.equal(mock.assignedChore.name)
+
+                await db.deleteChore(mock.assignedChore.name)
+
+                assignedChores = await db.getAllAssignedChores()
+
+                expect(assignedChores).to.have.length(0)
+            })
+
             it('should get all outstanding unassigned chores', async () => {
                 await db.addUser(mock.user1)
                 await db.addChore(mock.overdueChore)
@@ -214,6 +230,33 @@ async function runDBTestSuite(db: PostgresDB) {
                 )
 
                 await db.addChoreCompletion(mock.overdueChore.name, mock.user1)
+
+                outstandingChores = await db.getOutstandingUnassignedChores()
+                expect(outstandingChores).to.have.length(1)
+                expect(outstandingChores[0].name).to.equal(
+                    mock.moreOverdueChore.name
+                )
+            })
+
+            it('should not get deleted chores as outstanding', async () => {
+                await db.addUser(mock.user1)
+                await db.addChore(mock.overdueChore)
+                await db.addChore(mock.moreOverdueChore)
+                await db.addChore(mock.upcomingChore)
+                await db.addChore(mock.assignedChore)
+
+                let outstandingChores =
+                    await db.getOutstandingUnassignedChores()
+
+                expect(outstandingChores).to.have.length(2)
+                expect(outstandingChores[0].name).to.equal(
+                    mock.moreOverdueChore.name
+                )
+                expect(outstandingChores[1].name).to.equal(
+                    mock.overdueChore.name
+                )
+
+                await db.deleteChore(mock.overdueChore.name)
 
                 outstandingChores = await db.getOutstandingUnassignedChores()
                 expect(outstandingChores).to.have.length(1)

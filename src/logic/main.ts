@@ -127,6 +127,7 @@ export async function loop(
     let assignableUsers
     try {
         assignableUsers = await db.getAssignableUsersInOrderOfRecentCompletion()
+        assignableUsers.reverse() // we want least recent completion first
     } catch (e) {
         log('Unable to get assignable users')
         throw e

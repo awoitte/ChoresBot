@@ -85,18 +85,24 @@ ORDER BY at DESC
 `
 
 export const getChoresAssignedToUser = getChoresWhere(`
-WHERE assigned = $1 AND deleted IS NULL
+WHERE assigned = $1
+AND deleted IS NULL
 `)
 
 export const getAllUnassignedChores = getChoresWhere(`
 WHERE assigned IS NULL
+AND deleted IS NULL
 `)
 
 export const getAllAssignedChores = getChoresWhere(`
 WHERE assigned IS NOT NULL
+AND deleted IS NULL
 `)
 
 export const getMostRecentCompletionForChore = `
 SELECT at FROM (${mostRecentCompletions}) AS completions
 WHERE chore = $1
 `
+
+// NOTE: for all new chore queries, make sure not to expose deleted chores outside the db
+// (unless expressly noted)
