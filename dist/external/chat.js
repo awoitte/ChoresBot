@@ -27,8 +27,6 @@ function initChat(channelName, callback) {
             ]
         });
         client.on('messageCreate', (msg) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            (0, log_1.default)(`Message Received: [${msg.author.tag} in ${(_a = msg.guild) === null || _a === void 0 ? void 0 : _a.name}] ${msg.content}`);
             if (msg.channel instanceof discord_js_1.TextChannel &&
                 msg.channel.name == channelName &&
                 !msg.author.bot // if ChoresBot isn't the author

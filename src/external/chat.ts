@@ -18,10 +18,6 @@ export async function initChat(
     })
 
     client.on('messageCreate', async (msg) => {
-        log(
-            `Message Received: [${msg.author.tag} in ${msg.guild?.name}] ${msg.content}`
-        )
-
         if (
             msg.channel instanceof TextChannel &&
             msg.channel.name == channelName &&
