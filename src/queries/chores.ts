@@ -15,11 +15,18 @@ export const deleteChore = `
 UPDATE chores SET deleted = NOW() WHERE name = $1
 `
 
-const mostRecentCompletions = `
+export const mostRecentCompletionOfChores = `
 SELECT MAX(at) AS at, chore FROM chore_completions
 INNER JOIN chores ON chores.name = chore
 WHERE chores.created < at -- if a chore is re-added then ignore prior completions
-GROUP BY chore 
+GROUP BY chore
+`
+
+export const mostRecentCompletionOfUsers = `
+SELECT MAX(at) AS at, by FROM chore_completions
+INNER JOIN chores ON chores.name = chore
+WHERE chores.created < at -- if a chore is re-added then ignore prior completions
+GROUP BY by
 `
 
 export const addSkip = `
@@ -28,7 +35,7 @@ SELECT $1, CAST($2 AS VARCHAR)
 WHERE NOT EXISTS (
     -- any skips by user since last completion
     SELECT 1 FROM chore_skips s
-    LEFT JOIN (${mostRecentCompletions})
+    LEFT JOIN (${mostRecentCompletionOfChores})
         AS c
         ON c.chore = s.chore
     WHERE s.at > c.at AND s.by = $2
@@ -58,7 +65,7 @@ SELECT
     frequency_weekday,
     array_agg(s.by) AS skipped_by
 FROM chores
-LEFT JOIN (${mostRecentCompletions})
+LEFT JOIN (${mostRecentCompletionOfChores})
     AS c
     ON c.chore = name
 LEFT JOIN chore_skips s
@@ -100,7 +107,7 @@ AND deleted IS NULL
 `)
 
 export const getMostRecentCompletionForChore = `
-SELECT at FROM (${mostRecentCompletions}) AS completions
+SELECT at FROM (${mostRecentCompletionOfChores}) AS completions
 WHERE chore = $1
 `
 

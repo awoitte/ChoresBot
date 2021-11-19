@@ -301,6 +301,7 @@ function runDBTestSuite(db) {
                     yield db.addUser(mock.user2);
                     yield db.addUser(mock.user3);
                     yield db.addChore(mock.genericChore);
+                    yield db.addChore(mock.upcomingChore);
                     yield db.addChoreCompletion(mock.genericChore.name, mock.user1);
                     let users = yield db.getAssignableUsersInOrderOfRecentCompletion();
                     (0, chai_1.expect)(users).to.have.length(3);
@@ -318,6 +319,18 @@ function runDBTestSuite(db) {
                     (0, chai_1.expect)(users[0].id).to.equal(mock.user3.id);
                     (0, chai_1.expect)(users[1].id).to.equal(mock.user2.id);
                     (0, chai_1.expect)(users[2].id).to.equal(mock.user1.id);
+                    yield db.addChoreCompletion(mock.genericChore.name, mock.user1);
+                    users = yield db.getAssignableUsersInOrderOfRecentCompletion();
+                    (0, chai_1.expect)(users).to.have.length(3);
+                    (0, chai_1.expect)(users[0].id).to.equal(mock.user1.id);
+                    (0, chai_1.expect)(users[1].id).to.equal(mock.user3.id);
+                    (0, chai_1.expect)(users[2].id).to.equal(mock.user2.id);
+                    yield db.addChoreCompletion(mock.upcomingChore.name, mock.user2);
+                    users = yield db.getAssignableUsersInOrderOfRecentCompletion();
+                    (0, chai_1.expect)(users).to.have.length(3);
+                    (0, chai_1.expect)(users[0].id).to.equal(mock.user2.id);
+                    (0, chai_1.expect)(users[1].id).to.equal(mock.user1.id);
+                    (0, chai_1.expect)(users[2].id).to.equal(mock.user3.id);
                 }));
                 it('should not return a user as assignable if they already have a chore assigned', () => __awaiter(this, void 0, void 0, function* () {
                     yield db.addUser(mock.user1);

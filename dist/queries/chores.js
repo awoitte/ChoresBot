@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMostRecentCompletionForChore = exports.getAllAssignedChores = exports.getAllUnassignedChores = exports.getChoresAssignedToUser = exports.getChoreCompletions = exports.completeChore = exports.getChoreByName = exports.getAllChoreNames = exports.modifyChore = exports.addSkip = exports.deleteChore = exports.addChores = void 0;
+exports.getMostRecentCompletionForChore = exports.getAllAssignedChores = exports.getAllUnassignedChores = exports.getChoresAssignedToUser = exports.getChoreCompletions = exports.completeChore = exports.getChoreByName = exports.getAllChoreNames = exports.modifyChore = exports.addSkip = exports.mostRecentCompletionOfUsers = exports.mostRecentCompletionOfChores = exports.deleteChore = exports.addChores = void 0;
 exports.addChores = `
 INSERT INTO chores(name, assigned, frequency_kind, frequency_date, frequency_weekday) VALUES ($1, $2, $3, $4, $5)
 
@@ -16,11 +16,17 @@ ON CONFLICT (name) DO UPDATE SET
 exports.deleteChore = `
 UPDATE chores SET deleted = NOW() WHERE name = $1
 `;
-const mostRecentCompletions = `
+exports.mostRecentCompletionOfChores = `
 SELECT MAX(at) AS at, chore FROM chore_completions
 INNER JOIN chores ON chores.name = chore
 WHERE chores.created < at -- if a chore is re-added then ignore prior completions
-GROUP BY chore 
+GROUP BY chore
+`;
+exports.mostRecentCompletionOfUsers = `
+SELECT MAX(at) AS at, by FROM chore_completions
+INNER JOIN chores ON chores.name = chore
+WHERE chores.created < at -- if a chore is re-added then ignore prior completions
+GROUP BY by
 `;
 exports.addSkip = `
 INSERT INTO chore_skips(chore, by) 
@@ -28,7 +34,7 @@ SELECT $1, CAST($2 AS VARCHAR)
 WHERE NOT EXISTS (
     -- any skips by user since last completion
     SELECT 1 FROM chore_skips s
-    LEFT JOIN (${mostRecentCompletions})
+    LEFT JOIN (${exports.mostRecentCompletionOfChores})
         AS c
         ON c.chore = s.chore
     WHERE s.at > c.at AND s.by = $2
@@ -55,7 +61,7 @@ SELECT
     frequency_weekday,
     array_agg(s.by) AS skipped_by
 FROM chores
-LEFT JOIN (${mostRecentCompletions})
+LEFT JOIN (${exports.mostRecentCompletionOfChores})
     AS c
     ON c.chore = name
 LEFT JOIN chore_skips s
@@ -88,7 +94,7 @@ WHERE assigned IS NOT NULL
 AND deleted IS NULL
 `);
 exports.getMostRecentCompletionForChore = `
-SELECT at FROM (${mostRecentCompletions}) AS completions
+SELECT at FROM (${exports.mostRecentCompletionOfChores}) AS completions
 WHERE chore = $1
 `;
 // NOTE: for all new chore queries, make sure not to expose deleted chores outside the db

@@ -419,6 +419,7 @@ async function runDBTestSuite(db: PostgresDB) {
                 await db.addUser(mock.user2)
                 await db.addUser(mock.user3)
                 await db.addChore(mock.genericChore)
+                await db.addChore(mock.upcomingChore)
 
                 await db.addChoreCompletion(mock.genericChore.name, mock.user1)
 
@@ -449,6 +450,26 @@ async function runDBTestSuite(db: PostgresDB) {
                 expect(users[0].id).to.equal(mock.user3.id)
                 expect(users[1].id).to.equal(mock.user2.id)
                 expect(users[2].id).to.equal(mock.user1.id)
+
+                await db.addChoreCompletion(mock.genericChore.name, mock.user1)
+
+                users = await db.getAssignableUsersInOrderOfRecentCompletion()
+
+                expect(users).to.have.length(3)
+
+                expect(users[0].id).to.equal(mock.user1.id)
+                expect(users[1].id).to.equal(mock.user3.id)
+                expect(users[2].id).to.equal(mock.user2.id)
+
+                await db.addChoreCompletion(mock.upcomingChore.name, mock.user2)
+
+                users = await db.getAssignableUsersInOrderOfRecentCompletion()
+
+                expect(users).to.have.length(3)
+
+                expect(users[0].id).to.equal(mock.user2.id)
+                expect(users[1].id).to.equal(mock.user1.id)
+                expect(users[2].id).to.equal(mock.user3.id)
             })
 
             it('should not return a user as assignable if they already have a chore assigned', async () => {

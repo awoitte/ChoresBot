@@ -1,3 +1,5 @@
+import { mostRecentCompletionOfUsers } from './chores'
+
 export const addUser = `
 INSERT INTO users(name, id) VALUES ($1, $2)
 
@@ -16,7 +18,7 @@ SELECT name, id FROM users WHERE deleted IS NULL
 
 export const getUnassignedUsersSortedByCompletions = `
 SELECT u.name, u.id FROM users u
-LEFT JOIN chore_completions ON u.id = chore_completions.by
+LEFT JOIN (${mostRecentCompletionOfUsers}) AS chore_completions ON u.id = chore_completions.by
 LEFT JOIN chores ON u.id = chores.assigned AND chores.deleted IS NULL
 WHERE chores.assigned IS NULL
 ORDER BY chore_completions.at DESC NULLS LAST
