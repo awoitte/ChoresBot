@@ -90,6 +90,13 @@ function frequencyToString(frequency) {
         case 'Weekly': {
             return `${frequency.kind} @ ${(0, strings_1.toTitleCase)(frequency.weekday)}`;
         }
+        case 'Monthly': {
+            return `${frequency.kind} @ ${formatDateTime(frequency.date, {
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            })}`;
+        }
         case 'Yearly': {
             return `${frequency.kind} @ ${formatDateTime(frequency.date, {
                 month: 'long',

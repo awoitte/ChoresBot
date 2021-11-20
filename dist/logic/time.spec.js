@@ -171,11 +171,22 @@ if (process.env.LOCALE == 'en-US' &&
             };
             (0, chai_1.expect)((0, time_1.frequencyToString)(frequency)).to.equal('Daily @ 1:20 AM');
         });
+        it('should display day and time but not month or year for monthly frequency', () => {
+            const date = new Date();
+            date.setHours(1);
+            date.setMinutes(20);
+            date.setDate(15);
+            const frequency = {
+                kind: 'Monthly',
+                date
+            };
+            (0, chai_1.expect)((0, time_1.frequencyToString)(frequency)).to.equal('Monthly @ 15, 1:20 AM');
+        });
         it('should display date and time but not year for yearly frequency', () => {
             const date = new Date();
-            date.setHours(1); // February
+            date.setHours(1);
             date.setMinutes(20);
-            date.setMonth(1);
+            date.setMonth(1); // February
             date.setDate(15);
             const frequency = {
                 kind: 'Yearly',
