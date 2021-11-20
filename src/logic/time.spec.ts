@@ -193,6 +193,35 @@ describe('Frequency parsing algorithm', () => {
         expect(frequency.date.getDate()).to.equal(10)
         expect(frequency.date.getFullYear()).to.equal(2022)
     })
+
+    it('should parse monthly', () => {
+        let frequency = parseFrequency('monthly @ 10 9:00 PM')
+
+        if (
+            frequency === undefined ||
+            frequency instanceof Error ||
+            frequency.kind !== 'Monthly'
+        ) {
+            throw new Error('incorrect frequency')
+        }
+
+        expect(frequency.date.getDate()).to.equal(10)
+        expect(frequency.date.getHours()).to.equal(21)
+        expect(frequency.date.getMinutes()).to.equal(0)
+
+        frequency = parseFrequency('monthly @ 7:00')
+
+        if (
+            frequency === undefined ||
+            frequency instanceof Error ||
+            frequency.kind !== 'Monthly'
+        ) {
+            throw new Error('incorrect frequency')
+        }
+
+        expect(frequency.date.getHours()).to.equal(7)
+        expect(frequency.date.getMinutes()).to.equal(0)
+    })
 })
 
 if (

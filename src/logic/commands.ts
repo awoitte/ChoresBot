@@ -192,6 +192,7 @@ frequency:
     How frequently the chore should be completed/assigned. Must be one of the following formats:
         Daily @ <time>
         Weekly @ <day>
+        Monthly @ <day/time>
         Yearly @ <date>
         Once @ <date/time>
 
@@ -203,7 +204,8 @@ e.g.
 !add walk the cat Daily @ 9:00 AM
 !add flip the pool Weekly @ monday
 !add make a pile Yearly @ Feb 12
-!add floop the pig Once @ Nov 9 2:00 PM`,
+!add floop the pig Once @ Nov 9 2:00 PM
+!add clean kitchen fans Monthly @ 10th 10:00 AM`,
     minArgumentCount: 2,
     handler: async (message, db, commandArgs) => {
         const words = commandArgs.split(' ')

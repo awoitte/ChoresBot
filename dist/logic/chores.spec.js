@@ -100,7 +100,36 @@ const time_1 = require("../models/time");
         now = new Date(wednesday.getTime() - time_1.dayInMilliseconds);
         (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.false;
     });
-    it('should determine if a monthly chore is overdue');
+    it('should determine if a monthly chore is overdue', () => {
+        const date = new Date();
+        let now;
+        let completion;
+        const roughlyOneMonth = time_1.weekInMilliseconds * 5;
+        const mockChore = Object.assign({}, mock.genericChore, {
+            frequency: {
+                kind: 'Monthly',
+                date
+            }
+        });
+        // it's before the date and never completed
+        now = new Date(date.getTime() - time_1.weekInMilliseconds);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, undefined, now)).to.be.true;
+        // it's after the date and never completed
+        now = new Date(date.getTime() + time_1.weekInMilliseconds);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, undefined, now)).to.be.true;
+        // it's after the date but has been completed early
+        completion = new Date(date.getTime() - time_1.dayInMilliseconds);
+        now = new Date(date.getTime() + time_1.dayInMilliseconds);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.false;
+        // it's after the date but has been completed
+        completion = new Date(date.getTime() + (roughlyOneMonth - time_1.dayInMilliseconds));
+        now = new Date(date.getTime() + roughlyOneMonth);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.false;
+        // it's after the date and was completed over a month ago
+        completion = new Date(date.getTime());
+        now = new Date(date.getTime() + roughlyOneMonth);
+        (0, chai_1.expect)((0, chores_1.isChoreOverdue)(mockChore, completion, now)).to.be.true;
+    });
     it('should determine if a yearly chore is overdue');
     it('should determine if a "do once" chore is overdue', () => {
         const date = new Date();

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toParseableDateString = exports.isDateAfter = exports.isTimeAfter = exports.isNowBetweenTimes = exports.parseFullDateTime = exports.parseDate = exports.parseTime = exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
+exports.toParseableDateString = exports.isDateAfter = exports.isTimeAfter = exports.isNowBetweenTimes = exports.parseMonthlyDate = exports.parseFullDateTime = exports.parseDate = exports.parseTime = exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
 const time_1 = require("../models/time");
 const strings_1 = require("../utility/strings");
 const log_1 = __importDefault(require("../utility/log"));
@@ -37,6 +37,16 @@ function parseFrequency(value) {
             return {
                 kind: 'Weekly',
                 weekday: timeLower
+            };
+        }
+        case 'monthly': {
+            const parsedDate = parseMonthlyDate(time);
+            if (parsedDate === undefined) {
+                return new Error(`unrecognized date`);
+            }
+            return {
+                kind: 'Monthly',
+                date: parsedDate
             };
         }
         case 'yearly': {
@@ -210,6 +220,29 @@ function parseFullDateTime(dateTime) {
     return parsedDateTime.toDate();
 }
 exports.parseFullDateTime = parseFullDateTime;
+function parseMonthlyDate(date) {
+    const validFormats = [
+        'Do',
+        'DD',
+        'hh a',
+        'Do hh:mm a',
+        'DD hh:mm a',
+        'Do HH:mm',
+        'DD HH:mm',
+        'HH:mm',
+        'hh:mm a',
+        'HH mm',
+        'hh mm a',
+        'HHmm',
+        'hhmm a'
+    ];
+    const parsedDate = moment_timezone_1.default.tz(date, validFormats, timeZone);
+    if (!parsedDate.isValid()) {
+        return undefined;
+    }
+    return parsedDate.toDate();
+}
+exports.parseMonthlyDate = parseMonthlyDate;
 function isNowBetweenTimes(start, end) {
     const now = moment_timezone_1.default.tz(timeZone);
     let startTime;

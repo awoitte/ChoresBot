@@ -44,6 +44,18 @@ export function parseFrequency(value: string): MaybeError<Frequency> {
                 weekday: timeLower
             }
         }
+        case 'monthly': {
+            const parsedDate = parseMonthlyDate(time)
+
+            if (parsedDate === undefined) {
+                return new Error(`unrecognized date`)
+            }
+
+            return {
+                kind: 'Monthly',
+                date: parsedDate
+            }
+        }
         case 'yearly': {
             const parsedTime = parseDate(time)
 
@@ -239,6 +251,33 @@ export function parseFullDateTime(dateTime: string): Date | undefined {
     }
 
     return parsedDateTime.toDate()
+}
+
+export function parseMonthlyDate(date: string): Date | undefined {
+    const validFormats = [
+        'Do',
+        'DD',
+        'hh a',
+
+        'Do hh:mm a',
+        'DD hh:mm a',
+        'Do HH:mm',
+        'DD HH:mm',
+
+        'HH:mm',
+        'hh:mm a',
+        'HH mm',
+        'hh mm a',
+        'HHmm',
+        'hhmm a'
+    ]
+    const parsedDate = moment.tz(date, validFormats, timeZone)
+
+    if (!parsedDate.isValid()) {
+        return undefined
+    }
+
+    return parsedDate.toDate()
 }
 
 export function isNowBetweenTimes(start?: Date, end?: Date): boolean {

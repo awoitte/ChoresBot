@@ -8,6 +8,11 @@ export type Weekly = {
     weekday: string
 }
 
+export type Monthly = {
+    kind: 'Monthly'
+    date: Date
+}
+
 export type Yearly = {
     kind: 'Yearly'
     date: Date
@@ -18,7 +23,7 @@ export type Once = {
     date: Date
 }
 
-export type Frequency = Daily | Weekly | Yearly | Once
+export type Frequency = Daily | Weekly | Monthly | Yearly | Once
 
 // For use with Date.getDay()
 export const Weekdays = [

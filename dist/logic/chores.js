@@ -125,6 +125,23 @@ function getChoreDueDate(chore, mostRecentCompletion) {
             due.setMinutes(0);
             return due;
         }
+        case 'Monthly': {
+            // due one month after latest completion on the day/time specified
+            const due = new Date(completion.getTime());
+            const completionMonth = completion.getMonth();
+            if (completionMonth === 11) {
+                // if last completion was in december we need to account for the year wrapping
+                due.setMonth(0);
+                due.setFullYear(completion.getFullYear() + 1);
+            }
+            else {
+                due.setMonth(completion.getMonth() + 1);
+            }
+            due.setDate(frequency.date.getDate());
+            due.setHours(frequency.date.getHours());
+            due.setMinutes(frequency.date.getMinutes());
+            return due;
+        }
         case 'Yearly': {
             // due one year after latest completion at the month/day/time specified
             const due = new Date(frequency.date.getTime());

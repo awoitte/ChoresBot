@@ -129,6 +129,25 @@ const time_2 = require("../models/time");
         (0, chai_1.expect)(frequency.date.getDate()).to.equal(10);
         (0, chai_1.expect)(frequency.date.getFullYear()).to.equal(2022);
     });
+    it('should parse monthly', () => {
+        let frequency = (0, time_1.parseFrequency)('monthly @ 10 9:00 PM');
+        if (frequency === undefined ||
+            frequency instanceof Error ||
+            frequency.kind !== 'Monthly') {
+            throw new Error('incorrect frequency');
+        }
+        (0, chai_1.expect)(frequency.date.getDate()).to.equal(10);
+        (0, chai_1.expect)(frequency.date.getHours()).to.equal(21);
+        (0, chai_1.expect)(frequency.date.getMinutes()).to.equal(0);
+        frequency = (0, time_1.parseFrequency)('monthly @ 7:00');
+        if (frequency === undefined ||
+            frequency instanceof Error ||
+            frequency.kind !== 'Monthly') {
+            throw new Error('incorrect frequency');
+        }
+        (0, chai_1.expect)(frequency.date.getHours()).to.equal(7);
+        (0, chai_1.expect)(frequency.date.getMinutes()).to.equal(0);
+    });
 });
 if (process.env.LOCALE == 'en-US' &&
     process.env.TIMEZONE == 'America/New_York') {

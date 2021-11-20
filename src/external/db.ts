@@ -257,6 +257,11 @@ function parseFrequencyRowData(
                 kind: 'Weekly',
                 weekday: weekday
             }
+        case 'Monthly':
+            return {
+                kind: 'Monthly',
+                date: date
+            }
         case 'Yearly':
             return {
                 kind: 'Yearly',

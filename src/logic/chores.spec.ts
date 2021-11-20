@@ -105,7 +105,47 @@ describe('Overdue Algorithm', () => {
         now = new Date(wednesday.getTime() - dayInMilliseconds)
         expect(isChoreOverdue(mockChore, completion, now)).to.be.false
     })
-    it('should determine if a monthly chore is overdue')
+
+    it('should determine if a monthly chore is overdue', () => {
+        const date: Date = new Date()
+        let now: Date
+        let completion: Date
+
+        const roughlyOneMonth = weekInMilliseconds * 5
+
+        const mockChore = Object.assign({}, mock.genericChore, {
+            frequency: {
+                kind: 'Monthly',
+                date
+            }
+        })
+
+        // it's before the date and never completed
+        now = new Date(date.getTime() - weekInMilliseconds)
+        expect(isChoreOverdue(mockChore, undefined, now)).to.be.true
+
+        // it's after the date and never completed
+        now = new Date(date.getTime() + weekInMilliseconds)
+        expect(isChoreOverdue(mockChore, undefined, now)).to.be.true
+
+        // it's after the date but has been completed early
+        completion = new Date(date.getTime() - dayInMilliseconds)
+        now = new Date(date.getTime() + dayInMilliseconds)
+        expect(isChoreOverdue(mockChore, completion, now)).to.be.false
+
+        // it's after the date but has been completed
+        completion = new Date(
+            date.getTime() + (roughlyOneMonth - dayInMilliseconds)
+        )
+        now = new Date(date.getTime() + roughlyOneMonth)
+        expect(isChoreOverdue(mockChore, completion, now)).to.be.false
+
+        // it's after the date and was completed over a month ago
+        completion = new Date(date.getTime())
+        now = new Date(date.getTime() + roughlyOneMonth)
+        expect(isChoreOverdue(mockChore, completion, now)).to.be.true
+    })
+
     it('should determine if a yearly chore is overdue')
     it('should determine if a "do once" chore is overdue', () => {
         const date: Date = new Date()
