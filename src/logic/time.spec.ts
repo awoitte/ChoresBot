@@ -178,6 +178,20 @@ describe('Frequency parsing algorithm', () => {
         expect(frequency.date.getHours()).to.equal(12)
         expect(frequency.date.getMinutes()).to.equal(25)
         expect(frequency.date.getFullYear()).to.equal(now.getFullYear())
+
+        frequency = parseFrequency('Once @ Apr 10 2022')
+
+        if (
+            frequency === undefined ||
+            frequency instanceof Error ||
+            frequency.kind !== 'Once'
+        ) {
+            throw new Error('incorrect frequency')
+        }
+
+        expect(frequency.date.getMonth()).to.equal(Months.indexOf('april'))
+        expect(frequency.date.getDate()).to.equal(10)
+        expect(frequency.date.getFullYear()).to.equal(2022)
     })
 })
 

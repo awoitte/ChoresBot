@@ -145,6 +145,10 @@ exports.parseDate = parseDate;
 function parseFullDateTime(dateTime) {
     // TODO: there's gotta be a better way
     const validFormats = [
+        'MMM Do',
+        'MMM DD',
+        'MMM Do YYYY',
+        'MMM DD YYYY',
         'MMM Do YYYY hh:mm a',
         'MMM DD YYYY hh:mm a',
         'MMM Do YYYY hh:mm a',
@@ -177,10 +181,6 @@ function parseFullDateTime(dateTime) {
         'hh mm a',
         'HHmm',
         'hhmm a',
-        'MMM Do',
-        'MMM DD',
-        'MMM Do YYYY',
-        'MMM DD YYYY',
         'MM/DD',
         'MM/DD hh:mm a',
         'MM/DD HH:mm',

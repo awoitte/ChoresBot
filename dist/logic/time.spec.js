@@ -119,6 +119,15 @@ const time_2 = require("../models/time");
         (0, chai_1.expect)(frequency.date.getHours()).to.equal(12);
         (0, chai_1.expect)(frequency.date.getMinutes()).to.equal(25);
         (0, chai_1.expect)(frequency.date.getFullYear()).to.equal(now.getFullYear());
+        frequency = (0, time_1.parseFrequency)('Once @ Apr 10 2022');
+        if (frequency === undefined ||
+            frequency instanceof Error ||
+            frequency.kind !== 'Once') {
+            throw new Error('incorrect frequency');
+        }
+        (0, chai_1.expect)(frequency.date.getMonth()).to.equal(time_2.Months.indexOf('april'));
+        (0, chai_1.expect)(frequency.date.getDate()).to.equal(10);
+        (0, chai_1.expect)(frequency.date.getFullYear()).to.equal(2022);
     });
 });
 if (process.env.LOCALE == 'en-US' &&
