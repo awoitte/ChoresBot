@@ -49,12 +49,6 @@ const time_1 = require("./logic/time");
     if (nightTime === undefined) {
         nightTime = (0, time_1.parseTime)('11:00 PM');
     }
-    // --- Server ---
-    const app = (0, express_1.default)();
-    app.use(express_1.default.static('./client/dist'));
-    app.listen(serverPort, () => {
-        (0, log_1.default)(`Listening at http://localhost:${serverPort}`);
-    });
     // --- External Services ---
     let db;
     let chat;
@@ -90,6 +84,13 @@ const time_1 = require("./logic/time");
         });
         return true; // keep looping
     }), frequency * 1000, false, true);
+    // --- Server ---
+    const app = (0, express_1.default)();
+    app.use(express_1.default.static('./client/dist'));
+    app.listen(serverPort, () => {
+        (0, log_1.default)(`Listening at http://localhost:${serverPort}`);
+    });
+    app.get('/chores', serveChoresList.bind(null, db));
 }))();
 function performActions(actions, chat, db) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -127,6 +128,12 @@ function performActions(actions, chat, db) {
                 }
             }
         }
+    });
+}
+function serveChoresList(db, request, response) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const chores = yield db.getAllChoreNames();
+        response.json(chores);
     });
 }
 //# sourceMappingURL=main.js.map

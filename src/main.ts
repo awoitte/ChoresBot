@@ -3,7 +3,7 @@ import express from 'express'
 import { Chat } from './models/chat'
 import { initChat } from './external/chat'
 
-import { DB } from './models/db'
+import { DB, ReadOnlyDB } from './models/db'
 import { pgDB } from './external/db'
 
 import log from './utility/log'
@@ -47,15 +47,6 @@ import { parseTime } from './logic/time'
     if (nightTime === undefined) {
         nightTime = parseTime('11:00 PM')
     }
-
-    // --- Server ---
-    const app = express()
-
-    app.use(express.static('./client/dist'))
-
-    app.listen(serverPort, () => {
-        log(`Listening at http://localhost:${serverPort}`)
-    })
 
     // --- External Services ---
     let db: DB
@@ -104,6 +95,17 @@ import { parseTime } from './logic/time'
         false,
         true
     )
+
+    // --- Server ---
+    const app = express()
+
+    app.use(express.static('./client/dist'))
+
+    app.listen(serverPort, () => {
+        log(`Listening at http://localhost:${serverPort}`)
+    })
+
+    app.get('/chores', serveChoresList.bind(null, db))
 })()
 
 async function performActions(
@@ -146,4 +148,14 @@ async function performActions(
             }
         }
     }
+}
+
+async function serveChoresList(
+    db: ReadOnlyDB,
+    request: express.Request,
+    response: express.Response
+) {
+    const chores = await db.getAllChoreNames()
+
+    response.json(chores)
 }
