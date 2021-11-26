@@ -552,7 +552,7 @@ async function runDBTestSuite(db: PostgresDB) {
                 await db.addChore(mock.genericChore)
                 await db.addUser(mock.user1)
 
-                let actions = await loop(db)
+                let actions = await loop(db, mock.config)
 
                 expect(actions).to.have.lengthOf(2)
 
@@ -582,19 +582,19 @@ async function runDBTestSuite(db: PostgresDB) {
                 })
                 await db.modifyChore(mockChoreAssigned)
 
-                expect(await loop(db)).to.have.lengthOf(0)
+                expect(await loop(db, mock.config)).to.have.lengthOf(0)
 
                 await db.addChoreCompletion(mock.genericChore.name, mock.user1)
 
-                expect(await loop(db)).to.have.lengthOf(0)
+                expect(await loop(db, mock.config)).to.have.lengthOf(0)
 
                 await db.deleteChore(mock.genericChore.name)
 
-                expect(await loop(db)).to.have.lengthOf(0)
+                expect(await loop(db, mock.config)).to.have.lengthOf(0)
 
                 await db.addChore(mock.genericChore)
 
-                actions = await loop(db)
+                actions = await loop(db, mock.config)
 
                 expect(actions).to.have.lengthOf(2)
 

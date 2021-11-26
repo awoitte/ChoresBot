@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.toParseableDateString = exports.isDateAfter = exports.isTimeAfter = exports.isNowBetweenTimes = exports.parseMonthlyDate = exports.parseFullDateTime = exports.parseDate = exports.parseTime = exports.formatDateTime = exports.frequencyToString = exports.parseFrequency = void 0;
 const time_1 = require("../models/time");
 const strings_1 = require("../utility/strings");
-const log_1 = __importDefault(require("../utility/log"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const locale = process.env.LOCALE || 'en-US';
 const timeZone = process.env.TIMEZONE || 'America/New_York';
@@ -112,7 +111,6 @@ function frequencyToString(frequency) {
             })}`;
         }
         default:
-            (0, log_1.default)(`kind missing in frequencyToString`);
             return 'Unknown';
     }
 }

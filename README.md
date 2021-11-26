@@ -29,6 +29,7 @@ To run:
 | TIMEZONE             | timezone to display times in (Default: America/New_York)                                           |
 | MORNING_TIME         | Time of day to start assigning chores (Default: 7:00 AM)                                           |
 | NIGHT_TIME           | Time of day to stop assigning chores (Default: 11:00 PM)                                           |
+| URL                  | URL of the server. Used in links sent to the user. Don't include the last '/' (Default: localhost) |
 
 # Extra Notes
 

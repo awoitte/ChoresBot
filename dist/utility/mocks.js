@@ -8,14 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.chat = exports.withTestDB = exports.DBWithAllChoreNames = exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.emptyDB = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = void 0;
+exports.chat = exports.withTestDB = exports.DBWithAllChoreNames = exports.DBWithChoreByName = exports.DBWithOutstandingChores = exports.DBWithChoreAssigned = exports.DBWithUpcoming = exports.emptyDB = exports.furtherUpcomingChore = exports.upcomingChore = exports.moreOverdueChore = exports.overdueChore = exports.skippedChore = exports.genericChore = exports.assignedChore = exports.once = exports.user3 = exports.user2 = exports.user1 = exports.afterDST = exports.beforeDST = exports.config = void 0;
 const db_1 = require("../external/db");
 const time_1 = require("../models/time");
-const log_1 = __importDefault(require("./log"));
+exports.config = {
+    debug: false,
+    verbose: false,
+    clientUrlRoot: 'localhost',
+    discordChannel: 'chores'
+};
 exports.beforeDST = new Date();
 exports.beforeDST.setFullYear(2021);
 exports.beforeDST.setMonth(time_1.Months.indexOf('November'));
@@ -149,13 +151,13 @@ exports.emptyDB = {
         return undefined;
     }),
     getChoreByName: () => __awaiter(void 0, void 0, void 0, function* () {
-        return undefined;
+        return exports.genericChore;
     }),
     getChoresAssignedToUser: () => __awaiter(void 0, void 0, void 0, function* () {
         return [];
     }),
     getAllChoreNames: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [];
+        return [exports.genericChore.name];
     }),
     getAllAssignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
         return [];
@@ -210,7 +212,7 @@ exports.chat = {
         return;
     }),
     sendChatMessage: (message) => __awaiter(void 0, void 0, void 0, function* () {
-        (0, log_1.default)(message.text);
+        console.log(message.text);
     })
 };
 //# sourceMappingURL=mocks.js.map

@@ -52,7 +52,7 @@ ${(0, chat_1.bold)('Frequency')}: ${(0, time_2.frequencyToString)(chore.frequenc
         })} by ${mostRecentCompletion.by.name}`;
     }
     else {
-        description += (0, chat_1.bold)(`\nNever completed`);
+        description += `\n${(0, chat_1.bold)(`Never completed`)}`;
     }
     if (chore.skippedBy !== undefined) {
         const skippedList = chore.skippedBy

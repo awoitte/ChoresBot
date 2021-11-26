@@ -12,11 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.inlineCode = exports.italic = exports.underscore = exports.bold = exports.tagUser = exports.initChat = void 0;
+exports.hyperlink = exports.inlineCode = exports.italic = exports.underscore = exports.bold = exports.tagUser = exports.initChat = void 0;
 const discord_js_1 = require("discord.js");
 const builders_1 = require("@discordjs/builders");
 const log_1 = __importDefault(require("../utility/log"));
-function initChat(channelName, callback) {
+function initChat(config, callback) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = new discord_js_1.Client({
             intents: [
@@ -28,7 +28,7 @@ function initChat(channelName, callback) {
         });
         client.on('messageCreate', (msg) => __awaiter(this, void 0, void 0, function* () {
             if (msg.channel instanceof discord_js_1.TextChannel &&
-                msg.channel.name == channelName &&
+                msg.channel.name == config.discordChannel &&
                 !msg.author.bot // if ChoresBot isn't the author
             ) {
                 callback({
@@ -41,7 +41,7 @@ function initChat(channelName, callback) {
             }
             if (msg.content === 'ping') {
                 msg.react('🏓').catch((reason) => {
-                    (0, log_1.default)(`failed to react: '${reason}'`);
+                    (0, log_1.default)(`failed to react: '${reason}'`, config);
                 });
             }
         }));
@@ -49,7 +49,7 @@ function initChat(channelName, callback) {
             login: (token) => __awaiter(this, void 0, void 0, function* () {
                 client.on('ready', () => {
                     var _a;
-                    (0, log_1.default)(`Logged in as "${(_a = client === null || client === void 0 ? void 0 : client.user) === null || _a === void 0 ? void 0 : _a.tag}"!`);
+                    (0, log_1.default)(`Logged in as "${(_a = client === null || client === void 0 ? void 0 : client.user) === null || _a === void 0 ? void 0 : _a.tag}"!`, config);
                 });
                 client.login(token);
             }),
@@ -59,14 +59,14 @@ function initChat(channelName, callback) {
                     throw new Error('Not registered to any guilds/servers');
                 }
                 if (guilds.size != 1) {
-                    (0, log_1.default)(`Warning: ChoresBot is registered to multiple guilds/servers, sending messages to all`);
+                    (0, log_1.default)(`Warning: ChoresBot is registered to multiple guilds/servers, sending messages to all`, config);
                 }
                 for (const guildRef of guilds.values()) {
                     const guild = yield guildRef.fetch();
                     const channels = yield guild.channels.fetch();
                     for (const channel of channels.values()) {
                         if (channel instanceof discord_js_1.TextChannel &&
-                            channel.name == channelName) {
+                            channel.name == config.discordChannel) {
                             channel.send(message.text);
                         }
                     }
@@ -85,4 +85,5 @@ Object.defineProperty(exports, "bold", { enumerable: true, get: function () { re
 Object.defineProperty(exports, "underscore", { enumerable: true, get: function () { return builders_2.underscore; } });
 Object.defineProperty(exports, "italic", { enumerable: true, get: function () { return builders_2.italic; } });
 Object.defineProperty(exports, "inlineCode", { enumerable: true, get: function () { return builders_2.inlineCode; } });
+Object.defineProperty(exports, "hyperlink", { enumerable: true, get: function () { return builders_2.hyperlink; } });
 //# sourceMappingURL=chat.js.map

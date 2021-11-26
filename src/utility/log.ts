@@ -1,7 +1,7 @@
-import { isDebugFlagSet } from './debug'
+import { Config } from '../models/config'
 
-export default function log(message: string): void {
-    if (isDebugFlagSet() || process.env.VERBOSE === 'TRUE') {
+export default function log(message: string, config: Config): void {
+    if (config.debug || config.verbose) {
         console.log(message)
     }
 }

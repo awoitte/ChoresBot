@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const debug_1 = require("./debug");
-function log(message) {
-    if ((0, debug_1.isDebugFlagSet)() || process.env.VERBOSE === 'TRUE') {
+function log(message, config) {
+    if (config.debug || config.verbose) {
         console.log(message);
     }
 }

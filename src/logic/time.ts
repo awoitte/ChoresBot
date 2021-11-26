@@ -1,7 +1,6 @@
 import { Frequency, Weekdays } from '../models/time'
 import { MaybeError } from '../models/utility'
 import { toTitleCase } from '../utility/strings'
-import log from '../utility/log'
 import moment from 'moment-timezone'
 
 const locale = process.env.LOCALE || 'en-US'
@@ -124,7 +123,6 @@ export function frequencyToString(frequency: Frequency): string {
             })}`
         }
         default:
-            log(`kind missing in frequencyToString`)
             return 'Unknown'
     }
 }

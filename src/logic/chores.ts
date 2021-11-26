@@ -77,7 +77,7 @@ ${bold('Frequency')}: ${frequencyToString(chore.frequency)}`
             dateStyle: 'short'
         })} by ${mostRecentCompletion.by.name}`
     } else {
-        description += bold(`\nNever completed`)
+        description += `\n${bold(`Never completed`)}`
     }
 
     if (chore.skippedBy !== undefined) {

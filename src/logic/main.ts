@@ -1,6 +1,7 @@
 import { ChoresBotUser, Message } from '../models/chat'
 import { Action } from '../models/actions'
 import { DB } from '../models/db'
+import { Config } from '../models/config'
 import log from '../utility/log'
 import { findUserForChore } from './chores'
 import { AllCommands, defaultCallsign } from './commands'
@@ -18,9 +19,10 @@ const reminderTimeConfigKey = 'reminder_time'
 // messageHandler determines how to respond to chat messages
 export async function messageHandler(
     message: Message,
-    db: DB
+    db: DB,
+    config: Config
 ): Promise<Action[]> {
-    log(`New message: [${message.author.name}] "${message.text}"`)
+    log(`New message: [${message.author.name}] "${message.text}"`, config)
 
     const text = message.text.toLowerCase()
 
@@ -72,7 +74,7 @@ export async function messageHandler(
         }
 
         try {
-            return await command.handler(message, db, args)
+            return await command.handler(message, config, db, args)
         } catch (error) {
             return [
                 {
@@ -92,17 +94,13 @@ export async function messageHandler(
 }
 
 // loop is called at a set interval and handles logic that isn't prompted by a chat message
-export async function loop(
-    db: DB,
-    morningTime?: Date,
-    nightTime?: Date
-): Promise<Action[]> {
+export async function loop(db: DB, config: Config): Promise<Action[]> {
     const actions: Action[] = []
 
-    if (!isNowBetweenTimes(morningTime, nightTime)) {
+    if (!isNowBetweenTimes(config.morningTime, config.nightTime)) {
         const lastReminder = await db.getConfigValue(reminderTimeConfigKey)
 
-        if (isReminderTime(db, lastReminder, nightTime)) {
+        if (isReminderTime(lastReminder, config.nightTime)) {
             const now = new Date()
             const assignedChores = await db.getAllAssignedChores()
 
@@ -120,7 +118,7 @@ export async function loop(
     try {
         outstandingChores = await db.getOutstandingUnassignedChores()
     } catch (e) {
-        log('Unable to get outstanding chores')
+        log('Unable to get outstanding chores', config)
         throw e
     }
 
@@ -129,7 +127,7 @@ export async function loop(
         assignableUsers = await db.getAssignableUsersInOrderOfRecentCompletion()
         assignableUsers.reverse() // we want least recent completion first
     } catch (e) {
-        log('Unable to get assignable users')
+        log('Unable to get assignable users', config)
         throw e
     }
 
@@ -137,7 +135,10 @@ export async function loop(
         const selectedUser = findUserForChore(chore, assignableUsers)
 
         if (selectedUser === undefined) {
-            log(`unable to find suitable user for the chore "${chore?.name}"`)
+            log(
+                `unable to find suitable user for the chore "${chore?.name}"`,
+                config
+            )
             continue
         }
 
@@ -152,7 +153,6 @@ export async function loop(
 }
 
 function isReminderTime(
-    db: DB,
     lastReminder: string | null,
     nightTime?: Date
 ): boolean {

@@ -3,9 +3,10 @@ import { Client, Intents, TextChannel } from 'discord.js'
 import { userMention } from '@discordjs/builders'
 import log from '../utility/log'
 import { Chat } from '../models/chat'
+import { Config } from '../models/config'
 
 export async function initChat(
-    channelName: string,
+    config: Config,
     callback: (message: Message) => Promise<void>
 ): Promise<Chat> {
     const client = new Client({
@@ -20,7 +21,7 @@ export async function initChat(
     client.on('messageCreate', async (msg) => {
         if (
             msg.channel instanceof TextChannel &&
-            msg.channel.name == channelName &&
+            msg.channel.name == config.discordChannel &&
             !msg.author.bot // if ChoresBot isn't the author
         ) {
             callback({
@@ -34,7 +35,7 @@ export async function initChat(
 
         if (msg.content === 'ping') {
             msg.react('🏓').catch((reason) => {
-                log(`failed to react: '${reason}'`)
+                log(`failed to react: '${reason}'`, config)
             })
         }
     })
@@ -42,7 +43,7 @@ export async function initChat(
     return {
         login: async (token) => {
             client.on('ready', () => {
-                log(`Logged in as "${client?.user?.tag}"!`)
+                log(`Logged in as "${client?.user?.tag}"!`, config)
             })
 
             client.login(token)
@@ -56,7 +57,8 @@ export async function initChat(
 
             if (guilds.size != 1) {
                 log(
-                    `Warning: ChoresBot is registered to multiple guilds/servers, sending messages to all`
+                    `Warning: ChoresBot is registered to multiple guilds/servers, sending messages to all`,
+                    config
                 )
             }
 
@@ -67,7 +69,7 @@ export async function initChat(
                 for (const channel of channels.values()) {
                     if (
                         channel instanceof TextChannel &&
-                        channel.name == channelName
+                        channel.name == config.discordChannel
                     ) {
                         channel.send(message.text)
                     }
@@ -81,4 +83,10 @@ export function tagUser(user: User): string {
     return userMention(user.id)
 }
 
-export { bold, underscore, italic, inlineCode } from '@discordjs/builders'
+export {
+    bold,
+    underscore,
+    italic,
+    inlineCode,
+    hyperlink
+} from '@discordjs/builders'

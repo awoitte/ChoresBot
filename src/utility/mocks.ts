@@ -2,8 +2,15 @@ import { DB } from '../models/db'
 import { PostgresDB, pgDB } from '../external/db'
 import { Chat, User } from '../models/chat'
 import { Chore } from '../models/chores'
+import { Config } from '../models/config'
 import { Frequency, Months, hourInMilliseconds } from '../models/time'
-import log from './log'
+
+export const config: Config = {
+    debug: false,
+    verbose: false,
+    clientUrlRoot: 'localhost',
+    discordChannel: 'chores'
+}
 
 export const beforeDST: Date = new Date()
 beforeDST.setFullYear(2021)
@@ -168,13 +175,13 @@ export const emptyDB: DB = {
         return undefined
     },
     getChoreByName: async () => {
-        return undefined
+        return genericChore
     },
     getChoresAssignedToUser: async () => {
         return []
     },
     getAllChoreNames: async () => {
-        return []
+        return [genericChore.name]
     },
     getAllAssignedChores: async () => {
         return []
@@ -239,6 +246,6 @@ export const chat: Chat = {
         return
     },
     sendChatMessage: async (message) => {
-        log(message.text)
+        console.log(message.text)
     }
 }

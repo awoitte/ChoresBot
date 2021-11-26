@@ -19,6 +19,7 @@ import {
 
 import { tagUser, inlineCode } from '../external/chat'
 import * as mock from '../utility/mocks'
+import * as routes from '../routes'
 import { didYouMeanMessage } from './actions'
 
 // --- Tests ---
@@ -32,7 +33,8 @@ describe('Message handling logic', async () => {
                     id: ''
                 }
             },
-            mock.emptyDB
+            mock.emptyDB,
+            mock.config
         )
 
         expect(actions).is.not.undefined
@@ -49,7 +51,8 @@ describe('Message handling logic', async () => {
                         id: ''
                     }
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -72,7 +75,8 @@ describe('Message handling logic', async () => {
                         id: ''
                     }
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -94,7 +98,8 @@ describe('Message handling logic', async () => {
                     text: '!request',
                     author: mock.user1
                 },
-                mock.DBWithUpcoming
+                mock.DBWithUpcoming,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -128,7 +133,8 @@ describe('Message handling logic', async () => {
                     text: '!request',
                     author: mock.user1
                 },
-                mock.DBWithChoreAssigned
+                mock.DBWithChoreAssigned,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -155,7 +161,8 @@ describe('Message handling logic', async () => {
                     text: '!request',
                     author: mock.user1
                 },
-                mock.emptyDB // mock.emptyDB will always respond with empty lists by default
+                mock.emptyDB, // mock.emptyDB will always respond with empty lists by default
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -191,7 +198,8 @@ describe('Message handling logic', async () => {
                     text: '!request',
                     author: mock.user1
                 },
-                mockDBUpcomingChoreAlreadySkipped
+                mockDBUpcomingChoreAlreadySkipped,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -218,7 +226,8 @@ describe('Message handling logic', async () => {
                     text: '!skip',
                     author: mock.user1
                 },
-                mock.DBWithChoreAssigned
+                mock.DBWithChoreAssigned,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -250,7 +259,8 @@ describe('Message handling logic', async () => {
                     text: '!skip',
                     author: mock.user1
                 },
-                mock.emptyDB // mock.emptyDB will always respond with empty lists by default
+                mock.emptyDB, // mock.emptyDB will always respond with empty lists by default
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -279,7 +289,8 @@ describe('Message handling logic', async () => {
                     text: '!complete',
                     author: mock.user1
                 },
-                mock.DBWithChoreAssigned
+                mock.DBWithChoreAssigned,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -312,7 +323,8 @@ describe('Message handling logic', async () => {
                     text: '!completed',
                     author: mock.user1
                 },
-                mock.DBWithChoreAssigned
+                mock.DBWithChoreAssigned,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -345,7 +357,8 @@ describe('Message handling logic', async () => {
                     text: '!complete',
                     author: mock.user1
                 },
-                mock.emptyDB // mock.emptyDB will always respond with empty lists by default
+                mock.emptyDB, // mock.emptyDB will always respond with empty lists by default
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -374,7 +387,8 @@ describe('Message handling logic', async () => {
                     text: `!complete ${mock.genericChore.name}`,
                     author: mock.user1
                 },
-                mock.DBWithChoreByName
+                mock.DBWithChoreByName,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -408,7 +422,8 @@ describe('Message handling logic', async () => {
                     text: `!complete ${missingChoreName}`,
                     author: mock.user1
                 },
-                mock.emptyDB // mock.emptyDB will always be unable to find a chore
+                mock.emptyDB, // mock.emptyDB will always be unable to find a chore
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -435,7 +450,8 @@ describe('Message handling logic', async () => {
                     text: '!skip',
                     author: mock.user1
                 },
-                mock.DBWithChoreAssigned
+                mock.DBWithChoreAssigned,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -464,7 +480,8 @@ describe('Message handling logic', async () => {
                     text: `!complete ${modifiedChore.name}`,
                     author: mock.user1
                 },
-                mockDBWithModifiedChore
+                mockDBWithModifiedChore,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -490,7 +507,8 @@ describe('Message handling logic', async () => {
                     text: '!add',
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -509,7 +527,8 @@ describe('Message handling logic', async () => {
                     text: '!add test',
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -529,7 +548,8 @@ describe('Message handling logic', async () => {
                     text: '!add many "args" but no frequency',
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -552,7 +572,8 @@ describe('Message handling logic', async () => {
                     text: `!add ${mockChoreName} ${mockChoreFrequency}`,
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -596,7 +617,8 @@ describe('Message handling logic', async () => {
                     text: '!delete',
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -617,7 +639,8 @@ describe('Message handling logic', async () => {
                     text: `!delete ${missingChoreName}`,
                     author: mock.user1
                 },
-                mock.emptyDB // mock.emptyDB will always be unable to find a chore
+                mock.emptyDB, // mock.emptyDB will always be unable to find a chore
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -644,7 +667,8 @@ describe('Message handling logic', async () => {
                     text: `!delete ${mock.genericChore.name}`,
                     author: mock.user1
                 },
-                mock.DBWithChoreByName
+                mock.DBWithChoreByName,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -671,6 +695,31 @@ describe('Message handling logic', async () => {
         })
     })
 
+    describe('!list command', () => {
+        it('should link users to the chores list page', async () => {
+            const actions = await messageHandler(
+                {
+                    text: `!list`,
+                    author: mock.user1
+                },
+                mock.emptyDB,
+                mock.config
+            )
+
+            expect(actions).to.have.lengthOf(1)
+
+            const action: Action = actions[0]
+
+            if (action.kind !== 'SendMessage') {
+                throw 'Received Action of the wrong type'
+            }
+
+            expect(action.message.text).to.contain(
+                `${mock.config.clientUrlRoot}${routes.choresListPage}`
+            )
+        })
+    })
+
     describe('!info command', () => {
         it('should show assigned chore if given no arguments', async () => {
             let actions = await messageHandler(
@@ -678,7 +727,8 @@ describe('Message handling logic', async () => {
                     text: `!info`,
                     author: mock.user1
                 },
-                mock.emptyDB // mock.emptyDB will respond with undefined when asked to get assigned chores
+                mock.emptyDB, // mock.emptyDB will respond with undefined when asked to get assigned chores
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -698,7 +748,8 @@ describe('Message handling logic', async () => {
                     text: `!info`,
                     author: mock.user1
                 },
-                mock.DBWithChoreAssigned
+                mock.DBWithChoreAssigned,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -719,7 +770,8 @@ describe('Message handling logic', async () => {
                     text: `!info ${missingChoreName}`,
                     author: mock.user1
                 },
-                mock.emptyDB // mock.emptyDB will respond with undefined when asked to getChoreByName
+                mock.emptyDB, // mock.emptyDB will respond with undefined when asked to getChoreByName
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -747,7 +799,8 @@ describe('Message handling logic', async () => {
                     text: `!info ${misspelledChoreName}`,
                     author: mock.user1
                 },
-                mock.DBWithAllChoreNames
+                mock.DBWithAllChoreNames,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -774,7 +827,8 @@ describe('Message handling logic', async () => {
                     text: `!info ${mock.genericChore.name}`,
                     author: mock.user1
                 },
-                mock.DBWithChoreByName
+                mock.DBWithChoreByName,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -794,7 +848,8 @@ describe('Message handling logic', async () => {
                     text: `!opt-in`,
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -828,7 +883,8 @@ describe('Message handling logic', async () => {
                     text: `!opt-out`,
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(2)
@@ -860,7 +916,8 @@ describe('Message handling logic', async () => {
                     text: `!opt-out`,
                     author: mock.user1
                 },
-                mock.DBWithChoreAssigned
+                mock.DBWithChoreAssigned,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(3)
@@ -904,7 +961,8 @@ describe('Message handling logic', async () => {
                     text: `!help`,
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -927,7 +985,8 @@ describe('Message handling logic', async () => {
                         text: `!help ${defaultCallsign(command)}`,
                         author: mock.user1
                     },
-                    mock.emptyDB
+                    mock.emptyDB,
+                    mock.config
                 )
 
                 expect(actions).to.have.lengthOf(1)
@@ -952,7 +1011,8 @@ describe('Message handling logic', async () => {
                     text: `!help hep`,
                     author: mock.user1
                 },
-                mock.emptyDB
+                mock.emptyDB,
+                mock.config
             )
 
             expect(actions).to.have.lengthOf(1)
@@ -970,7 +1030,7 @@ describe('Message handling logic', async () => {
 
 describe('Actions performed at an interval', () => {
     it('should prompt users to complete chores', async () => {
-        const actions = await loop(mock.DBWithOutstandingChores)
+        const actions = await loop(mock.DBWithOutstandingChores, mock.config)
 
         expect(actions).to.have.lengthOf(2)
 
@@ -1003,7 +1063,7 @@ describe('Actions performed at an interval', () => {
             }
         })
 
-        const actions = await loop(mockDB)
+        const actions = await loop(mockDB, mock.config)
 
         expect(actions).to.have.lengthOf(2)
 
@@ -1030,7 +1090,7 @@ describe('Actions performed at an interval', () => {
     })
 
     it('should only prompt users to complete chores between "morning" and "night" times', async () => {
-        let actions = await loop(mock.DBWithOutstandingChores)
+        let actions = await loop(mock.DBWithOutstandingChores, mock.config)
 
         expect(actions).to.have.lengthOf(2)
 
@@ -1046,8 +1106,12 @@ describe('Actions performed at an interval', () => {
         const now = new Date()
         const beforeNow = new Date(now.getTime() - hourInMilliseconds)
         const afterNow = new Date(now.getTime() + hourInMilliseconds)
+        let config = Object.assign({}, mock.config, {
+            morningTime: beforeNow,
+            nightTime: afterNow
+        })
 
-        actions = await loop(mock.DBWithOutstandingChores, beforeNow, afterNow)
+        actions = await loop(mock.DBWithOutstandingChores, config)
 
         expect(actions).to.have.lengthOf(2)
 
@@ -1063,12 +1127,12 @@ describe('Actions performed at an interval', () => {
         const furtherAfterNow = new Date(
             afterNow.getTime() + hourInMilliseconds
         )
+        config = Object.assign({}, mock.config, {
+            morningTime: afterNow,
+            nightTime: furtherAfterNow
+        })
 
-        actions = await loop(
-            mock.DBWithOutstandingChores,
-            afterNow,
-            furtherAfterNow
-        )
+        actions = await loop(mock.DBWithOutstandingChores, config)
 
         expect(actions).to.have.lengthOf(0)
     })
@@ -1092,25 +1156,25 @@ describe('Actions performed at an interval', () => {
                 }
             }
         )
+        let config = Object.assign({}, mock.config, {
+            morningTime: beforeNow,
+            nightTime: afterNow
+        })
 
-        let actions = await loop(
-            mockDBWithAssignedAndDynamicConfig,
-            beforeNow,
-            afterNow
-        )
+        let actions = await loop(mockDBWithAssignedAndDynamicConfig, config)
 
         expect(actions).to.have.lengthOf(0)
 
         const furtherBeforeNow = new Date(
             beforeNow.getTime() - hourInMilliseconds
         )
+        config = Object.assign({}, mock.config, {
+            morningTime: furtherBeforeNow,
+            nightTime: beforeNow
+        })
 
         // now that it's been sent, check that it won't send again
-        actions = await loop(
-            mockDBWithAssignedAndDynamicConfig,
-            furtherBeforeNow,
-            beforeNow
-        )
+        actions = await loop(mockDBWithAssignedAndDynamicConfig, config)
 
         expect(actions).to.have.lengthOf(1)
 
@@ -1122,11 +1186,12 @@ describe('Actions performed at an interval', () => {
 
         expect(action.message.text).to.contain(tagUser(mock.user1))
 
-        actions = await loop(
-            mockDBWithAssignedAndDynamicConfig,
-            furtherBeforeNow,
-            beforeNow
-        )
+        config = Object.assign({}, mock.config, {
+            morningTime: furtherBeforeNow,
+            nightTime: beforeNow
+        })
+
+        actions = await loop(mockDBWithAssignedAndDynamicConfig, config)
 
         expect(actions).to.have.lengthOf(0)
     })
@@ -1137,18 +1202,21 @@ describe('Actions performed at an interval', () => {
         const furtherBeforeNow = new Date(
             beforeNow.getTime() - hourInMilliseconds
         )
+        const config = Object.assign({}, mock.config, {
+            morningTime: furtherBeforeNow,
+            nightTime: beforeNow
+        })
 
         const actions = await loop(
             mock.emptyDB, // mock.emptyDB will always report that there are no assigned chores
-            furtherBeforeNow,
-            beforeNow
+            config
         )
 
         expect(actions).to.have.lengthOf(0)
     })
 
     it('should not prompt users when there are no outstanding chores', async () => {
-        const actions = await loop(mock.DBWithUpcoming) // some upcoming, but no outstanding
+        const actions = await loop(mock.DBWithUpcoming, mock.config) // some upcoming, but no outstanding
 
         expect(actions).to.have.lengthOf(0)
     })
@@ -1183,7 +1251,8 @@ describe('Actions performed at an interval', () => {
                 text: '!skip',
                 author: mock.user1
             },
-            mockDBSameChoreAssignedAndOutstanding
+            mockDBSameChoreAssignedAndOutstanding,
+            mock.config
         )
 
         expect(actions).to.have.lengthOf(2)
@@ -1210,7 +1279,7 @@ describe('Actions performed at an interval', () => {
             `⏭ the chore "${mockChore.name}" has been successfully skipped`
         )
 
-        actions = await loop(mockDBSameChoreAssignedAndOutstanding)
+        actions = await loop(mockDBSameChoreAssignedAndOutstanding, mock.config)
 
         expect(actions).to.have.lengthOf(0)
     })
@@ -1242,7 +1311,10 @@ describe('Actions performed at an interval', () => {
             }
         )
 
-        const actions = await loop(mockDBMultipleChoresAndMultipleUsers)
+        const actions = await loop(
+            mockDBMultipleChoresAndMultipleUsers,
+            mock.config
+        )
 
         expect(actions).to.have.lengthOf(4)
 

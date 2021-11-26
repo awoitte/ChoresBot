@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -12,10 +31,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defaultCallsign = exports.AllCommands = exports.HelpCommand = exports.OptOutCommand = exports.OptInCommand = exports.InfoCommand = exports.DeleteCommand = exports.AddCommand = exports.CompleteCommand = exports.SkipCommand = exports.RequestCommand = exports.PingCommand = void 0;
+exports.defaultCallsign = exports.AllCommands = exports.HelpCommand = exports.OptOutCommand = exports.OptInCommand = exports.InfoCommand = exports.ListCommand = exports.DeleteCommand = exports.AddCommand = exports.CompleteCommand = exports.SkipCommand = exports.RequestCommand = exports.PingCommand = void 0;
 const chat_1 = require("../models/chat");
 const chat_2 = require("../external/chat");
 const log_1 = __importDefault(require("../utility/log"));
+const routes = __importStar(require("../routes"));
 const strings_1 = require("../utility/strings");
 const time_1 = require("./time");
 const actions_1 = require("./actions");
@@ -39,7 +59,7 @@ exports.PingCommand = {
 exports.RequestCommand = {
     callsigns: ['!request'],
     summary: 'Request a new chore early',
-    handler: (message, db) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: (message, config, db) => __awaiter(void 0, void 0, void 0, function* () {
         const userAssignedChores = yield db.getChoresAssignedToUser(message.author);
         if (userAssignedChores.length > 0) {
             const mostUrgentChore = userAssignedChores[0];
@@ -88,7 +108,7 @@ exports.SkipCommand = {
     helpText: `!skip
 
 Skips your currently assigned chore. You will not be re-assigned this chore again until it has been completed.`,
-    handler: (message, db) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: (message, config, db) => __awaiter(void 0, void 0, void 0, function* () {
         const userAssignedChores = yield db.getChoresAssignedToUser(message.author);
         // check if the user is able to skip
         if (userAssignedChores.length === 0) {
@@ -130,7 +150,7 @@ chore-name:
     The name of the chore you wish to complete. If no name is provided then your currently assigned chore is used.
 
 Note: you do not need to be assigned to a chore to complete it`,
-    handler: (message, db, commandArgs) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: (message, config, db, commandArgs) => __awaiter(void 0, void 0, void 0, function* () {
         if (commandArgs.length === 0) {
             return completeAssignedChore(message.author, db);
         }
@@ -165,14 +185,14 @@ e.g.
 !add floop the pig Once @ Nov 9 2:00 PM
 !add clean kitchen fans Monthly @ 10th 10:00 AM`,
     minArgumentCount: 2,
-    handler: (message, db, commandArgs) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: (message, config, db, commandArgs) => __awaiter(void 0, void 0, void 0, function* () {
         const words = commandArgs.split(' ');
         const atSignIndex = words.indexOf('@');
         // there must be a keyword before the @
         // and the name of the chore needs to be before the @
         // so the index must be at least 2
         if (atSignIndex === -1 || atSignIndex < 2) {
-            (0, log_1.default)(`invalid command format for !add command: ${commandArgs}`);
+            (0, log_1.default)(`invalid command format for !add command: ${commandArgs}`, config);
             return [
                 {
                     kind: 'SendMessage',
@@ -188,7 +208,7 @@ e.g.
         const frequencyString = words.slice(atSignIndex - 1).join(' ');
         const frequency = (0, time_1.parseFrequency)(frequencyString);
         if (frequency instanceof Error) {
-            (0, log_1.default)(`Error parsing frequency "${frequency.message}"`);
+            (0, log_1.default)(`Error parsing frequency "${frequency.message}"`, config);
             return [
                 {
                     kind: 'SendMessage',
@@ -228,14 +248,14 @@ chore-name:
     The name of the chore. Shown when being assigned, completed, etc.
 
 Note: although the chore will no longer be accesible or assignable the database will still have records of it and its completions.`,
-    handler: (message, db, choreName) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: (message, config, db, choreName) => __awaiter(void 0, void 0, void 0, function* () {
         // check if chore exists, maybe it was misspelled
         let chore;
         try {
             chore = yield db.getChoreByName(choreName);
         }
         catch (e) {
-            (0, log_1.default)(`error retrieving chore "${choreName}": ${e}`);
+            (0, log_1.default)(`error retrieving chore "${choreName}": ${e}`, config);
             // don't re-throw so user gets more specific message
         }
         if (chore === undefined) {
@@ -258,6 +278,21 @@ Note: although the chore will no longer be accesible or assignable the database 
         ];
     })
 };
+exports.ListCommand = {
+    callsigns: ['!list', '!chores', '!all'],
+    summary: 'Get a list of all chores',
+    handler: (message, config) => __awaiter(void 0, void 0, void 0, function* () {
+        return [
+            {
+                kind: 'SendMessage',
+                message: {
+                    text: `A list of all chores is available ${(0, chat_2.hyperlink)('here', `${config.clientUrlRoot}${routes.choresListPage}`)}`,
+                    author: chat_1.ChoresBotUser
+                }
+            }
+        ];
+    })
+};
 exports.InfoCommand = {
     callsigns: ['!info'],
     summary: 'Get information on a chore',
@@ -268,7 +303,7 @@ chore-name:
     The name of the chore you want info on. If no name is provided then your currently assigned chore is used.
 
 Note: If a chore matching the name you supplied can't be found then the closest match will be shown instead. This can be helpful to check the spelling of a chore's name.`,
-    handler: (message, db, choreName) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: (message, config, db, choreName) => __awaiter(void 0, void 0, void 0, function* () {
         let chore;
         if (choreName === '') {
             // no chore name supplied, use assigned chore
@@ -292,7 +327,7 @@ Note: If a chore matching the name you supplied can't be found then the closest 
                 chore = yield db.getChoreByName(choreName);
             }
             catch (e) {
-                (0, log_1.default)(`error retrieving chore "${choreName}": ${e}`);
+                (0, log_1.default)(`error retrieving chore "${choreName}": ${e}`, config);
                 // don't re-throw so user gets more specific message
             }
             if (chore === undefined) {
@@ -336,7 +371,7 @@ exports.OptInCommand = {
 exports.OptOutCommand = {
     callsigns: ['!opt-out'],
     summary: 'Remove yourself as a user of ChoresBot. You will no longer be assigned chores.',
-    handler: (message, db) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: (message, config, db) => __awaiter(void 0, void 0, void 0, function* () {
         const actions = [];
         const userAssignedChores = yield db.getChoresAssignedToUser(message.author);
         for (const chore of userAssignedChores) {
@@ -367,7 +402,7 @@ command:
     Optional.
     The name of the command you would like help with. If none is provided then a summary of all commands will be given.
     Note: If the command name isn't found then the closest match will be used`,
-    handler: (message, db, commandName) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: (message, config, db, commandName) => __awaiter(void 0, void 0, void 0, function* () {
         if (commandName.length === 0) {
             const helpSummary = exports.AllCommands.map((command) => `${defaultCallsign(command)} - ${command.summary}`).join('\n');
             return [
@@ -386,7 +421,7 @@ command:
             const command = exports.AllCommands.find((command) => defaultCallsign(command) === closestCommand);
             if (command === undefined) {
                 const errorText = `Cannot find closest matching command "${closestCommand}"`;
-                (0, log_1.default)(errorText);
+                (0, log_1.default)(errorText, config);
                 throw new Error(errorText);
             }
             return [
@@ -408,6 +443,7 @@ exports.AllCommands = [
     exports.CompleteCommand,
     exports.AddCommand,
     exports.DeleteCommand,
+    exports.ListCommand,
     exports.InfoCommand,
     exports.OptInCommand,
     exports.OptOutCommand,

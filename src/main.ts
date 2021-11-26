@@ -3,23 +3,30 @@ import express from 'express'
 import { Chat } from './models/chat'
 import { initChat } from './external/chat'
 
-import { DB, ReadOnlyDB } from './models/db'
+import { DB } from './models/db'
 import { pgDB } from './external/db'
 
 import log from './utility/log'
 
-import { isDebugFlagSet } from './utility/debug'
+import { isEnvFlagSet } from './utility/env'
 import { asyncLoop } from './utility/async'
 
 import { Action } from './models/actions'
+import { Config } from './models/config'
 
 import { emptyDB as mockDB, chat as mockChat } from './utility/mocks'
 
 import { loop, messageHandler } from './logic/main'
 import { parseTime } from './logic/time'
+
+import * as routes from './routes'
+import serveChoresList from './api/chores-list'
+import serveChoreInfo from './api/chore-info'
+import path from 'path'
 ;(async () => {
     // --- Config ---
     const serverPort: string = process.env.PORT || '80'
+    const clientUrlRoot: string = process.env.URL || `localhost:${serverPort}`
     const dbConnectionString = process.env.POSTGRESQL_ADDON_URI || ''
     const frequencyString = process.env.FREQUENCY || '120'
     let frequency = parseInt(frequencyString, 10)
@@ -28,6 +35,8 @@ import { parseTime } from './logic/time'
     }
     const channel = process.env.DISCORD_CHANNEL || 'chores'
     const token = process.env.DISCORD_TOKEN || ''
+    const debugFlag = isEnvFlagSet('DEBUG')
+    const verboseFlag = isEnvFlagSet('VERBOSE')
 
     let morningTime: Date | undefined
     if (process.env.MORNING_TIME !== undefined) {
@@ -48,10 +57,19 @@ import { parseTime } from './logic/time'
         nightTime = parseTime('11:00 PM')
     }
 
+    const config: Config = {
+        morningTime,
+        nightTime,
+        debug: debugFlag,
+        verbose: verboseFlag,
+        clientUrlRoot,
+        discordChannel: channel
+    }
+
     // --- External Services ---
     let db: DB
     let chat: Chat
-    if (isDebugFlagSet()) {
+    if (config.debug) {
         db = mockDB
         chat = mockChat
     } else {
@@ -59,15 +77,15 @@ import { parseTime } from './logic/time'
         db = pgdb
         await pgdb.initDB()
 
-        chat = await initChat(channel, async (msg) => {
-            const actions = await messageHandler(msg, db).catch((e) => {
-                log(`Error in message handler!: ${e}`)
+        chat = await initChat(config, async (msg) => {
+            const actions = await messageHandler(msg, db, config).catch((e) => {
+                log(`Error in message handler!: ${e}`, config)
                 return []
             })
 
-            log(`message actions: ${JSON.stringify(actions)}`)
+            log(`message actions: ${JSON.stringify(actions)}`, config)
             await performActions(actions, chat, db).catch((e) => {
-                log(`Error performing actions!: ${e}`)
+                log(`Error performing actions!: ${e}`, config)
             })
         })
 
@@ -77,16 +95,14 @@ import { parseTime } from './logic/time'
     // --- Chat Bot ---
     asyncLoop(
         async () => {
-            const actions = await loop(db, morningTime, nightTime).catch(
-                (e) => {
-                    log(`Error in main loop!: ${e}`)
-                    return []
-                }
-            )
+            const actions = await loop(db, config).catch((e) => {
+                log(`Error in main loop!: ${e}`, config)
+                return []
+            })
 
-            log(`loop actions: ${JSON.stringify(actions)}`)
+            log(`loop actions: ${JSON.stringify(actions)}`, config)
             await performActions(actions, chat, db).catch((e) => {
-                log(`Error performing actions!: ${e}`)
+                log(`Error performing actions!: ${e}`, config)
             })
 
             return true // keep looping
@@ -99,13 +115,28 @@ import { parseTime } from './logic/time'
     // --- Server ---
     const app = express()
 
-    app.use(express.static('./client/dist'))
+    app.use(express.static('client/dist'))
 
-    app.listen(serverPort, () => {
-        log(`Listening at http://localhost:${serverPort}`)
+    app.get(routes.choresListAPI, serveChoresList.bind(null, db))
+    app.get(routes.choreInfoAPI, serveChoreInfo.bind(null, db))
+
+    app.get('*', function (req, res, next) {
+        // fallback to serve index.html for all other requests
+        // (react router will handle individual pages)
+        const options = {
+            root: path.join(__dirname, '..', 'client/dist')
+        }
+
+        res.sendFile('index.html', options, (err) => {
+            if (err) {
+                next(err)
+            }
+        })
     })
 
-    app.get('/chores', serveChoresList.bind(null, db))
+    app.listen(serverPort, () => {
+        log(`Listening at http://localhost:${serverPort}`, config)
+    })
 })()
 
 async function performActions(
@@ -148,14 +179,4 @@ async function performActions(
             }
         }
     }
-}
-
-async function serveChoresList(
-    db: ReadOnlyDB,
-    request: express.Request,
-    response: express.Response
-) {
-    const chores = await db.getAllChoreNames()
-
-    response.json(chores)
 }

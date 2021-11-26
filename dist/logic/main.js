@@ -21,9 +21,9 @@ const actions_1 = require("./actions");
 const time_1 = require("./time");
 const reminderTimeConfigKey = 'reminder_time';
 // messageHandler determines how to respond to chat messages
-function messageHandler(message, db) {
+function messageHandler(message, db, config) {
     return __awaiter(this, void 0, void 0, function* () {
-        (0, log_1.default)(`New message: [${message.author.name}] "${message.text}"`);
+        (0, log_1.default)(`New message: [${message.author.name}] "${message.text}"`, config);
         const text = message.text.toLowerCase();
         for (const command of commands_1.AllCommands) {
             let args;
@@ -66,7 +66,7 @@ function messageHandler(message, db) {
                 }
             }
             try {
-                return yield command.handler(message, db, args);
+                return yield command.handler(message, config, db, args);
             }
             catch (error) {
                 return [
@@ -85,12 +85,12 @@ function messageHandler(message, db) {
 }
 exports.messageHandler = messageHandler;
 // loop is called at a set interval and handles logic that isn't prompted by a chat message
-function loop(db, morningTime, nightTime) {
+function loop(db, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const actions = [];
-        if (!(0, time_1.isNowBetweenTimes)(morningTime, nightTime)) {
+        if (!(0, time_1.isNowBetweenTimes)(config.morningTime, config.nightTime)) {
             const lastReminder = yield db.getConfigValue(reminderTimeConfigKey);
-            if (isReminderTime(db, lastReminder, nightTime)) {
+            if (isReminderTime(lastReminder, config.nightTime)) {
                 const now = new Date();
                 const assignedChores = yield db.getAllAssignedChores();
                 yield db.setConfigValue(reminderTimeConfigKey, (0, time_1.toParseableDateString)(now));
@@ -103,7 +103,7 @@ function loop(db, morningTime, nightTime) {
             outstandingChores = yield db.getOutstandingUnassignedChores();
         }
         catch (e) {
-            (0, log_1.default)('Unable to get outstanding chores');
+            (0, log_1.default)('Unable to get outstanding chores', config);
             throw e;
         }
         let assignableUsers;
@@ -112,13 +112,13 @@ function loop(db, morningTime, nightTime) {
             assignableUsers.reverse(); // we want least recent completion first
         }
         catch (e) {
-            (0, log_1.default)('Unable to get assignable users');
+            (0, log_1.default)('Unable to get assignable users', config);
             throw e;
         }
         for (const chore of outstandingChores) {
             const selectedUser = (0, chores_1.findUserForChore)(chore, assignableUsers);
             if (selectedUser === undefined) {
-                (0, log_1.default)(`unable to find suitable user for the chore "${chore === null || chore === void 0 ? void 0 : chore.name}"`);
+                (0, log_1.default)(`unable to find suitable user for the chore "${chore === null || chore === void 0 ? void 0 : chore.name}"`, config);
                 continue;
             }
             assignableUsers = assignableUsers.filter((u) => u.id !== selectedUser.id);
@@ -128,7 +128,7 @@ function loop(db, morningTime, nightTime) {
     });
 }
 exports.loop = loop;
-function isReminderTime(db, lastReminder, nightTime) {
+function isReminderTime(lastReminder, nightTime) {
     const now = new Date();
     if (nightTime !== undefined && (0, time_1.isTimeAfter)(now, nightTime)) {
         if (lastReminder === null) {

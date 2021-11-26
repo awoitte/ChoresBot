@@ -385,7 +385,7 @@ function runDBTestSuite(db) {
                 it('should not count prior completions if a chore is re-added', () => __awaiter(this, void 0, void 0, function* () {
                     yield db.addChore(mock.genericChore);
                     yield db.addUser(mock.user1);
-                    let actions = yield (0, main_1.loop)(db);
+                    let actions = yield (0, main_1.loop)(db, mock.config);
                     (0, chai_1.expect)(actions).to.have.lengthOf(2);
                     let action = actions[0];
                     if (action.kind !== 'ModifyChore') {
@@ -402,13 +402,13 @@ function runDBTestSuite(db) {
                         assigned: mock.user1
                     });
                     yield db.modifyChore(mockChoreAssigned);
-                    (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                    (0, chai_1.expect)(yield (0, main_1.loop)(db, mock.config)).to.have.lengthOf(0);
                     yield db.addChoreCompletion(mock.genericChore.name, mock.user1);
-                    (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                    (0, chai_1.expect)(yield (0, main_1.loop)(db, mock.config)).to.have.lengthOf(0);
                     yield db.deleteChore(mock.genericChore.name);
-                    (0, chai_1.expect)(yield (0, main_1.loop)(db)).to.have.lengthOf(0);
+                    (0, chai_1.expect)(yield (0, main_1.loop)(db, mock.config)).to.have.lengthOf(0);
                     yield db.addChore(mock.genericChore);
-                    actions = yield (0, main_1.loop)(db);
+                    actions = yield (0, main_1.loop)(db, mock.config);
                     (0, chai_1.expect)(actions).to.have.lengthOf(2);
                     action = actions[0];
                     if (action.kind !== 'ModifyChore') {
