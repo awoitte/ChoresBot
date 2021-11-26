@@ -151,13 +151,13 @@ exports.emptyDB = {
         return undefined;
     }),
     getChoreByName: () => __awaiter(void 0, void 0, void 0, function* () {
-        return exports.genericChore;
+        return undefined;
     }),
     getChoresAssignedToUser: () => __awaiter(void 0, void 0, void 0, function* () {
         return [];
     }),
     getAllChoreNames: () => __awaiter(void 0, void 0, void 0, function* () {
-        return [exports.genericChore.name];
+        return [];
     }),
     getAllAssignedChores: () => __awaiter(void 0, void 0, void 0, function* () {
         return [];

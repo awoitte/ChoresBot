@@ -175,13 +175,13 @@ export const emptyDB: DB = {
         return undefined
     },
     getChoreByName: async () => {
-        return genericChore
+        return undefined
     },
     getChoresAssignedToUser: async () => {
         return []
     },
     getAllChoreNames: async () => {
-        return [genericChore.name]
+        return []
     },
     getAllAssignedChores: async () => {
         return []
